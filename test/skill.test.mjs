@@ -191,6 +191,52 @@ test('POLICY_TEXT injects the archive-ask rule without touching other logic', as
   assert.match(policy, /禁止手改数据/)
 })
 
+test('SKILL.md carries the activation layer that decides whether it is invoked at all', async () => {
+  const skill = await readSkill()
+  const front = skill.match(/^---\n([\s\S]*?)\n---/)
+  assert.ok(front, 'frontmatter missing')
+
+  // L2: the model only sees name + description in the skill list.
+  const description = front[1].match(/^description: "(.*)"$/m)
+  assert.ok(description, 'description must be a single-quoted-line YAML string')
+  assert.ok(description[1].length <= 400, `description too long: ${description[1].length} chars`)
+  assert.match(description[1], /任务/, 'description must name the domain in natural language')
+  assert.match(description[1], /不适用|不要用/, 'description must carry a negative boundary')
+  assert.doesNotMatch(description[1], /ptodo [a-z]/, 'description must not be a CLI cheat sheet')
+  assert.doesNotMatch(description[1], /\bANY\b/, 'description must not claim universal scope')
+
+  // Metadata parity with peer skills in this ecosystem.
+  for (const field of ['version:', 'license:', 'allowed-tools:', 'display_name:']) {
+    assert.ok(front[1].includes(field), `missing frontmatter field: ${field}`)
+  }
+
+  // L3: the pre-activation sections must come before the protocol body.
+  const headings = [
+    '## 何时使用本技能',
+    '## 何时不要使用',
+    '## 与近邻技能的边界',
+    '## 能力边界',
+    '## 调用约定',
+    '## 铁律',
+    '## 执行门（必须按顺序）',
+  ]
+  const positions = headings.map((heading) => skill.indexOf(heading))
+  assert.ok(positions.every((index) => index >= 0), 'activation sections missing')
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'activation sections out of order')
+
+  // Every "when to use" signal must name the first step, so the model has a landing point.
+  assert.match(skill, /能力边界/)
+  assert.match(skill, /三条不可协商的契约/)
+
+  const activation = await readSkill(path.join('references', 'activation.md'))
+  assert.match(activation, /L1 注册/)
+  assert.match(activation, /L2 选择/)
+  assert.match(activation, /L3 执行/)
+  assert.match(activation, /不适用/)
+  assert.match(activation, /近邻诱饵/)
+  assert.match(activation, /desc chars/)
+})
+
 test('SKILL.md documents version docs for batch completion / push and links them via done --version', async () => {
   const skill = await readSkill()
   const start = skill.indexOf('## 版本文档（批量完成 / push 前）')

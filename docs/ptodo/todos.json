@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 100,
-  "revision": 120,
-  "updatedAt": "2026-11-04T09:25:47.010Z",
+  "nextId": 101,
+  "revision": 126,
+  "updatedAt": "2026-11-04T10:11:30.965Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -789,6 +789,60 @@
       "doneVersion": "2.0.3",
       "doneEvidence": "17 个插件开发任务（T-0041,T-0043..T-0058）连同 context/证据迁入本仓 docs/ptodo；77 条相关 history 同步；工作区已 purge 这 17 条，剩 33 条产品任务（31 open + T-0010 doing + T-0042 done）；插件看板 revision 119、nextId 100",
       "revision": 5,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0100",
+      "legacyId": null,
+      "parentId": null,
+      "title": "技能激活改造：SKILL.md 从 CLI 手册改为标准技能定义",
+      "status": "done",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "skill",
+        "docs"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "文档修正完成，刷新快照",
+        "decisions": [
+          {
+            "text": "按三层激活模型改造（L1注册/L2选择/L3执行）；description 611→168 字符并补负例；新增 references/activation.md；协议章节标题保持不变以免破坏既有断言",
+            "by": "wb:chengshu",
+            "at": "2026-11-04T10:07:32.464Z"
+          },
+          {
+            "text": "实测：非git空看板→create→start(幂等)→done(缺version报INVALID5)→done成功；未start就done=CONFLICT4；自依赖=INVALID5而非CYCLE8；硬依赖未完成=NOT_READY10；跨任务环=8。据此修正G3与失败处理表",
+            "by": "wb:chengshu",
+            "at": "2026-11-04T10:11:06.924Z"
+          }
+        ],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": "optimisticGeek",
+      "releasedBy": null,
+      "createdAt": "2026-11-04T10:07:21.155Z",
+      "updatedAt": "2026-11-04T10:11:30.964Z",
+      "claimedAt": "2026-11-04T10:07:33.169Z",
+      "statusChangedAt": "2026-11-04T10:07:38.440Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": "2026-11-04T10:07:38.440Z",
+      "doneVersion": "28b4202",
+      "doneEvidence": "node --test test/*.mjs 121/121 通过；desc 611→168 字符、命令串 0、含负例；新增 references/activation.md（三层激活+17 条正负例）；SKILL.md 新增 5 节激活层",
+      "revision": 6,
       "archivedBy": null
     }
   ]

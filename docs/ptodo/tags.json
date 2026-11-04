@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "revision": 1,
+  "updatedAt": "2026-11-04T10:07:21.065Z",
+  "tags": [
+    {
+      "code": "skill",
+      "name": "skill",
+      "description": "",
+      "aliases": [],
+      "status": "draft",
+      "deprecatedBy": null,
+      "createdAt": "2026-11-04T10:07:21.065Z",
+      "updatedAt": "2026-11-04T10:07:21.065Z"
+    },
+    {
+      "code": "docs",
+      "name": "docs",
+      "description": "",
+      "aliases": [],
+      "status": "draft",
+      "deprecatedBy": null,
+      "createdAt": "2026-11-04T10:07:21.065Z",
+      "updatedAt": "2026-11-04T10:07:21.065Z"
+    }
+  ]
+}

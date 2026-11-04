@@ -1,12 +1,82 @@
 ---
 name: project-todo
-description: "Use at the start, during, and end of ANY development task in this repository — implementing, fixing, refactoring, testing, reviewing, documenting, delivering — even when the user never mentions todos. 强制：开工先 ptodo task ready（用户说「继续开发」→ ptodo task ready --limit 3），用 ptodo task start <id> 认领并拿开工简报；进行中用 ptodo context / task block / task release 写回；完成用 ptodo task done <id> --evidence；收尾用 ptodo task status 确认并给结论行。完成人/负责人是 git user.name（person），--by 只是工具身份；done 返回 milestone.complete=true 时必须先问用户是否归档，确认后才 ptodo admin archive-batch --milestone。触发词：待办、任务、开工、认领、就绪、下一步、继续、修 bug、实现需求、排期、完成、交接、谁在做、归档、负责人。纯只读问答可跳过认领。"
+description: "开发任务的开工、认领、写回与收尾登记。当用户问待办/任务/下一步做什么/谁在做/还有多少没做完，或即将动手改代码、跑构建、补测试、写文档、出交付物（哪怕他完全没提到「待办」二字），都应先用本技能认领任务再动手，完成后用它记录可复核证据并给出结论行。不适用：纯只读问答、概念解释、与仓库无关的临时命令——那些直接回答即可，不必进入本技能。"
+description_zh: "开发任务的开场与收尾登记：认领任务、查看下一步、写回进度、完成取证、交接归档。用户问待办或准备动手改代码时使用。"
+description_en: "Task claim and completion ledger for development work: read the ready queue, claim a task, write back progress, complete with verifiable evidence. Use when asked about todos/next steps, or before any change to the repo."
+version: 2.1.0
+license: Apache-2.0
+allowed-tools: Bash, PowerShell, Read, Glob, Grep, Edit, Write
+display_name: "项目待办"
+display_name_en: "Project Todo"
 ---
 
 # 项目待办（ptodo v2）
 
-本仓库的待办**只有一套**：数据在 `docs/ptodo/`，唯一入口是终端命令 `ptodo`。
-本技能不是建议，是执行协议：**没有记录到 ptodo 的工作，不算开始，也不算完成。**
+> **一句话**：一个开发任务从「领」到「收」只有一条路径 —— `ptodo`。数据在 `docs/ptodo/`，命令是 `ptodo`，页面读写同一份数据。
+>
+> 本文件是这条路径的**协议**：先说清「什么时候该走进来」，再规定「进来之后怎么走」。细节参数一律放 `references/`，正文不重复。
+
+## 何时使用本技能
+
+出现下列任一信号就调用，**不必等用户说出「待办」两个字**：
+
+| 信号 | 典型说法 | 进入后第一步 |
+|---|---|---|
+| 问任务 | 「有什么任务可以开发」「下一步做什么」「谁在做 X」「还剩多少」 | G0：读就绪队列 |
+| 让开工 | 「继续开发」「继续」「做这个」「把 A-7 做完」 | G0 → G1：认领并拿简报 |
+| 要动手 | 让你实现 / 修复 / 重构 / 补测试 / 写文档 / 出交付物 | G1：先认领，再改文件 |
+| 要收尾 | 「做完了吗」「提一下」「发版」「交接给他」 | G3 → G4：取证 + 结论行 |
+| 要排期 | 「新建任务」「拆子任务」「加依赖」「归档里程碑」 | 命令速查 + 组织命令 |
+
+判据只有一条：**这一回合会不会改变仓库里的文件、或产出需要留痕的交付物？**
+会 → 走完整协议；不会 → 按下一节处理。
+
+## 何时不要使用
+
+- **纯只读问答**：解释概念、查资料、回答「这行代码干什么」。直接答；需要就说一句现状，最多用 `ptodo task status`。
+- **与仓库无关的临时命令**：版本号探测、一次性 `grep`、环境排查。
+- **只想知道现状**：`ptodo task status` / `task get` 一条命令够了，不用走完整协议。
+- **别的技能有更具体的落点**（见下节），不要用待办技能替代它们干活。
+- **用户明确说「这次不用登记」**：遵从，但在答复里写明「本次未登记」。
+
+## 与近邻技能的边界
+
+| 场景 | 交给谁 | 本技能只负责 |
+|---|---|---|
+| 改 Vue / Java 代码、跑构建、补测试 | 直接做 | 认领与收尾，不管「怎么改」 |
+| 写 Word / Excel / PPT | 文档与表格技能 | 交付物仍要挂到任务与版本文档上 |
+| 网页操作、抓取数据 | 浏览器技能 | 不接管执行过程 |
+| 发布上线 | 发布技能 | 发布前必须已有 `task done` 与版本文档 |
+| 需求口径有争议 | 需求注册表（G0.5） | 只负责「停下来问」，不裁决客户口径 |
+
+## 能力边界
+
+**能做**：读写本仓 `docs/ptodo/` 看板；认领 / 写回 / 完成 / 阻塞 / 交接 / 归档任务；维护阶段、里程碑、依赖与标签；生成开工简报；自检安装与身份。
+
+**不能做（也必须如实说）**：替用户决定优先级；判定需求是否成立；改动别人持有的任务；凭空编造 `T-xxxx`；把没跑过的验证写成 `--evidence`；承诺「登记了就一定被完成」。
+
+**三条不可协商的契约**：
+1. 没 `task start` 不算开工；没 `task done` 不得说「已完成」。
+2. 证据必须可复核（命令、用例编号、截图路径），不接受「已修复」这类自述。
+3. 里程碑全部完成时**先问用户**是否归档，**未确认不得归档**。
+
+## 调用约定（30 秒版）
+
+```
+读就绪 → 认领拿简报 → 需求三查 → 干活并写回 → done 带证据 → status + 结论行
+```
+
+五条命令覆盖 90% 的回合：
+
+```bash
+ptodo task ready --limit 3
+ptodo task start <T-xxxx>
+ptodo context progress <id> "做到哪、下一步"
+ptodo task done <id> --evidence "可复核证据"
+ptodo task status
+```
+
+其余一切细节在下文与 `references/`。**不要凭记忆拼参数**：不确定就翻 `references/cli.md`。
 
 ## 铁律
 
@@ -92,7 +162,8 @@ ptodo task create       --title "..." --parent <id> --stage S-0002 --tags a,b [-
 ptodo task done <id> --evidence "可复核证据（命令/用例/截图路径）"
 ```
 
-- 只有当前持有者能完成；`--version` 可显式指定版本，否则自动取 git 短 hash；未传 `--evidence` 时自动取 `git log --grep=<id>` 的提交摘要。
+- 只有当前持有者能完成，且任务必须已 `task start`；**未认领就 `done` 会返回 `CONFLICT`(4)「不在进行中，不能完成」**，先 `start` 再 `done`（实测）。
+- `--version` 可显式指定版本，否则自动取 git 短 hash；未传 `--evidence` 时自动取 `git log --grep=<id>` 的提交摘要。
 - **非 git 项目（或从非 git 目录执行）必须带 `--version <版本>`**，否则报 `[INVALID]` 退出码 5；工作区不是 git 仓是常见情况，不要因此谎报完成。
 - `done` 会写 `doneAt/doneBy/doneVersion/doneEvidence`，补默认 `context.progress`，并解锁下游（返回值 `unlocked`）。
 - **归档询问（强制）**：`task done` 返回 JSON 的 `milestone.complete=true`（该里程碑下活跃叶子任务全部完成；文本输出也会多一行「里程碑 `M-xxxx` 已全部完成；归档前先询问用户：`ptodo admin archive-batch --milestone M-xxxx`」）时，**必须先问用户**「里程碑 `M-xxxx`（名称）已全部完成，是否归档？」，**得到肯定答复后**才执行 `ptodo admin archive-batch --milestone M-xxxx`；用户拒绝则写回 `ptodo context loop <id> "里程碑 M-xxxx 待归档，用户暂不归档"`。**未确认不得归档**。`milestone=null`（无里程碑）或 `complete=false` 不要提归档，继续做剩余任务。
@@ -234,6 +305,8 @@ ptodo task status
 
 顺序不要颠倒：先确认技能装的是**当前源码**（`linked` 才保证最新），再确认身份，再看环境，最后读数据。
 
+> **技能装了却没被调用**：不是安装问题，是描述与触发问题。判定与修复步骤见 `references/activation.md`（含正例/负例与回归用例），不要用「让用户手动点名技能」当常规解法。
+
 ### ptodo 不在 PATH 时（降级三级，照抄任一）
 
 ```bash
@@ -270,9 +343,9 @@ node "<源码仓>/dsh-plugins/dsh-project-todo/bin/ptodo.mjs" --version    # 3) 
 |---|---|
 | `ptodo` 找不到（command not found） | 按「跨工具执行 → ptodo 不在 PATH 时」三级降级；都不可用再在包目录执行 `npm link`（或 `npm i -g .`）后重试，不要退回 Markdown 队列 |
 | `NOT_READY` (10) | 看原因：硬依赖未完成 → 先做上游；前置未满足 → `pre confirm` / `res approve` / 等提交；owner 不是你 → 换一条（`task get` 看 holder），不要抢。若 holder=你仍报错，先看依赖/前置/阶段是否归档 |
-| `DEPENDENCY_CYCLE` (8) | 依赖成环；删掉反向边（`task dep remove` / `stage dep remove`），不要继续加边 |
-| `CONFLICT` (4) | 并发抢任务/文件锁、阶段还有任务、已依赖同一目标；读返回信息，换任务或稍后重试，不默认 `--force` |
-| `INVALID` (5) | 参数或版本问题；最常见是非 git 项目 `task done` 未带 `--version` → 补 `--version <版本>` |
+| `DEPENDENCY_CYCLE` (8) | **跨任务**依赖成环（如 `A→B→A`）；删掉反向边（`task dep remove` / `stage dep remove`），不要继续加边。**自依赖不是 8，是 `INVALID`(5)**（实测） |
+| `CONFLICT` (4) | 最常见是**没 `task start` 就 `done`**（报「不在进行中，不能完成」）→ 先 `start`；其余为并发抢任务/文件锁、阶段还有任务、已依赖同一目标。读返回信息，换任务或稍后重试，不默认 `--force` |
+| `INVALID` (5) | 参数或版本问题；三种常见：非 git 项目 `task done` 未带 `--version` → 补 `--version <版本>`；`task start` 漏任务 ID；任务自依赖 |
 | `TAG_NOT_FOUND` (9) | 标签未注册且 `tag.strict=true`；先 `ptodo tag add --name ...`，或改用已注册编码 |
 | `NOT_FOUND` (3) | `task list` 重新找 ID；不要新建重复任务 |
 | `NO_PROJECT` (7) | `--root <项目根>`，或先 `ptodo init` |
@@ -282,9 +355,11 @@ node "<源码仓>/dsh-plugins/dsh-project-todo/bin/ptodo.mjs" --version    # 3) 
 | `doneBy`/`holder` 是 `session-xxx` 之类机器串 | person 没取到 git `user.name`：配 `git config user.name` 或 `PTODO_ACTOR=<工具>:<姓名>` 后重做该动作；历史记录用 `context decision` 说明 |
 | doctor 报「版本文档缺失」 | 按模板补 `<docDir>/<文档号>.md`（本仓 `utp/docs/version/`），同批任务共用一份；补完再 push/交付 |
 | 看板为空 | `task create` 后 `task start`，再开工 |
+| 技能装了但模型不调用 | 看 `references/activation.md`：先查 `disableModelInvocation`/`disable`，再查 description 是否还写成命令清单；**不要**把「让用户点名技能」当常规解法 |
 
 ## 需要时再读
 
+- `references/activation.md`：**技能为什么会被/不会被调用**、description 与触发判定的写法、正例负例与回归用例（改描述后必跑）。
 - `references/cli.md`：完整参数、JSON 输出、退出码。
 - `references/protocol.md`：三层模型、状态机、依赖/就绪、开工简报、释放交接、上下文折叠。
 - `references/tools.md`：**各工具（WorkBuddy/ZCode/Claude/Codex）的跨工具自检、PATH 降级、actor 写法、常见故障处理**。

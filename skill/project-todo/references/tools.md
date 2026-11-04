@@ -96,17 +96,19 @@ node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" --version
 ## WorkBuddy（重点）
 
 - 安装位置：`C:\Users\<用户>\.workbuddy\skills\project-todo`（Windows 为 junction，指向源码，改源码不需要重装）。
-- 实测：junction 可读，`SKILL.md` 哈希与源码一致；WorkBuddy 的 `.skill-list-cache.json` 已收录
-  `project-todo`（`filePath` 指向该 junction，`disableModelInvocation:false`）——即 WorkBuddy 已能发现并加载。
-- 装/改后**重启 WorkBuddy**（或让其重新扫描技能）再开新会话；不重启可能仍用旧缓存。
+- 注册实测：junction 可读，`SKILL.md` 哈希与源码一致；`.skill-list-cache.json` 的 `results[]` 中第 9 条即
+  `project-todo`（`filePath` 指向该 junction，`disable`/`disableModelInvocation` 均为 `false`）——**能否被发现不是问题**。
+- 装了不被调用属于「选择层」问题，不是安装问题：判定顺序与修法见 `references/activation.md`。
+- 装/改后**重启 WorkBuddy**（或让其重新扫描技能）再开新会话；不重启仍会用旧缓存里的旧 description。
 - 看到技能但执行失败时，先确认「看到的技能」确实是工作区项目根：
   `ptodo whoami --by wb:<名字>` 的 `root` 必须是当前项目，否则 `--root "<项目根>"`。
 - 常见故障：
 
 | 现象 | 处理 |
 |---|---|
-| WorkBuddy 技能列表没有 `project-todo` | `ptodo skill install --targets workbuddy`；重启应用；再 `ptodo skill status` 看 workbuddy 是否 `linked` |
-| 技能有，但模型不调用 | 确认缓存里 `disableModelInvocation:false`、`disable:false`；用「开工先 ptodo task ready」触发；仍不调用就在消息里显式引用技能名 |
+| WorkBuddy 技能列表里没有 `project-todo` | 这是**注册层（L1）**问题：`ptodo skill install --targets workbuddy`；重启应用；再 `ptodo skill status` 看 workbuddy 是否 `linked` |
+| 技能有，但模型不调用 | 这是**选择层（L2）**问题，先别怀疑安装：① 缓存里 `disableModelInvocation:false` 且 `disable:false`；② 量 description 长度（≤400 字符）并确认含「不适用」负例、不含命令清单；③ 按 `references/activation.md` §4 跑正例/负例。**不要**把「让用户点名技能」当常规解法 |
+| 技能被调用但只跑了一半（漏 `done` / 漏归档询问） | **执行层（L3）**问题：`SKILL.md` 的「调用约定」与 G3 是否被压缩或删节；改完跑 `node --test "test/skill.test.mjs"` |
 | 执行时 `ptodo: command not found` | 用三级降级（node + `bin/ptodo.mjs`）；不要在 WorkBuddy 里 `npm install` 重装 |
 | 认领人显示 `optimisticGeek` 而非 `wb:xxx` | 命令漏了 `--by wb:<名字>`，补上；已用错身份认领 → `ptodo task release <id> --note "身份写错，重认领"` 后重来。注意：这只影响 actor，**人（doneBy/holder）由 person 决定**，见下一行 |
 | `doneBy`/`holder` 是 `session-xxx` 或空 | person 没取到 git `user.name`：先 `ptodo whoami` 看 `person`；配 `git config user.name "张三"` 或设 `PTODO_ACTOR=wb:张三` 后重做该动作；不要在参数里手填 session id |
