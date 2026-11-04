@@ -1,0 +1,10 @@
+{
+  "markdown": {
+    "enabled": true,
+    "path": "docs/ptodo/TODO.md",
+    "archivePath": "docs/ptodo/ARCHIVE.md"
+  },
+  "version": {
+    "gitDir": ""
+  }
+}

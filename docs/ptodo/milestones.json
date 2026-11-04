@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "revision": 0,
+  "updatedAt": "2026-11-04T09:24:42.510Z",
+  "nextMilestoneId": 1,
+  "nextStageId": 1,
+  "milestones": [
+    {
+      "code": "default",
+      "name": "默认",
+      "description": "",
+      "status": "active",
+      "order": 0,
+      "dependsOnMilestone": [],
+      "createdAt": "2026-11-04T09:24:42.510Z",
+      "updatedAt": "2026-11-04T09:24:42.510Z",
+      "revision": 0
+    }
+  ],
+  "stages": [
+    {
+      "code": "default",
+      "milestoneCode": "default",
+      "name": "未分类",
+      "description": "",
+      "status": "active",
+      "order": 0,
+      "dependsOnStage": [],
+      "dependsOnMilestone": [],
+      "createdAt": "2026-11-04T09:24:42.510Z",
+      "updatedAt": "2026-11-04T09:24:42.510Z",
+      "revision": 0
+    }
+  ]
+}
