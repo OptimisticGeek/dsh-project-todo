@@ -1,6 +1,6 @@
 # 各工具安装、自检与跨工具执行
 
-技能源码：`dsh-plugins/dsh-project-todo/skill/project-todo`（本机：`E:\java\fuyao-ai\dsh-plugins\dsh-project-todo\skill\project-todo`）。
+技能源码：`dsh-plugins/dsh-project-todo/skill/project-todo`（本机：`E:\dsh-plugins\dsh-project-todo\skill\project-todo`）。
 安装（在项目根执行）：`ptodo skill install --targets all`；检查：`ptodo skill status` / `ptodo doctor`。
 
 ## 安装目标
@@ -53,11 +53,11 @@ ptodo --version
 node "$(npm root -g)/@local/dsh-project-todo/bin/ptodo.mjs" --version
 
 # 3) 源码仓（node 用绝对路径；本机示例）
-node "E:\java\fuyao-ai\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" --version
+node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" --version
 ```
 
-- PowerShell 示例：`& "D:\Program Files\nodejs\node.exe" "E:\java\fuyao-ai\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" whoami --by wb:<名字>`
-- cmd 示例：`node "E:\java\fuyao-ai\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" task ready --limit 3`
+- PowerShell 示例：`& "D:\Program Files\nodejs\node.exe" "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" whoami --by wb:<名字>`
+- cmd 示例：`node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" task ready --limit 3`
 - 后续命令只需替换前缀，参数完全一致：`--by`、`--root`、`--json`、`--version` 都支持。
 - 路径含空格/中文逐段加引号；找不到项目根用 `--root "<项目根>"`。
 - 实测（本机）：`PATH` 只剩 `C:\Windows\System32` 时，用 node 绝对路径 + 源码仓 `bin/ptodo.mjs` 仍能 `whoami` / `task ready` / `task status`，退出码 0。

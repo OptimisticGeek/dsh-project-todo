@@ -237,11 +237,11 @@ ptodo task status
 ```bash
 ptodo --version                                              # 1) 在 PATH（Windows 同时有 ptodo / ptodo.cmd / ptodo.ps1）
 node "$(npm root -g)/@local/dsh-project-todo/bin/ptodo.mjs" --version   # 2) 全局 npm 包
-node "<源码仓>/dsh-plugins/dsh-project-todo/bin/ptodo.mjs" --version    # 3) 源码仓（本机示例：E:\java\fuyao-ai\dsh-plugins\dsh-project-todo\bin\ptodo.mjs）
+node "<源码仓>/dsh-plugins/dsh-project-todo/bin/ptodo.mjs" --version    # 3) 源码仓（本机示例：E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs）
 ```
 
-- PowerShell 用 `& "D:\Program Files\nodejs\node.exe" "E:\java\fuyao-ai\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" ...`（node 也不在 PATH 时用 node 绝对路径）。
-- cmd 用 `node "E:\java\fuyao-ai\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" ...`。
+- PowerShell 用 `& "D:\Program Files\nodejs\node.exe" "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" ...`（node 也不在 PATH 时用 node 绝对路径）。
+- cmd 用 `node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" ...`。
 - **后续所有 `ptodo ...` 都替换成当前可用的那种前缀**，参数完全一致（`--by`、`--root`、`--json` 都支持）。
 - 路径含空格/中文时逐段加引号；`--root "<项目根>"` 可显式指定项目。
 
