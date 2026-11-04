@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { act, getPeople, getTask } from '../lib/service.js'
+import { act, getPeople, getTask, repairPeople } from '../lib/service.js'
 import { normalizeConfig } from '../lib/config.js'
 import { initOrg } from '../lib/org.js'
 
@@ -131,12 +131,84 @@ test('getPeople includes distinct git commit authors', async (t) => {
       { encoding: 'utf8', windowsHide: true },
     )
     if (commit.status !== 0) return t.skip('git commit 失败')
-    await create(root, 'A')
+    await create(root, 'A', { person: 'GitAuthor' })
     const { people } = await getPeople(root, CONFIG, { person: PERSON })
     const gitAuthor = people.find((entry) => entry.name === 'GitAuthor')
     assert.ok(gitAuthor, 'git 作者应出现在人员列表')
     assert.equal(gitAuthor.source, 'git')
-    assert.equal(gitAuthor.related, 0)
+    assert.equal(gitAuthor.related, 1)
+  })
+})
+
+test('git projects only offer git authors as people', async (t) => {
+  await withRoot(async (root) => {
+    if (!gitAvailable()) return t.skip('git 不可用')
+    const init = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8', windowsHide: true })
+    if (init.status !== 0) return t.skip('git init 失败')
+    const commit = spawnSync(
+      'git',
+      ['-C', root, '-c', 'user.name=GitAuthor', '-c', 'user.email=git@example.com', 'commit', '--allow-empty', '-m', 'seed'],
+      { encoding: 'utf8', windowsHide: true },
+    )
+    if (commit.status !== 0) return t.skip('git commit 失败')
+    await create(root, 'A', { person: 'GitAuthor', holder: 'GitAuthor' })
+    const { people } = await getPeople(root, CONFIG, { person: 'GitAuthor' })
+    assert.deepEqual(people.map((entry) => entry.name), ['GitAuthor'])
+    assert.equal(people[0].source, 'me')
+  })
+})
+
+test('repairPeople rewrites invalid person fields to a git author and leaves nulls alone', async (t) => {
+  await withRoot(async (root) => {
+    if (!gitAvailable()) return t.skip('git 不可用')
+    // Seed invalid person values while the project has no git history.
+    const bad = await create(root, '坏负责人', { person: 'bad:tool', holder: 'bad:tool' })
+    await call(root, { action: 'start', id: bad.task.id, holder: 'bad:tool' })
+    await done(root, bad.task.id, { person: 'bad:tool' })
+
+    const init = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8', windowsHide: true })
+    if (init.status !== 0) return t.skip('git init 失败')
+    const commit = spawnSync(
+      'git',
+      ['-C', root, '-c', 'user.name=GoodPerson', '-c', 'user.email=git@example.com', 'commit', '--allow-empty', '-m', 'seed'],
+      { encoding: 'utf8', windowsHide: true },
+    )
+    if (commit.status !== 0) return t.skip('git commit 失败')
+    const clean = await create(root, '未指派', { person: 'GoodPerson' })
+
+    const preview = await repairPeople(root, CONFIG, { person: 'GoodPerson', dryRun: true })
+    assert.ok(preview.changes.some((change) => change.id === bad.task.id && change.field === 'holder'))
+    assert.ok(preview.changes.some((change) => change.field === 'doneBy'))
+
+    const repaired = await repairPeople(root, CONFIG, { person: 'GoodPerson' })
+    assert.ok(repaired.changes.length >= 2)
+    const board = await getTask(root, CONFIG, bad.task.id)
+    assert.equal(board.task.holder, 'GoodPerson')
+    assert.equal(board.task.doneBy, 'GoodPerson')
+    assert.equal(board.task.claimedBy, 'GoodPerson')
+    assert.equal(board.task.createdBy, 'GoodPerson')
+    assert.equal((await getTask(root, CONFIG, clean.task.id)).task.holder, null)
+
+    const { people } = await getPeople(root, CONFIG, { person: 'GoodPerson' })
+    assert.deepEqual(people.map((entry) => entry.name), ['GoodPerson'])
+  })
+})
+
+test('create and claim reject owners outside git history', async (t) => {
+  await withRoot(async (root) => {
+    if (!gitAvailable()) return t.skip('git 不可用')
+    const init = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8', windowsHide: true })
+    if (init.status !== 0) return t.skip('git init 失败')
+    const commit = spawnSync(
+      'git',
+      ['-C', root, '-c', 'user.name=GoodPerson', '-c', 'user.email=git@example.com', 'commit', '--allow-empty', '-m', 'seed'],
+      { encoding: 'utf8', windowsHide: true },
+    )
+    if (commit.status !== 0) return t.skip('git commit 失败')
+    await assert.rejects(create(root, '非法', { person: 'GoodPerson', holder: 'bad:tool' }), /git 记录中的人员/)
+    const ok = await create(root, '合法', { person: 'GoodPerson', holder: 'GoodPerson' })
+    assert.equal(ok.task.holder, 'GoodPerson')
+    await assert.rejects(call(root, { action: 'claim', id: ok.task.id, holder: 'bad:tool' }), /git 记录中的人员/)
   })
 })
 

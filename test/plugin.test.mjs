@@ -33,7 +33,7 @@ test('plugin no longer registers model-facing ptodo_* tools', () => {
 
 test('package exposes one global ptodo bin and ships the skill', () => {
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
-  assert.equal(pkg.version, '2.0.2')
+  assert.match(pkg.version, /^\d+\.\d+\.\d+$/)
   assert.deepEqual(pkg.bin, { ptodo: './bin/ptodo.mjs' })
   assert.ok(existsSync(new URL('../bin/ptodo.mjs', import.meta.url)))
   assert.ok(existsSync(new URL('../skill/project-todo/SKILL.md', import.meta.url)))

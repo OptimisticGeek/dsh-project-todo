@@ -331,7 +331,7 @@ python:     ""
 - 页面按契约消费 Host HTTP（仅 loopback）：
   - `GET /dsh-project-todo/state?sessionId=…` → 任务（含派生字段）、里程碑/阶段、标签、counts、actor（含 person）；
   - `GET /dsh-project-todo/people?sessionId=…` → `{ person, people:[{ name, source, active, done, related }] }`
-    （git 历史作者 + 看板/归档中 holder/createdBy/doneBy，去重）；
+    （**仅 git 历史作者**；当前 person 也必须是 git 作者；任务里的工具名/session id 不再作为人员）；
   - `GET /dsh-project-todo/task?id=…&sessionId=…` → 任务 + 父/子 + 历史 + 前置 + 被依赖 + 资料 + 相关提交；
   - `GET /dsh-project-todo/timeline?sessionId=…&scope=…&tag=…&taskId=…&q=…&type=…&limit=20`；
   - `GET /dsh-project-todo/version?sessionId=…` → 完成版本预取；
@@ -364,12 +364,12 @@ python:     ""
   **不提供**这些字段的 UI 编辑入口；避免绕过 CLI 造成数据不一致。
 - **可写操作仅限**：
   - 基础状态：开始（`start`）/ 完成（`done`，完成弹窗版本+证据）/ 阻塞恢复（`unblock`）/ 释放（`release`，可带说明）；
-  - 指派负责人：行内/详情「指派」从人员列表选择（可手填），调用 `claim`（`by=人员, holder=人员, force=true`），done/cancelled/父任务禁用；
+  - 指派负责人：行内/详情「指派」从人员列表选择（**只接受 git 作者**；手填非 git 名会被服务端 `INVALID` 拒绝），调用 `claim`（`by=人员, holder=人员, force=true`），done/cancelled/父任务禁用；
   - 归档：已完成任务行内「归档」（`archive`）与「批量归档」（`archive_batch`，当前筛选内的全部已完成，需确认）；
   - 任务描述：标题/优先级/紧急度/标签/备注（`update`）；状态下拉只列合法迁移。
 - **不提供的写入口**：删除任务、取消归档、导入、批量认领/释放、清空日志（这些只走 `ptodo admin`）。
 - **人员过滤**：工具栏「人员」下拉，默认「与我相关」（person 命中 holder/createdBy/doneBy），
-  支持勾选多人与「全部人员」；计数/Tab 跟随该过滤。人员来源 = git 历史作者 + 看板已有人员（`GET /people`）。
+  支持勾选多人与「全部人员」；计数/Tab 跟随该过滤。人员来源 = **仅 git 历史作者**（`GET /people`）；
 - **Holder/操作人**：工具栏「操作人」localStorage 优先，否则 `state.actor.person`，作为所有动作的 `person`
   （工具身份仍以 `--by` 记账）；负责人列/详情显示 holder，已完成任务额外显示完成人与完成时间。
 - **保留的只读入口**：导出 md/xlsx（active/all）、刷新、校验、搜索/筛选/排序；快速新建（标题/P/紧急度/阶段，

@@ -71,9 +71,9 @@ test('configured version.gitDir also resolves', { skip: !HAS_GIT }, async () => 
 test('completing a done task stamps the git short hash', { skip: !HAS_GIT }, async () => {
   await withRoot(async (root) => {
     const hash = initRepo(root)
-    await act(root, CONFIG, { action: 'create', title: '带版本完成' }, 'tester')
-    await act(root, CONFIG, { action: 'claim', id: 'T-0001' }, 'tester')
-    const done = await act(root, CONFIG, { action: 'done', id: 'T-0001' }, 'tester')
+    await act(root, CONFIG, { action: 'create', title: '带版本完成' }, 'Tester')
+    await act(root, CONFIG, { action: 'claim', id: 'T-0001' }, 'Tester')
+    const done = await act(root, CONFIG, { action: 'done', id: 'T-0001' }, 'Tester')
     assert.equal(done.version, hash)
     assert.match(done.message, new RegExp(`版本 ${hash}`))
     const task = done.board.tasks.find((candidate) => candidate.id === 'T-0001')
@@ -86,8 +86,8 @@ test('completing a done task stamps the git short hash', { skip: !HAS_GIT }, asy
 test('update status=done also stamps the version', { skip: !HAS_GIT }, async () => {
   await withRoot(async (root) => {
     const hash = initRepo(root)
-    await act(root, CONFIG, { action: 'create', title: '下拉完成' }, 'tester')
-    const result = await act(root, CONFIG, { action: 'update', id: 'T-0001', status: 'done' }, 'tester')
+    await act(root, CONFIG, { action: 'create', title: '下拉完成' }, 'Tester')
+    const result = await act(root, CONFIG, { action: 'update', id: 'T-0001', status: 'done' }, 'Tester')
     assert.equal(result.task.doneVersion, hash)
   })
 })
@@ -95,14 +95,14 @@ test('update status=done also stamps the version', { skip: !HAS_GIT }, async () 
 test('a finished task keeps its version correctable', { skip: !HAS_GIT }, async () => {
   await withRoot(async (root) => {
     initRepo(root)
-    await act(root, CONFIG, { action: 'create', title: '可修正版本' }, 'tester')
-    await act(root, CONFIG, { action: 'claim', id: 'T-0001' }, 'tester')
-    await act(root, CONFIG, { action: 'done', id: 'T-0001' }, 'tester')
+    await act(root, CONFIG, { action: 'create', title: '可修正版本' }, 'Tester')
+    await act(root, CONFIG, { action: 'claim', id: 'T-0001' }, 'Tester')
+    await act(root, CONFIG, { action: 'done', id: 'T-0001' }, 'Tester')
     const result = await act(
       root,
       CONFIG,
       { action: 'update', id: 'T-0001', status: 'done', version: 'manual-fix', evidence: '补录证据' },
-      'tester',
+      'Tester',
     )
     assert.equal(result.task.doneVersion, 'manual-fix')
     assert.equal(result.task.doneEvidence, '补录证据')
@@ -112,10 +112,10 @@ test('a finished task keeps its version correctable', { skip: !HAS_GIT }, async 
 
 test('require=true refuses completion without a resolvable version', async () => {
   await withRoot(async (root) => {
-    await act(root, CONFIG, { action: 'create', title: '无仓库' }, 'tester')
-    await act(root, CONFIG, { action: 'claim', id: 'T-0001' }, 'tester')
-    await assert.rejects(act(root, CONFIG, { action: 'done', id: 'T-0001' }, 'tester'), /git 短 hash/)
-    const manual = await act(root, CONFIG, { action: 'done', id: 'T-0001', version: 'manual-1' }, 'tester')
+    await act(root, CONFIG, { action: 'create', title: '无仓库' }, 'Tester')
+    await act(root, CONFIG, { action: 'claim', id: 'T-0001' }, 'Tester')
+    await assert.rejects(act(root, CONFIG, { action: 'done', id: 'T-0001' }, 'Tester'), /git 短 hash/)
+    const manual = await act(root, CONFIG, { action: 'done', id: 'T-0001', version: 'manual-1' }, 'Tester')
     assert.equal(manual.version, 'manual-1')
   })
 })

@@ -88,8 +88,8 @@ node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" --version
 - `ptodo whoami` 文本多一行 `person   <姓名>（git user.name）`；无 git 用户时是 `person   <姓名>（无 git user.name，取 actor 去前缀）`。
 - `ptodo whoami --json` 有 `person` 与 `personSource`（`git|flag|env|session|fallback`）；`actor`、`actorSource`、`gitName`、`hasPrefix` 保留，别把 `actor` 当人。
 - **person 取不到 git 名时的后果**：`doneBy/holder` 可能变成 `session-xxx` 之类机器串，页面按人筛选会失效。先 `git config user.name "张三"`，或设 `PTODO_ACTOR=wb:张三`（person 会取 `张三`）。
-- 人员列表来源（去重）：git 历史作者（`git log --format=%an`）+ 看板/归档里的 `holder/createdBy/doneBy` + 当前 person。命令：`ptodo admin people [--json]`（JSON：`{ ok, action:'people', person, people:[{name,source,active,done,related}] }`，`source` = `me|git|task`，按名字排序）；旧版本没有该命令时用 `ptodo whoami` 的 person + `ptodo task list` 汇总。
-- 人员列表里可能看到 `session-xxx`、`dsh:xxx` 这类历史值：那是 person 改造前的旧 `doneBy/holder`，**新操作不会再产生**；不要拿它们当当前身份，也不要手填。**已在用旧数据指派时以 `whoami` 的 person 为准。**
+- 人员列表来源：**只列 git 历史作者**（`git log --format=%an` 去重；当前 person 也必须是 git 作者）。命令：`ptodo admin people [--json]`（JSON：`{ ok, action:'people', person, people:[{name,source,active,done,related}] }`，`source` = `me|git`，按名字排序）。
+- **负责人（holder）只能是 git 作者**：`task create --holder`、`task start`、页面「指派」都会校验，无效名字报 `INVALID`。旧数据里的 `session-xxx`、`dsh:xxx`、`wb-agent` 已不再作为人员；历史遗留值用 `ptodo admin repair-people --person <git用户名> --dry-run` 预览，确认后去掉 `--dry-run` 修复。
 - 指派负责人/完成人：从人员列表选人名，不要手填机器 id；页面默认「与我相关」，支持人员多选/全部。
 - 归档：任务 `done` 后才会进归档；`ptodo admin archive-batch --milestone/--stage/--ids` 批量归档（只处理已完成，父任务/未完成进 `skipped`），`ptodo admin unarchive <id>` 可恢复。**里程碑全部完成时先问用户，未确认不归档。**
 
@@ -154,5 +154,5 @@ node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" --version
 2. `ptodo doctor`：没有 ✗（`git 无` 只影响 G3，用 `--version`）；
 3. `ptodo task ready --limit 3`：能读到就绪任务即打通；空看板先 `task create`；
 4. `ptodo skill status`：目标工具 `linked`（`copy` 表示源码更新后需重装）；
-5. `ptodo admin people`：能列出人员（git 历史作者 + 看板人员），用于指派/筛选。
+5. `ptodo admin people`：能列出人员（仅 git 历史作者），用于指派/筛选。
 5. 技能未生效：确认目标目录存在且指向源码（junction），重启应用/开新会话。

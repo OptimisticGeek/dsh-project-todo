@@ -191,7 +191,8 @@ ptodo task status
 | 阻塞 | `ptodo task block T-0007 --reason "等接口权限"` |
 | 新建（可拆子任务） | `ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5] [--tags a,b] [--parent T-0001] [--blocked-by T-0006]` |
 | 写回上下文 | `ptodo context decision/progress/loop <id> "..."` |
-| 人员列表（人员多选/指派用） | `ptodo admin people [--json]`（来源：git 历史作者 + 看板已有人员 + 当前 person） |
+| 人员列表（人员多选/指派用） | `ptodo admin people [--json]`（仅列 git 历史作者） |
+| 修复无效负责人 | `ptodo admin repair-people --person <git用户名> [--dry-run]`（把非 git 人员的历史 person 字段改为该人） |
 | 里程碑/阶段完成后归档 | `ptodo admin archive-batch --milestone M-0001`（也支持 `--stage S-0001` / `--ids T-0001,T-0002`；只归档已完成，父任务/未完成会进 `skipped`；**先问用户**，未确认不执行） |
 | 取消归档 | `ptodo admin unarchive T-0007` |
 | 只读总览/详情 | `ptodo task status` / `ptodo task list` / `ptodo task get T-0007` |
@@ -210,7 +211,8 @@ ptodo task status
 - **不要把 session id、随机串或 `<工具>:<session-id>` 当人的名字**：那会让 doneBy/holder 变成无法识别的机器串，看板按人筛选也会失效。
 - 先让 person 正确：项目里配好 `git config user.name "张三"`，或设 `PTODO_ACTOR=<工具>:<姓名>`（如 `wb:张三`）。两者都没有时 person 可能回落成 actor 里的 session 串。
 - 不确认当前 person 先跑 `ptodo whoami`：JSON 有 `person`、`personSource`，文本显示 `person <姓名>（git user.name）` 或 `person <姓名>（无 git user.name，取 actor 去前缀）`。
-- **人员列表来源**：git 历史作者（`git log --format=%an` 去重）+ 看板/归档里已有的 `holder/createdBy/doneBy` 去重 + 当前 person。直接取用 `ptodo admin people [--json]`（旧版本没有该命令时，用 `ptodo whoami` 的 person + `ptodo task list` 里的人员字段汇总）。
+- **人员列表只来自 git 历史作者**（`git log --format=%an` 去重；当前 person 也必须是 git 作者）。看板里的工具名、session id 不是有效负责人，不再作为人员展示。
+- **负责人（holder）只能是 git 作者**：`task create --holder`、`task start`、页面「指派」都会校验，无效名字报 `INVALID`。历史遗留的无效值先预览再修复：`ptodo admin repair-people --person <git用户名> --dry-run`，确认后去掉 `--dry-run`。
 - 指派负责人/完成人时用人名（git user.name）从人员列表选，不要手填机器 id；页面默认「与我相关」，支持人员多选/全部。
 
 ### 目录与调用
