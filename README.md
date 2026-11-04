@@ -230,7 +230,8 @@ DSH 会话页的「待办」标签页；Host 只监听回环，按会话工作�
 ### CLI
 
 ```bash
-cd dsh-plugins/dsh-project-todo
+git clone https://github.com/OptimisticGeek/dsh-project-todo.git
+cd dsh-project-todo
 npm link          # 开发期：全局 ptodo 指向本目录
 # 或 npm i -g .   # 复制安装；更新包后要重装
 ptodo doctor
@@ -311,3 +312,7 @@ test/                 node:test 用例（CLI/存储/并发/UI 契约等）
 - **不设 audit**：强制协议靠技能、简报和 `--evidence` 的可见性。
 - **组织依赖不阻塞任务**：阶段/里程碑依赖只影响组织状态，任务门禁由硬依赖和前置条件承担。
 - **父任务不可执行**：由子任务汇总，避免「父任务完成但子任务没做」。
+
+## 许可
+
+[Apache License 2.0](LICENSE)。

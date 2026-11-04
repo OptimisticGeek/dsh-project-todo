@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "DeepSeek Harness 项目待办：里程碑/阶段/任务三层、依赖与就绪、开工简报；数据在 docs/ptodo/*.json；Web 看板 + 全局 ptodo CLI（技能可跨工具复用）",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/OptimisticGeek/dsh-project-todo.git"
