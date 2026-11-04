@@ -1009,7 +1009,7 @@ window.__ModuleLoader__.load({
             const result = await run(payload)
             if (result) {
               closeDone()
-              if (result.milestone && result.milestone.complete) {
+              if (result.milestone && result.milestone.complete && result.milestone.archivable !== false) {
                 setNotice({ kind: 'ok', text: t('milestoneComplete').replace('{name}', result.milestone.name || result.milestone.code) })
               }
             }

@@ -58,7 +58,7 @@ display_name_en: "Project Todo"
 **三条不可协商的契约**：
 1. 没 `task start` 不算开工；没 `task done` 不得说「已完成」。
 2. 证据必须可复核（命令、用例编号、截图路径），不接受「已修复」这类自述。
-3. 里程碑全部完成时**先问用户**是否归档，**未确认不得归档**。
+3. 非默认里程碑全部完成（`archivable=true`）时**先问用户**是否归档，**未确认不得归档**；`default` 里程碑不归档。
 
 ## 调用约定（30 秒版）
 
@@ -166,7 +166,8 @@ ptodo task done <id> --evidence "可复核证据（命令/用例/截图路径）
 - `--version` 可显式指定版本，否则自动取 git 短 hash；未传 `--evidence` 时自动取 `git log --grep=<id>` 的提交摘要。
 - **非 git 项目（或从非 git 目录执行）必须带 `--version <版本>`**，否则报 `[INVALID]` 退出码 5；工作区不是 git 仓是常见情况，不要因此谎报完成。
 - `done` 会写 `doneAt/doneBy/doneVersion/doneEvidence`，补默认 `context.progress`，并解锁下游（返回值 `unlocked`）。
-- **归档询问（强制）**：`task done` 返回 JSON 的 `milestone.complete=true`（该里程碑下活跃叶子任务全部完成；文本输出也会多一行「里程碑 `M-xxxx` 已全部完成；归档前先询问用户：`ptodo admin archive-batch --milestone M-xxxx`」）时，**必须先问用户**「里程碑 `M-xxxx`（名称）已全部完成，是否归档？」，**得到肯定答复后**才执行 `ptodo admin archive-batch --milestone M-xxxx`；用户拒绝则写回 `ptodo context loop <id> "里程碑 M-xxxx 待归档，用户暂不归档"`。**未确认不得归档**。`milestone=null`（无里程碑）或 `complete=false` 不要提归档，继续做剩余任务。
+- **归档询问（强制，但默认里程碑除外）**：`task done` 返回 JSON 的 `milestone.complete=true` **且** `archivable=true`（该里程碑下活跃叶子任务全部完成；文本输出也会多一行「里程碑 `M-xxxx` 已全部完成；归档前先询问用户：`ptodo admin archive-batch --milestone M-xxxx`」）时，**必须先问用户**「里程碑 `M-xxxx`（名称）已全部完成，是否归档？」，**得到肯定答复后**才执行 `ptodo admin archive-batch --milestone M-xxxx`；用户拒绝则写回 `ptodo context loop <id> "里程碑 M-xxxx 待归档，用户暂不归档"`。**未确认不得归档**。
+  **默认里程碑不归档**：`milestone.code=default`（收件箱）时 `archivable=false`、文本也不出归档提示；此时 `complete=true` 只表示「都做完了」，**不要问归档、不要执行 `archive-batch`**，直接给结论行即可。`milestone=null`（无里程碑）或 `complete=false` 同样不提归档，继续做剩余任务。
 - **版本文档（批量完成 / push 前）**：一次要完成多个任务、或准备 push/交付时，**先确认版本文档已存在**（没有就按「版本文档」小节模板新建），再让同批任务 `done --version <文档号>` 关联；单条小任务且不 push 可沿用最近一份文档，不新建。`ptodo doctor` 报「版本文档缺失」时先补文档再继续。
 - 不能完成：`task block --reason` 或 `task release --note`，并在答复里说明。
 - 未执行 `done` 不得说「已完成」。
@@ -264,7 +265,7 @@ ptodo task status
 | 写回上下文 | `ptodo context decision/progress/loop <id> "..."` |
 | 人员列表（人员多选/指派用） | `ptodo admin people [--json]`（仅列 git 历史作者） |
 | 修复无效负责人 | `ptodo admin repair-people --person <git用户名> [--dry-run]`（把非 git 人员的历史 person 字段改为该人） |
-| 里程碑/阶段完成后归档 | `ptodo admin archive-batch --milestone M-0001`（也支持 `--stage S-0001` / `--ids T-0001,T-0002`；只归档已完成，父任务/未完成会进 `skipped`；**先问用户**，未确认不执行） |
+| 里程碑/阶段完成后归档 | `ptodo admin archive-batch --milestone M-0001`（也支持 `--stage S-0001` / `--ids T-0001,T-0002`；只归档已完成，父任务/未完成会进 `skipped`；**先问用户**，未确认不执行；**`default` 里程碑不归档**） |
 | 取消归档 | `ptodo admin unarchive T-0007` |
 | 只读总览/详情 | `ptodo task status` / `ptodo task list` / `ptodo task get T-0007` |
 | 管理组织/依赖/标签 | `ptodo milestone ...` / `ptodo stage ...` / `ptodo task dep ...` / `ptodo tag ...` |

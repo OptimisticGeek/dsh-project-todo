@@ -63,14 +63,32 @@ test('create assigns the person, start accepts it and done reports milestone com
 
     const first = json(root, ['task', 'done', 'T-0001', '--version', 'v1', '--evidence', '通过', '--by', 'codex:alice'], env)
     assert.equal(first.status, 0, first.stderr)
-    assert.deepEqual(first.data.milestone, { code: 'default', name: '默认', done: 1, total: 2, complete: false })
+    assert.deepEqual(first.data.milestone, { code: 'default', name: '默认', done: 1, total: 2, complete: false, archivable: false })
 
     assert.equal(run(root, ['task', 'start', 'T-0002', '--by', 'codex:alice'], env).status, 0)
     const text = run(root, ['task', 'done', 'T-0002', '--evidence', '通过', '--version', 'v2', '--by', 'codex:alice'], env)
     assert.equal(text.status, 0, text.stderr)
-    assert.match(text.stdout, /里程碑 default 已全部完成/)
+    // 默认里程碑不归档：complete 为真也不出归档提示。
+    assert.doesNotMatch(text.stdout, /归档前先询问用户/)
+    assert.doesNotMatch(text.stdout, /admin archive-batch/)
+  })
+})
+
+test('done asks for archive only on a non-default milestone', async () => {
+  await withRoot(async (root, env) => {
+    assert.equal(run(root, ['init'], env).status, 0)
+    assert.equal(run(root, ['milestone', 'create', '--name', '交付批次'], env).status, 0)
+    const created = json(root, ['task', 'create', '--title', '任务 A', '--stage', 'S-0001', '--by', 'codex:alice'], env)
+    assert.equal(created.status, 0, created.stderr)
+    assert.equal(run(root, ['task', 'start', 'T-0001', '--by', 'codex:alice'], env).status, 0)
+    const text = run(root, ['task', 'done', 'T-0001', '--evidence', '通过', '--version', 'v3', '--by', 'codex:alice'], env)
+    assert.equal(text.status, 0, text.stderr)
+    assert.match(text.stdout, /里程碑 M-0001 已全部完成/)
     assert.match(text.stdout, /归档前先询问用户/)
-    assert.match(text.stdout, /admin archive-batch --milestone default/)
+    assert.match(text.stdout, /admin archive-batch --milestone M-0001/)
+
+    const data = json(root, ['task', 'get', 'T-0001'], env)
+    assert.equal(data.status, 0, data.stderr)
   })
 })
 

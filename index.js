@@ -23,7 +23,8 @@ const POLICY_TEXT =
   '项目待办唯一入口：终端 ptodo（数据 docs/ptodo/todos.json，页面同源）。' +
   '任何开发任务开工先 ptodo task ready 或 ptodo task start <id>；' +
   '完成 ptodo task done <id> --evidence；阻塞 ptodo task block <id> --reason；交接 ptodo task release <id> --note。' +
-  '里程碑下最后一个任务完成时（done 返回 milestone.complete=true），先询问用户是否归档，确认后再执行 ptodo admin archive-batch --milestone <M-x>。' +
+  '里程碑下最后一个任务完成时（done 返回 milestone.complete=true 且 archivable=true），先询问用户是否归档，确认后再执行 ptodo admin archive-batch --milestone <M-x>。' +
+  '默认里程碑（code=default，收件箱）不参与归档：complete 只表示全做完了，不要问归档、不要执行 archive-batch。' +
   '禁止手改数据、禁止维护第二份待办。' +
   '用户说「继续开发」「继续开发待办」且无上下文时，先 ptodo task ready --limit 3，再 ptodo task start <id>。' +
   '（兼容旧口令：ptodo status / ptodo continue。）'

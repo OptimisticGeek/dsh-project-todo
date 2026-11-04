@@ -18,3 +18,6 @@ tmp/
 Thumbs.db
 .vscode/
 .idea/
+
+# 本地技能安装（ptodo skill install --targets project 会在此建 junction）
+.agents/

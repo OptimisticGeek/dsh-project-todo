@@ -169,6 +169,10 @@ test('SKILL.md separates person identity from --by and mandates the milestone ar
   assert.match(skill, /milestone=null/)
   assert.match(skill, /ptodo admin archive-batch --milestone M-xxxx/)
   assert.match(skill, /里程碑 M-xxxx 待归档，用户暂不归档/)
+  // 默认里程碑（收件箱）不归档：complete 只表示做完，不触发归档询问。
+  assert.match(skill, /archivable/)
+  assert.match(skill, /默认里程碑不归档/)
+  assert.match(skill, /default` 里程碑不归档/)
   // Quick-reference table must teach the batch archive command and its flags.
   assert.match(skill, /里程碑\/阶段完成后归档/)
   assert.match(skill, /--stage S-0001/)
@@ -186,6 +190,10 @@ test('POLICY_TEXT injects the archive-ask rule without touching other logic', as
   assert.match(policy, /milestone\.complete=true/)
   assert.match(policy, /先询问用户是否归档/)
   assert.match(policy, /ptodo admin archive-batch --milestone/)
+  // 默认里程碑不归档，提示词里必须写死这条豁免。
+  assert.match(policy, /archivable=true/)
+  assert.match(policy, /默认里程碑/)
+  assert.match(policy, /不要问归档/)
   // The pre-existing prompt injections stay intact.
   assert.match(policy, /项目待办唯一入口/)
   assert.match(policy, /禁止手改数据/)

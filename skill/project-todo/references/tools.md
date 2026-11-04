@@ -112,7 +112,7 @@ node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" --version
 | 执行时 `ptodo: command not found` | 用三级降级（node + `bin/ptodo.mjs`）；不要在 WorkBuddy 里 `npm install` 重装 |
 | 认领人显示 `optimisticGeek` 而非 `wb:xxx` | 命令漏了 `--by wb:<名字>`，补上；已用错身份认领 → `ptodo task release <id> --note "身份写错，重认领"` 后重来。注意：这只影响 actor，**人（doneBy/holder）由 person 决定**，见下一行 |
 | `doneBy`/`holder` 是 `session-xxx` 或空 | person 没取到 git `user.name`：先 `ptodo whoami` 看 `person`；配 `git config user.name "张三"` 或设 `PTODO_ACTOR=wb:张三` 后重做该动作；不要在参数里手填 session id |
-| 完成最后一个任务后没问归档 | `done` 返回 `milestone.complete=true` 时必须先问用户；确认后 `ptodo admin archive-batch --milestone M-x`，拒绝则 `ptodo context loop <id> "里程碑 M-x 待归档，用户暂不归档"`。`admin archive-batch` 的 `skipped` 带 `reasonCode`（NOT_FOUND/NOT_DONE/HAS_CHILDREN/ARCHIVED） |
+| 完成最后一个任务后没问归档 | `done` 返回 `milestone.complete=true` **且 `archivable=true`** 时必须先问用户；确认后 `ptodo admin archive-batch --milestone M-x`，拒绝则 `ptodo context loop <id> "里程碑 M-x 待归档，用户暂不归档"`。**`default` 里程碑 `archivable=false`：不归档、不问**。`admin archive-batch` 的 `skipped` 带 `reasonCode`（NOT_FOUND/NOT_DONE/HAS_CHILDREN/ARCHIVED） |
 | `task create` 后 `task ready` 找不到新任务 | 正常：create 把 holder 设为当前 person，ready 只列**未指派**任务；直接 `task start <id>` |
 | 归档后列表里找不到任务 | 归档不是删除：页面切「已完成/存档」或 `ptodo task list --archived`；恢复用 `ptodo admin unarchive <id>` |
 | 找不到 `ptodo admin people` | 版本旧；用 `ptodo whoami` 的 `person` + `ptodo task list` 里的人员字段汇总，或升级到含 person/people 的版本 |

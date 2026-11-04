@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 101,
-  "revision": 126,
-  "updatedAt": "2026-11-04T10:11:30.965Z",
+  "nextId": 102,
+  "revision": 130,
+  "updatedAt": "2026-11-04T11:27:13.360Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -843,6 +843,52 @@
       "doneVersion": "28b4202",
       "doneEvidence": "node --test test/*.mjs 121/121 通过；desc 611→168 字符、命令串 0、含负例；新增 references/activation.md（三层激活+17 条正负例）；SKILL.md 新增 5 节激活层",
       "revision": 6,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0101",
+      "legacyId": null,
+      "parentId": null,
+      "title": "默认里程碑免归档：代码+提示词+文档一致化",
+      "status": "done",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "完成于 2026-11-04T11:27:13.360Z：node --test 123/123；默认里程碑 done 无归档提示实测；项目级 junction 已装（插件仓+工作区）",
+        "decisions": [
+          {
+            "text": "默认里程碑=收件箱，不参与归档；用过 archivable 字段区分（不改 complete 语义），提示词/技能/README/UI 同步",
+            "by": "wb:chengshu",
+            "at": "2026-11-04T11:27:12.810Z"
+          }
+        ],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": "optimisticGeek",
+      "releasedBy": null,
+      "createdAt": "2026-11-04T11:27:08.849Z",
+      "updatedAt": "2026-11-04T11:27:13.360Z",
+      "claimedAt": "2026-11-04T11:27:09.611Z",
+      "statusChangedAt": "2026-11-04T11:27:13.360Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": "2026-11-04T11:27:13.360Z",
+      "doneVersion": "c1475cc",
+      "doneEvidence": "node --test 123/123；默认里程碑 done 无归档提示实测；项目级 junction 已装（插件仓+工作区）",
+      "revision": 4,
       "archivedBy": null
     }
   ]

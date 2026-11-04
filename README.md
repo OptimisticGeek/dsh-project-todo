@@ -5,7 +5,7 @@
 
 ```text
 ready → start（认领+简报）→ G0.5 校验 → 实现 ⇄ context/progress/block/release
-      → done --evidence →（里程碑全完成？问用户归档）→ status + 结论行
+      → done --evidence →（非默认里程碑全完成？问用户归档）→ status + 结论行
 ```
 
 完整泳道图、时序图、状态机见 [docs/HELP.md](docs/HELP.md)。
@@ -66,7 +66,7 @@ flowchart LR
   X -->|完成| DN["done<br/>--evidence"]
   X -->|卡住| BL["block<br/>--reason"]
   X -->|换人/收工| RL["release<br/>--note"]
-  DN --> M{"milestone<br/>complete?"}
+  DN --> M{"milestone<br/>complete 且 archivable?"}
   M -->|true| ASK["问用户<br/>是否归档"]
   M -->|false| ST["status<br/>收尾"]
   ASK --> ST
@@ -84,7 +84,7 @@ flowchart LR
 | G1 认领 | 改文件之前 | `ptodo task start <id>` | 开工简报；顺带完成认领 |
 | G0.5 校验 | 认领后、动手前（仅配置了需求注册表的项目） | `ptodo context decision <id> "..."` | 口径/CR/版本实测结论写回 |
 | G2 进行中 | 每完成一个子步骤、卡住、换人 | `context progress / loop`、`block`、`release` | 状态与原因落库，下一位可接 |
-| G3 完成 | 证据可复核之后 | `ptodo task done <id> --evidence "..."` | 版本/证据/解锁下游；必要时问归档 |
+| G3 完成 | 证据可复核之后 | `ptodo task done <id> --evidence "..."` | 版本/证据/解锁下游；非默认里程碑完成时问归档 |
 | G4 收尾 | 给用户结论之前 | `ptodo task status` | 计数 + 结论行，不再靠记忆 |
 
 > 纯只读问答、以及不改代码/文档的运维动作，可以跳过认领和 G0.5；其余开发任务必须按门走。
@@ -139,13 +139,14 @@ $ ptodo task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
 里程碑 M-0001 已全部完成；归档前先询问用户：ptodo admin archive-batch --milestone M-0001
 ```
 
-看到 `milestone.complete=true`（文本输出也会多一行提示）时：
+看到 `milestone.complete=true` **且 `milestone.archivable=true`**（文本输出也会多一行提示）时：
 
 1. **先问用户**「里程碑 M-0001（名称）已全部完成，是否归档？」；
 2. 用户同意后才执行 `ptodo admin archive-batch --milestone M-0001`；
 3. 用户拒绝则写回 `ptodo context loop T-0007 "里程碑 M-0001 待归档，用户暂不归档"`。
 
-未确认不得归档；`complete=false` 或 `milestone=null` 不要提归档。
+**默认里程碑（`code=default`，收件箱）不归档**：它的 `archivable=false`，文本也不出归档提示——`complete=true` 只表示「这个里程碑下的任务都做完了」，直接给结论行即可。
+未确认不得归档；`complete=false`、`archivable=false` 或 `milestone=null` 不要提归档。
 
 ## 命令总览
 
