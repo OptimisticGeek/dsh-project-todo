@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Project Todo",
+    "description": "Per-project todo board inside a session: milestone → stage → task organisation, P0–P5 priority and 1–5 urgency, dependencies with readiness, start briefs, per-task context, preconditions, resources and handoff, plus an auto-generated Markdown snapshot."
+  }
+}

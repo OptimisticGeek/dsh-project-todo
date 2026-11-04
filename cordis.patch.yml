@@ -1,0 +1,5 @@
+# Host half: project-scoped todo store (docs/ptodo), prompt context, Web API and
+# the global `ptodo` CLI bin. Client half: the per-session "待办" view.
+- insert:
+    - id: project-todo
+      name: '@local/dsh-project-todo'
