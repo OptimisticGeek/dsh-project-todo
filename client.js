@@ -21,6 +21,14 @@ window.__ModuleLoader__.load({
     const BASE = '/dsh-project-todo'
     const TOKEN = (typeof window !== 'undefined' && window.__DSH_PROJECT_TODO_TOKEN__) || ''
     const HOLDER_KEY = 'dsh-project-todo-holder'
+
+    /** Explain a 404 from the Web server: the route is missing, not the data. */
+    function hostHalfHint() {
+      const zh = typeof navigator !== 'undefined' && /^zh/i.test(navigator.language || '')
+      return zh
+        ? 'Host 半边未加载：/dsh-project-todo 路由未注册（HTTP 404）。请重启 DSH，并确认插件行在 profile 的 dsh.profile.bundles 中、ui.enabled 未被关闭。'
+        : 'Host half not loaded: the /dsh-project-todo route is not registered (HTTP 404). Restart DSH, then check the plugin row in the profile bundles and that ui.enabled is not disabled.'
+    }
     const PRIORITIES = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5']
     const URGENCIES = [5, 4, 3, 2, 1]
     const URGENCY_ZH = { 5: '非常紧急', 4: '紧急', 3: '普通', 2: '不紧急', 1: '可延后' }
@@ -254,7 +262,14 @@ window.__ModuleLoader__.load({
       } catch {
         /* non-JSON */
       }
-      if (!response.ok) throw new Error((payload && payload.message) || 'HTTP ' + response.status)
+      if (!response.ok) {
+        const message = payload && payload.message
+        // A 404 with no JSON body is the Web server's fallback: the plugin's
+        // route is not registered on this machine. Say so instead of "HTTP 404".
+        if (response.status === 404 && !message) throw new Error(hostHalfHint())
+        if (response.status === 404) throw new Error(`${message}；插件 Host/Client 版本可能不一致，重启 DSH 或统一版本`)
+        throw new Error(message || 'HTTP ' + response.status)
+      }
       if (payload && payload.ok === false) throw new Error(payload.message || '操作失败')
       return payload
     }

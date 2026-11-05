@@ -904,7 +904,8 @@ ptodo 2.0.2 · E:\java\fuyao-ai
 | `[TAG_NOT_FOUND]` | `tag.strict=true` 且标签未注册 | `tag add` 或关闭 strict |
 | 中文标签被拆 | PowerShell 逗号分隔 | `--tags "KB,api"` |
 | 技能没生效 | 未安装/工具未重启 | `skill status` → `skill install` → 重启工具 |
-| 页面 404/空白 | profile 未加载/工作目录错 | 查 `bundles`、重启 DSH、确认会话目录 |
+| 页面 404 且响应为空 | Host 半边没注册路由：`ui.enabled=false` / 插件行不在该 profile / 页面由别的进程提供 | 重启整个 DSH；`curl :<端口>/dsh-project-todo/health`；查 `bundles` |
+| 页面提示「未知接口」/`not found` | Host 与 Client 版本不一致 | 统一版本后重启；对比 `health` 的 `version` |
 | 锁一直冲突 | 遗留 `.lock`（超 10 秒视为陈旧） | 确认无进程写后删除 `docs/ptodo/todos.json.lock` |
 | `whoami` 的 person 不对 | 无 git `user.name`，回落到 actor 去前缀 | `git config user.name` 或设 `PTODO_ACTOR` |
 

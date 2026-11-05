@@ -29,6 +29,23 @@ const POLICY_TEXT =
   '用户说「继续开发」「继续开发待办」且无上下文时，先 ptodo task ready --limit 3，再 ptodo task start <id>。' +
   '（兼容旧口令：ptodo status / ptodo continue。）'
 
+/**
+ * Run one Web-half effect, keeping a readable reason in the host log instead of
+ * letting the host half fail silently while the client half keeps the tab.
+ * @param {object} ctx - scoped plugin context (needs `logger.warn`).
+ * @param {string} action - what was being registered, for the message.
+ * @param {() => Function} run - effect body returning its disposer.
+ * @returns {Function} the effect disposer, or a no-op.
+ */
+function guarded(ctx, action, run) {
+  try {
+    return run()
+  } catch (error) {
+    ctx.logger?.warn?.(`project-todo: ${action}失败：${error?.message || error}；待办页接口会返回 404`)
+    return () => {}
+  }
+}
+
 /** Short summary for one agent's prompt context. */
 function agentTodoText(ctx, configOf, agent) {
   try {
@@ -60,10 +77,19 @@ export function apply(ctx, rawConfig) {
   const agentScopes = new Map()
 
   if (base.ui.enabled) {
-    ctx.inject(['webServer', 'agents', 'workingDirectory'], (scoped) => {
-      scoped.effect(() => registerHttp(scoped, configOf, HTTP_PREFIX, token))
-      scoped.effect(() => injectToken(scoped, token))
+    // Only the HTTP carrier is required to register the route: `agents` and
+    // `workingDirectory` are read per request, so a late (or absent) session
+    // service produces an actionable API error instead of the Web server's
+    // bare 404 — the client half renders the tab either way.
+    ctx.inject(['webServer'], (scoped) => {
+      scoped.effect(() => guarded(scoped, `注册 ${HTTP_PREFIX} 路由`, () => registerHttp(scoped, configOf, HTTP_PREFIX, token)))
+      scoped.effect(() => guarded(scoped, '注入面板令牌', () => injectToken(scoped, token)))
     })
+  } else {
+    // The Web half is off by config, so the tab would answer 404 forever.
+    ctx.logger?.warn?.(
+      'project-todo: ui.enabled=false，未注册 Web 路由，待办页接口会返回 404；删除该配置或设为 true 后重启 DSH',
+    )
   }
 
   ctx.inject(['systemPrompt'], (scoped) => {
