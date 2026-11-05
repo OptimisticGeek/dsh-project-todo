@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 110,
-  "revision": 156,
-  "updatedAt": "2026-11-05T06:45:11.161Z",
+  "nextId": 111,
+  "revision": 159,
+  "updatedAt": "2026-11-05T06:52:02.738Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1237,6 +1237,49 @@
       "doneAt": "2026-11-05T06:45:11.160Z",
       "doneVersion": "3.0.1",
       "doneEvidence": "node --test 143/143；test/project-fallback.test.mjs 5 例（无服务回退会话头、服务优先、看板优先、全无目录可执行报错、服务抛错回退）；test/http-host-half.test.mjs 覆盖缺 workingDirectory 时 health 提示回退且 state 经会话头解析返回 200；空项目 getState 实测 ok:true / 0 任务；tag v3.0.1 已推送（6fe32e4）",
+      "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0110",
+      "legacyId": null,
+      "parentId": null,
+      "title": "安装规范化 3.0.2：一键安装文档、环境矩阵、engines.dsh 版本闸门",
+      "status": "done",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "PLUGIN",
+        "RELEASE"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "完成于 2026-11-05T06:52:02.738Z：node --test 143/143；docs/INSTALL.md 新增环境矩阵/自检/排障/契约清单；README 安装改为一键 dsh plugin add 并禁用手工改 bundles；package.json 增加 engines.dsh>=0.1.5-rc.2；依据 dsh lib/plugin-*.js 的 reconcilePlugins 确认自动登记 bundles；tag v3.0.2 已推送",
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": "optimisticGeek",
+      "releasedBy": null,
+      "createdAt": "2026-11-05T06:51:42.934Z",
+      "updatedAt": "2026-11-05T06:52:02.738Z",
+      "claimedAt": "2026-11-05T06:51:43.124Z",
+      "statusChangedAt": "2026-11-05T06:52:02.738Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": "2026-11-05T06:52:02.738Z",
+      "doneVersion": "3.0.2",
+      "doneEvidence": "node --test 143/143；docs/INSTALL.md 新增环境矩阵/自检/排障/契约清单；README 安装改为一键 dsh plugin add 并禁用手工改 bundles；package.json 增加 engines.dsh>=0.1.5-rc.2；依据 dsh lib/plugin-*.js 的 reconcilePlugins 确认自动登记 bundles；tag v3.0.2 已推送",
       "revision": 3,
       "archivedBy": null
     }
