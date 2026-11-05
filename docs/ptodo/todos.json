@@ -2,8 +2,8 @@
   "version": 3,
   "project": "dsh-project-todo",
   "nextId": 110,
-  "revision": 155,
-  "updatedAt": "2026-11-05T06:44:51.638Z",
+  "revision": 156,
+  "updatedAt": "2026-11-05T06:45:11.161Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1203,7 +1203,7 @@
       "legacyId": null,
       "parentId": null,
       "title": "workingDirectory 服务缺失时回退会话目录，修复新环境看板 NO_PROJECT",
-      "status": "doing",
+      "status": "done",
       "priority": "P0",
       "urgency": 3,
       "holder": "optimisticGeek",
@@ -1215,7 +1215,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": null,
+        "progress": "完成于 2026-11-05T06:45:11.160Z：node --test 143/143；test/project-fallback.test.mjs 5 例（无服务回退会话头、服务优先、看板优先、全无目录可执行报错、服务抛错回退）；test/http-host-half.test.mjs 覆盖缺 workingDirectory 时 health 提示回退且 state 经会话头解析返回 200；空项目 getState 实测 ok:true / 0 任务；tag v3.0.1 已推送（6fe32e4）",
         "decisions": [],
         "openLoops": []
       },
@@ -1226,18 +1226,18 @@
       "causes": [],
       "createdBy": "optimisticGeek",
       "claimedBy": "optimisticGeek",
-      "doneBy": null,
+      "doneBy": "optimisticGeek",
       "releasedBy": null,
       "createdAt": "2026-11-05T06:44:51.473Z",
-      "updatedAt": "2026-11-05T06:44:51.638Z",
+      "updatedAt": "2026-11-05T06:45:11.160Z",
       "claimedAt": "2026-11-05T06:44:51.638Z",
-      "statusChangedAt": "2026-11-05T06:44:51.638Z",
+      "statusChangedAt": "2026-11-05T06:45:11.160Z",
       "archivedAt": null,
       "archiveExempt": false,
-      "doneAt": null,
-      "doneVersion": null,
-      "doneEvidence": null,
-      "revision": 2,
+      "doneAt": "2026-11-05T06:45:11.160Z",
+      "doneVersion": "3.0.1",
+      "doneEvidence": "node --test 143/143；test/project-fallback.test.mjs 5 例（无服务回退会话头、服务优先、看板优先、全无目录可执行报错、服务抛错回退）；test/http-host-half.test.mjs 覆盖缺 workingDirectory 时 health 提示回退且 state 经会话头解析返回 200；空项目 getState 实测 ok:true / 0 任务；tag v3.0.1 已推送（6fe32e4）",
+      "revision": 3,
       "archivedBy": null
     }
   ]
