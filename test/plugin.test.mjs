@@ -102,6 +102,11 @@ test('package exposes one global ptodo bin and ships the skill', () => {
   assert.match(pkg.version, /^\d+\.\d+\.\d+$/)
   assert.deepEqual(pkg.bin, { ptodo: './bin/ptodo.mjs' })
   assert.ok(existsSync(new URL('../bin/ptodo.mjs', import.meta.url)))
+  // Installation gate: the plugin manager reads engines.dsh, and the install
+  // guide must stay discoverable from the README.
+  assert.match(pkg.engines.dsh, /^>=0\./)
+  assert.ok(existsSync(new URL('../docs/INSTALL.md', import.meta.url)))
+  assert.match(readFileSync(new URL('../README.md', import.meta.url), 'utf8'), /dsh plugin --profile .* add/)
   assert.ok(existsSync(new URL('../skill/project-todo/SKILL.md', import.meta.url)))
   assert.ok(ROOT)
 })

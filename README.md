@@ -238,7 +238,30 @@ DSH 会话页的「待办」标签页；Host 只监听回环，按会话工作�
 
 ## 安装与接入
 
-> 发布到 npm 前先用源码安装；包名固定为 `dsh-project-todo`，Loader 条目、客户端模块 id 与 npm 包名一致。
+> 包名 `dsh-project-todo`；Loader 条目与客户端模块 id 都与包名一致。完整环境矩阵、升级与排障见
+> [docs/INSTALL.md](docs/INSTALL.md)。
+
+### 一键装进 DSH（推荐）
+
+```bash
+# GitHub：不需要 clone，DSH 会自动把声明了 dsh.bundle 的包加入 profile bundles
+dsh plugin --profile desktop add github:OptimisticGeek/dsh-project-todo
+
+# 或本地源码目录（开发期）
+dsh plugin --profile desktop add E:\path\to\dsh-project-todo
+```
+
+**不要手工编辑 `dsh.profile.bundles`**。`dsh plugin add` 会按真实包名自动登记/移除，
+手改 profile 是安装事故的主要来源。装完**完全退出 DSH 再启动**（不是刷新页面），
+然后在页面控制台自检：
+
+```js
+fetch('/api/dsh-project-todo/health').then(r => r.json()).then(console.log)
+// { ok:true, version:'3.0.2', services:{agents:true,workingDirectory:true,...}, hint:'' }
+```
+
+支持的载体：桌面应用（`dsh-app://` 壳）与 `dsh web` 浏览器页。纯终端 profile（tui / headless）
+没有 Web 载体，看板不存在，那里用 `ptodo` CLI 与技能。
 
 ### CLI（任何终端）
 
@@ -250,29 +273,7 @@ npm link          # 开发期：全局 ptodo 指向本目录
 ptodo doctor
 ```
 
-发布后：`npm i -g dsh-project-todo`。
-
-### DSH 页面（Host + Client 两半）
-
-```bash
-# 1) 装进目标 profile（会自动登记依赖；profile 名按你的实际名字，如 desktop / web）
-dsh plugin --profile desktop add <本目录路径或 dsh-project-todo>
-
-# 2) 确认 profile 的 dsh.profile.bundles 含 dsh-project-todo
-# 3) 完全退出 DSH 再启动（不是刷新页面）
-```
-
-启动后在页面控制台自检：
-
-```js
-fetch('/api/dsh-project-todo/health').then(r => r.json()).then(console.log)
-// { ok:true, version:'3.0.0', services:{...}, hint:'' }
-```
-
-- 接口挂在 DSH 共享 `/api` Fetch 通道上，Web 载体（浏览器）与桌面壳载体（`dsh-app://`）通用，不依赖端口或注入 token。
-- **新项目不需要预建 `docs/ptodo`**：空看板照常打开，数据文件在首次写入时创建；想显式初始化可跑 `ptodo init`。
-- 会话目录解析优先用 Host 的 `workingDirectory` 服务；该服务缺失时回退到会话头记录的目录，不会因此打不开看板。
-- 纯终端 profile（tui / headless）没有 Web 载体，看板不存在；那里用 `ptodo` CLI 与技能。
+发布 npm 后可用 `npm i -g dsh-project-todo`。
 
 ### 跨工具技能
 
@@ -319,6 +320,7 @@ ptodo migrate             # v2→v3 原地升级；备份到 docs/ptodo/.backup/
 
 | 文档 | 内容 |
 |---|---|
+| [docs/INSTALL.md](docs/INSTALL.md) | 安装与环境矩阵：一键安装、自检、升级、卸载、症状排障、依赖的 DSH 契约 |
 | [docs/HELP.md](docs/HELP.md) | 使用帮助：泳道图、时序图、状态机、时机表、FAQ、排障 |
 | [SPEC.md](SPEC.md) | 设计与契约（数据模型、状态机、UI、命令、退出码） |
 | [skill/project-todo/SKILL.md](skill/project-todo/SKILL.md) | 发给 Agent 的执行协议（G0–G4） |
