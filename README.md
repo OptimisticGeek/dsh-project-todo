@@ -286,7 +286,7 @@ ptodo migrate             # v2→v3 原地升级；备份到 docs/ptodo/.backup/
 | `[NOT_READY]` | 硬依赖/前置未满足，或被他人持有/阶段归档 | `task get <id>` 看 holder 和 blocking，换一条或补前置 |
 | `[CONFLICT]` | 被他人持有、锁占用、依赖已存在 | 不要默认 `--force`；稍后重试或换任务 |
 | `ready` 为空 | 没有「未指派 + 就绪」的叶子 | 自己建的直接 `start`；否则查依赖/前置/归档 |
-| 页面 404 且接口响应为空 | Host 半边没注册路由（`ui.enabled=false`、插件行不在该 profile、或页面由别的进程/端口提供） | 重启整个 DSH；`curl :<端口>/dsh-project-todo/health` 看 `services`；查 profile `bundles` |
+| 页面 404 且接口响应为空 | Host 半边没注册接口（`ui.enabled=false`、插件行不在该 profile、或页面跑在别的实例） | 重启整个 DSH；在页面控制台 `fetch('/api/dsh-project-todo/health').then(r=>r.json())` 看 `services`（命令行 curl 需带登录 cookie） |
 | 页面提示「未知接口」/`not found` | Host 与 Client 版本不一致，或插件自己返回 404 | 统一版本后重启；`health` 里的 `version` 对照 |
 | 中文标签被拆开 | PowerShell 把逗号当参数分隔 | `--tags "KB,api"` |
 | 技能没生效 | 未安装或工具未重启 | `ptodo skill status`，再 `skill install` |

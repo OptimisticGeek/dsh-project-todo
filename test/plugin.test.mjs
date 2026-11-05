@@ -29,10 +29,13 @@ function mockCtx() {
   return { ctx, injections, effects, warnings }
 }
 
-test('the Web half requires only the webServer carrier', () => {
+test('the Web half needs the shared connection channel and, optionally, webServer', () => {
   const { ctx, injections, effects, warnings } = mockCtx()
   apply(ctx, {})
 
+  const connectionInjections = injections.filter((services) => services.includes('connection'))
+  assert.equal(connectionInjections.length, 1)
+  assert.deepEqual(connectionInjections[0], ['connection'])
   const webInjections = injections.filter((services) => services.includes('webServer'))
   assert.equal(webInjections.length, 1)
   assert.deepEqual(webInjections[0], ['webServer'])
@@ -40,35 +43,48 @@ test('the Web half requires only the webServer carrier', () => {
   assert.ok(!injections.some((services) => services.includes('workingDirectory')))
   assert.ok(!injections.some((services) => services.includes('tools')))
 
-  // route + token + system prompt + root dispose
-  assert.equal(effects.length, 4)
+  // connection routes + legacy route + token + system prompt + root dispose
+  assert.equal(effects.length, 5)
   for (const factory of effects) assert.equal(typeof factory(), 'function')
-  // No carrier here, so both Web effects warn instead of throwing.
-  assert.ok(warnings.some((message) => message.includes('路由')))
+  // No carrier here, so every registration warns instead of throwing.
+  assert.ok(warnings.some((message) => message.includes('/api')))
   assert.ok(warnings.some((message) => message.includes('面板令牌')))
 })
 
-test('the route is registered as soon as webServer exists, session services or not', () => {
-  const routes = []
+test('the portable route is mounted on /api as soon as connection exists', () => {
+  const webRoutes = []
+  const fetchRoutes = []
   const { ctx, effects } = mockCtx()
   ctx.webServer = {
     register: (route) => {
-      routes.push(route)
+      webRoutes.push(route)
       return () => {}
     },
     tapIndex: () => () => {},
     getOrigin: () => 'http://127.0.0.1:1',
   }
+  ctx.connection = {
+    fetch: {
+      register: (route) => {
+        fetchRoutes.push(route)
+        return async () => {}
+      },
+    },
+  }
   apply(ctx, {})
   for (const factory of effects) factory()
-  assert.equal(routes.length, 1)
-  assert.deepEqual({ kind: routes[0].kind, path: routes[0].path }, { kind: 'prefix', path: '/dsh-project-todo' })
+  assert.equal(webRoutes.length, 1)
+  assert.deepEqual({ kind: webRoutes[0].kind, path: webRoutes[0].path }, { kind: 'prefix', path: '/dsh-project-todo' })
+  assert.equal(fetchRoutes.length, 9)
+  assert.ok(fetchRoutes.every((route) => route.path.startsWith('/api/dsh-project-todo/')))
+  assert.ok(fetchRoutes.some((route) => route.path === '/api/dsh-project-todo/state'))
 })
 
 test('ui.enabled=false warns and mounts no Web route', () => {
   const { ctx, injections, warnings } = mockCtx()
   apply(ctx, { ui: { enabled: false } })
   assert.ok(!injections.some((services) => services.includes('webServer')))
+  assert.ok(!injections.some((services) => services.includes('connection')))
   assert.ok(warnings.some((message) => message.includes('ui.enabled=false')))
 })
 

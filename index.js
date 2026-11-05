@@ -7,7 +7,7 @@
  * an agent that never loaded the skill still knows where the board lives.
  */
 import { randomBytes } from 'node:crypto'
-import { injectToken, registerHttp } from './lib/http.js'
+import { API_CHANNEL, injectToken, registerConnectionRoutes, registerHttp } from './lib/http.js'
 import { resolveProjectRoot } from './lib/project.js'
 import { storeFor } from './lib/store.js'
 import { orgStoreFor } from './lib/org.js'
@@ -77,10 +77,20 @@ export function apply(ctx, rawConfig) {
   const agentScopes = new Map()
 
   if (base.ui.enabled) {
-    // Only the HTTP carrier is required to register the route: `agents` and
-    // `workingDirectory` are read per request, so a late (or absent) session
-    // service produces an actionable API error instead of the Web server's
-    // bare 404 — the client half renders the tab either way.
+    // Portable path: exact Fetch routes on DSH's shared /api channel. A
+    // shell-owned carrier (the desktop `dsh-app://` window) dispatches that
+    // channel too, so the page needs no webServer port, origin or injected
+    // token — only the client half's relative fetch below /api.
+    ctx.inject(['connection'], (scoped) => {
+      scoped.effect(() =>
+        guarded(scoped, `注册 ${API_CHANNEL}${HTTP_PREFIX} 接口`, () =>
+          registerConnectionRoutes(scoped, configOf, HTTP_PREFIX, token),
+        ),
+      )
+    })
+
+    // Legacy Web-carrier route: keeps an already-cached page and hosts that
+    // predate the connection Fetch registry working when webServer exists.
     ctx.inject(['webServer'], (scoped) => {
       scoped.effect(() => guarded(scoped, `注册 ${HTTP_PREFIX} 路由`, () => registerHttp(scoped, configOf, HTTP_PREFIX, token)))
       scoped.effect(() => guarded(scoped, '注入面板令牌', () => injectToken(scoped, token)))

@@ -327,16 +327,17 @@ batch:      { claimLimit: 3 }
 ## 12. UI 契约
 
 - 注册 `conversation.view`，`id="todo"`，label 走 locale（zh 待办 / en Todo）。
-- 页面按契约消费 Host HTTP（仅 loopback）：
-  - `GET /dsh-project-todo/state?sessionId=…` → 任务（含派生字段）、里程碑/阶段、标签、counts、actor（含 person）；
-  - `GET /dsh-project-todo/people?sessionId=…` → `{ person, people:[{ name, source, active, done, related }] }`
+- 页面按契约消费 Host API，挂在 DSH 共享 `/api` Fetch 通道（`ctx.connection.fetch`，Web 载体与桌面 `dsh-app://` 壳载体都分发）；旧 `webServer` 前缀路由保留兼容：
+  - `GET /api/dsh-project-todo/health` → `{ version, services:{ webServer, agents, workingDirectory }, hint }`，用于区分「接口没注册」与「会话服务缺失」；
+  - `GET /api/dsh-project-todo/state?sessionId=…` → 任务（含派生字段）、里程碑/阶段、标签、counts、actor（含 person）；
+  - `GET /api/dsh-project-todo/people?sessionId=…` → `{ person, people:[{ name, source, active, done, related }] }`
     （**仅 git 历史作者**；当前 person 也必须是 git 作者；任务里的工具名/session id 不再作为人员）；
-  - `GET /dsh-project-todo/task?id=…&sessionId=…` → 任务 + 父/子 + 历史 + 前置 + 被依赖 + 资料 + 相关提交；
-  - `GET /dsh-project-todo/timeline?sessionId=…&scope=…&tag=…&taskId=…&q=…&type=…&limit=20`；
-  - `GET /dsh-project-todo/version?sessionId=…` → 完成版本预取；
-  - `GET /dsh-project-todo/export?…`、`POST /dsh-project-todo/import`（base64）；
-  - `POST /dsh-project-todo/action`（body 含 `sessionId` 与 action）。
-- 写请求鉴权：回环 + 四选一（`x-dsh-project-todo-token`、同源 Origin、`sec-fetch-site: same-origin`、`x-dsh-project-todo-client: 1`）。
+  - `GET /api/dsh-project-todo/task?id=…&sessionId=…` → 任务 + 父/子 + 历史 + 前置 + 被依赖 + 资料 + 相关提交；
+  - `GET /api/dsh-project-todo/timeline?sessionId=…&scope=…&tag=…&taskId=…&q=…&type=…&limit=20`；
+  - `GET /api/dsh-project-todo/version?sessionId=…` → 完成版本预取；
+  - `GET /api/dsh-project-todo/export?…`、`POST /api/dsh-project-todo/import`（base64）；
+  - `POST /api/dsh-project-todo/action`（body 含 `sessionId` 与 action）。
+- 写请求鉴权：共享通道由载体做浏览器会话认证；旧 `webServer` 路由额外要求回环 + 四选一（`x-dsh-project-todo-token`、同源 Origin、`sec-fetch-site: same-origin`、`x-dsh-project-todo-client: 1`）。
 - **布局**：紧凑表格（`dpt-table`，min-width 940，窄屏横向滚动；外层 1080px），不再使用大卡片流。
   列：状态 / ID / 任务标题（父子缩进、依赖 ⛓ N、前置 ⏳ N、版本、标签）/ 优先级 / 紧急度 /
   里程碑·阶段（只显示 name，`title=code`；**分组视图下隐藏该列**）/ 负责人 / 更新时间 / 操作。
