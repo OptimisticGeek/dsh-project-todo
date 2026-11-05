@@ -1,18 +1,18 @@
 # 待办
 
-> 本文件由 dsh-project-todo / ptodo 自动生成（revision 132，2026-11-05 10:28），请勿手工编辑。
+> 本文件由 dsh-project-todo / ptodo 自动生成（revision 133，2026-11-05 10:40），请勿手工编辑。
 > 数据源：`docs/ptodo/todos.json`；已完成任务归档后进入 `docs/ptodo/ARCHIVE.md`。
 > **工作入口**：agent 请加载技能 `project-todo`（或直接执行 `ptodo task ready`）后按 G0–G4 推进；
 > 本文件与 `todos.json` 都是只读快照/存储，**不要直接编辑，也不要以读 JSON 代替认领**。
 
-进行中 1 · 未开始 0 · 阻塞 0 · 已完成 19 · 已取消 0
+进行中 0 · 未开始 0 · 阻塞 0 · 已完成 20 · 已取消 0
 
 | ID | 优先级 | 紧急度 | 状态 | 任务 | 标签 | 持有 | 认领 | 状态更新 | 备注 |
 |---|---|---|---|---|---|---|---|---|---|
 | T-0041 | P0 | 紧急 | 已完成 | 项目待办 CLI 化：ptodo 全局命令 + 跨工具 Skills + 数据迁入 docs/ptodo | TODO-SYSTEM、INFRA | optimisticGeek | 11-04 11:01 | 11-04 11:11 | 移除 DSH 20 个 ptodo_* 工具，插件包暴露 bin ptodo；数据迁 docs/ptodo/*.json；技能统一提示词；无 audit；版本 1.0.0；支持“继续开发”零启动批量认领。 |
 | T-0057 | P0 | 普通 | 已完成 | 待办负责人治理：仅允许 git 人员，修复无效 person，先指派给 optimisticGeek | TODO-SYSTEM | optimisticGeek | 11-04 17:16 | 11-04 17:21 |  |
 | T-0058 | P0 | 普通 | 已完成 | 插件开发待办迁移：把 TODO-SYSTEM 任务移到 E:\dsh-plugins\dsh-project-todo 独立看板 | TODO-SYSTEM | optimisticGeek | 11-04 17:24 | 11-04 17:25 |  |
-| T-0102 | P0 | 普通 | 进行中 | 修复待办导出 Excel 失败（插件目录迁移后 helper 路径失效）并按颜色/图表重做导出排版 | TODO-SYSTEM、UI | optimisticGeek | 11-05 10:28 | 11-05 10:28 |  |
+| T-0102 | P0 | 普通 | 已完成 | 修复待办导出 Excel 失败（插件目录迁移后 helper 路径失效）并按颜色/图表重做导出排版 | TODO-SYSTEM、UI | optimisticGeek | 11-05 10:28 | 11-05 10:40 |  |
 | T-0043 | P1 | 普通 | 已完成 | ptodo v2 升级：三层组织/依赖/开工简报/UI | TODO-SYSTEM | optimisticGeek | 11-04 14:59 | 11-04 15:20 | 按用户批准的 ptodo 完整开发计划执行：schema v3、actor、里程碑/阶段、标签库、依赖、ready/start/done/release/block/create、前置/因果/资料、UI 分组。 |
 | T-0045 | P1 | 普通 | 已完成 | ptodo Web UI：任务列表平铺/分组切换与层级可读性优化 | TODO-SYSTEM | optimisticGeek | 11-04 16:01 | 11-04 16:06 |  |
 | T-0047 | P1 | 普通 | 已完成 | 身份语义：完成人/负责人用 git 用户名（person），新增人员列表与批量归档 API | TODO-SYSTEM | optimisticGeek | 11-04 16:09 | 11-04 16:17 |  |
