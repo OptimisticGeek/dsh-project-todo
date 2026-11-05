@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 112,
-  "revision": 162,
-  "updatedAt": "2026-11-05T06:58:55.470Z",
+  "nextId": 113,
+  "revision": 164,
+  "updatedAt": "2026-11-05T07:05:12.083Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1324,6 +1324,49 @@
       "doneVersion": "3.1.0",
       "doneEvidence": "node --test 149/149；新增 lib/skills.js 共享核心（8 目标、junction/复制、firstRun），CLI 改用同一核心并新增 trae；GET/POST /api/dsh-project-todo/skills 端到端用例通过（临时 HOME，安装后 linked 且 SKILL.md 存在）；client.js 新增首次安装横幅与技能面板；tag v3.1.0 已推送",
       "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0112",
+      "legacyId": null,
+      "parentId": null,
+      "title": "跨平台规范化 3.1.1：macOS/Linux 支持、CI 矩阵、行尾与 bin 权限",
+      "status": "doing",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "PLUGIN",
+        "RELEASE"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": null,
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": null,
+      "releasedBy": null,
+      "createdAt": "2026-11-05T07:05:11.888Z",
+      "updatedAt": "2026-11-05T07:05:12.083Z",
+      "claimedAt": "2026-11-05T07:05:12.083Z",
+      "statusChangedAt": "2026-11-05T07:05:12.083Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": null,
+      "doneVersion": null,
+      "doneEvidence": null,
+      "revision": 2,
       "archivedBy": null
     }
   ]

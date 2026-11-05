@@ -115,9 +115,24 @@ dsh plugin --profile <profile> remove dsh-project-todo
 | 401 | 浏览器 `/api` 通道未带会话 cookie（命令行 curl 的常见情况） | 在页面控制台自检，不要用 curl 判断 |
 | `not found` / `未知接口` | Host 与 Client 版本不一致（旧 Host 新 Client） | 统一升级后完全重启 |
 | 空表格但无报错 | 新项目还没有任务 | 正常；`ptodo task create` 或 `task ready` |
-| 中文乱码 | PowerShell/终端编码 | `chcp 65001` 或按 UTF-8 捕获输出 |
+| 中文乱码 | PowerShell/终端编码 | Windows：`chcp 65001`；macOS/Linux 终端默认 UTF-8 |
+| macOS 上 `env: node\r: No such file or directory` | 检出文件是 CRLF，shebang 带了 `\r` | 仓库已用 `.gitattributes` 统一 LF：重新 clone 或 `git add --renormalize . && git checkout` |
 
-## 7. 设计契约（本插件依赖的 DSH 接口）
+## 7. 跨平台（Windows / macOS / Linux）
+
+| 主题 | Windows | macOS / Linux |
+|---|---|---|
+| 技能链接 | 目录 junction | `symlink`；失败回退复制（与 Windows 同一回退） |
+| 用户目录 | `%USERPROFILE%` | `$HOME`；代码统一用 `os.homedir()`，不写死盘符 |
+| 行尾 | 仓库统一 LF（`.gitattributes`），Windows 检出也不破坏 shebang | 同上 |
+| `ptodo` 命令 | npm 生成 `.cmd`/`.ps1` shim | npm 生成可执行 shim；直接执行需 `chmod +x bin/ptodo.mjs`（git 已记录 100755） |
+| 大小写 | 不敏感 | macOS 默认不敏感、Linux 敏感；人员合并按大小写不敏感处理，跨平台一致 |
+| 文件锁 | `open(..., 'wx')` + 超时清理 | 相同实现 |
+
+**验证**：CI（`.github/workflows/ci.yml`）在 `ubuntu-latest` / `macos-latest` / `windows-latest` ×
+Node 20/22 上跑 `node --test`，平台相关的破坏（symlink、路径大小写、行尾）会在 CI 失败，而不是在用户机器上。
+
+## 8. 设计契约（本插件依赖的 DSH 接口）
 
 | 契约 | 位置 | 本插件用法 |
 |---|---|---|
