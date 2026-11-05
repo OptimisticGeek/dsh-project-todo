@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "revision": 6,
-  "updatedAt": "2026-11-05T05:53:45.300Z",
+  "revision": 7,
+  "updatedAt": "2026-11-05T05:59:06.407Z",
   "tags": [
     {
       "code": "skill",
@@ -62,6 +62,16 @@
       "deprecatedBy": null,
       "createdAt": "2026-11-05T05:35:37.813Z",
       "updatedAt": "2026-11-05T05:35:37.813Z"
+    },
+    {
+      "code": "RELEASE",
+      "name": "RELEASE",
+      "description": "",
+      "aliases": [],
+      "status": "draft",
+      "deprecatedBy": null,
+      "createdAt": "2026-11-05T05:59:06.406Z",
+      "updatedAt": "2026-11-05T05:59:06.407Z"
     }
   ]
 }

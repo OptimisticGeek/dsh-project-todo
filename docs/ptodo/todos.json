@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 107,
-  "revision": 147,
-  "updatedAt": "2026-11-05T05:55:21.524Z",
+  "nextId": 108,
+  "revision": 150,
+  "updatedAt": "2026-11-05T05:59:44.777Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1109,6 +1109,49 @@
       "doneAt": "2026-11-05T05:55:21.524Z",
       "doneVersion": "86f7774",
       "doneEvidence": "node --test 135/135 通过；test/http-host-half.test.mjs 重写为 /api 通道 6 例（精确路由注册、health 服务报告、state 无 agents 可读错误、POST action 解析 body、未注册路径不 claim）；test/plugin.test.mjs 断言 9 条 /api 路由与旧 webServer 路由并存；node --check index.js/lib/http.js/client.js 通过；实测当前宿主 /api/* 返回 401（通道存在、需浏览器会话），说明共享通道已由载体分发",
+      "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0107",
+      "legacyId": null,
+      "parentId": null,
+      "title": "发版 2.3.0：版本号、版本文档、标签与推送",
+      "status": "done",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "PLUGIN",
+        "RELEASE"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "完成于 2026-11-05T05:59:44.777Z：npm test 135/135；package.json=2.3.0；docs/version/2.3.0.md 已建；tag v2.3.0 已推送（aebd5ea）；health 的 version 字段读 package.json 得 2.3.0",
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": "optimisticGeek",
+      "releasedBy": null,
+      "createdAt": "2026-11-05T05:59:06.415Z",
+      "updatedAt": "2026-11-05T05:59:44.777Z",
+      "claimedAt": "2026-11-05T05:59:10.619Z",
+      "statusChangedAt": "2026-11-05T05:59:44.777Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": "2026-11-05T05:59:44.777Z",
+      "doneVersion": "2.3.0",
+      "doneEvidence": "npm test 135/135；package.json=2.3.0；docs/version/2.3.0.md 已建；tag v2.3.0 已推送（aebd5ea）；health 的 version 字段读 package.json 得 2.3.0",
       "revision": 3,
       "archivedBy": null
     }
