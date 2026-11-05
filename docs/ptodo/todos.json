@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 104,
-  "revision": 137,
-  "updatedAt": "2026-11-05T02:44:02.174Z",
+  "nextId": 105,
+  "revision": 139,
+  "updatedAt": "2026-11-05T03:20:43.019Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -975,6 +975,49 @@
       "doneVersion": "2.2.1",
       "doneEvidence": "根因：rowsOf/reportOf 直接拼接 task.tags 编码，未查 tags.json 的 name（面板已用 name）。修复：rowsOf 按 code→name 映射；reportOf/标签Top 用 name 排序展示；importRows 新增 code/name/alias 反查，导入时中文名还原编码；importFromFile 自动读 tags.json。验证：node --test 125/125；fuyao-ai 导出明细显示 作品展廊/账号权限 等、总览标签Top 账号权限11；导出文件导入空项目 58 条，标签还原 GALLERY/MODEL-DEPLOY/TRAIN/tag-0015；插件热重载后 HTTP /export 200。提交 2f652d2；版本文档 docs/version/2.2.1.md",
       "revision": 4,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0104",
+      "legacyId": null,
+      "parentId": null,
+      "title": "人员筛选/人员列表按大小写不敏感合并同一负责人（optimisticGeek / OptimisticGeek）",
+      "status": "doing",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "TODO-SYSTEM",
+        "UI"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": null,
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": null,
+      "releasedBy": null,
+      "createdAt": "2026-11-05T03:20:42.852Z",
+      "updatedAt": "2026-11-05T03:20:43.019Z",
+      "claimedAt": "2026-11-05T03:20:43.019Z",
+      "statusChangedAt": "2026-11-05T03:20:43.019Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": null,
+      "doneVersion": null,
+      "doneEvidence": null,
+      "revision": 2,
       "archivedBy": null
     }
   ]

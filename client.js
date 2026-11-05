@@ -725,10 +725,12 @@ window.__ModuleLoader__.load({
           const archivedTasks = archived || []
           const localeCode = zh ? 'zh-CN' : 'en'
           const mePerson = (actor && (actor.person || actor.actor)) || holder.trim()
+          const personKey = (value) => String(value == null ? '' : value).trim().toLowerCase()
           const selectedPeople = personFilter === null ? (mePerson ? [mePerson] : []) : personFilter
+          const selectedPeopleKeys = new Set(selectedPeople.map(personKey))
           const peopleFilterActive = selectedPeople.length > 0
           const taskPeople = (task) => [task.holder, task.createdBy, task.doneBy].filter(Boolean)
-          const matchesPerson = (task) => !peopleFilterActive || taskPeople(task).some((name) => selectedPeople.includes(name))
+          const matchesPerson = (task) => !peopleFilterActive || taskPeople(task).some((name) => selectedPeopleKeys.has(personKey(name)))
           const matchesTag = (task) => !tagFilter || (task.tags || []).includes(tagFilter)
           const matchesSearch = (task) => {
             const keyword = search.trim().toLowerCase()
@@ -774,8 +776,9 @@ window.__ModuleLoader__.load({
           const personSeen = new Set()
           const pushPerson = (name) => {
             const value = String(name || '').trim()
-            if (!value || personSeen.has(value)) return
-            personSeen.add(value)
+            const key = personKey(value)
+            if (!key || personSeen.has(key)) return
+            personSeen.add(key)
             personOptions.push(value)
           }
           if (mePerson) pushPerson(mePerson)
@@ -791,8 +794,11 @@ window.__ModuleLoader__.load({
                   ? selectedPeople.join('、')
                   : t('peoplePick').replace('{n}', String(selectedPeople.length))
           const togglePerson = (name) => {
-            const current = selectedPeople.includes(name)
-            const next = current ? selectedPeople.filter((value) => value !== name) : [...selectedPeople, name]
+            const key = personKey(name)
+            const current = selectedPeople.find((value) => personKey(value) === key)
+            const next = current
+              ? selectedPeople.filter((value) => personKey(value) !== key)
+              : [...selectedPeople, name]
             setPersonFilter(next)
           }
 
@@ -1878,7 +1884,7 @@ window.__ModuleLoader__.load({
                         'select',
                         {
                           className: 'dpt-select',
-                          value: personOptions.includes(assign.value) ? assign.value : '',
+                          value: personOptions.find((name) => personKey(name) === personKey(assign.value)) || '',
                           onChange: (event) => {
                             if (event.target.value) setAssign({ ...assign, value: event.target.value })
                           },
@@ -2184,8 +2190,8 @@ window.__ModuleLoader__.load({
                                 h(
                                   'label',
                                   { className: 'dpt-people-row', key: name },
-                                  h('input', { type: 'checkbox', checked: selectedPeople.includes(name), onChange: () => togglePerson(name) }),
-                                  h('span', null, name === mePerson ? `${name}（${t('peopleMe')}）` : name),
+                                  h('input', { type: 'checkbox', checked: selectedPeopleKeys.has(personKey(name)), onChange: () => togglePerson(name) }),
+                                  h('span', null, personKey(name) === personKey(mePerson) ? `${name}（${t('peopleMe')}）` : name),
                                 ),
                               )
                             : h('div', { className: 'dpt-people-row' }, t('peopleEmpty')),

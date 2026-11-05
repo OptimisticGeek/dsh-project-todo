@@ -265,6 +265,49 @@ test('client defaults the people filter to me and hides other people tasks', asy
   })
 })
 
+test('people filter treats owner case variants as one person', async () => {
+  await withRoot(async (root) => {
+    const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })
+    await act(root, config, { action: 'create', title: '大小写任务 A', person: 'optimisticGeek', holder: 'optimisticGeek' }, 'optimisticGeek')
+    await act(root, config, { action: 'create', title: '大小写任务 B', person: 'optimisticGeek', holder: 'optimisticgeek' }, 'optimisticGeek')
+    const state = await getState(root, config, {})
+    state.actor = { actor: 'dsh:optimisticGeek', person: 'optimisticGeek', source: 'git', gitName: 'optimisticGeek', hasPrefix: true }
+    state.config.defaultTab = 'all'
+
+    const tree = await renderClient(
+      state,
+      {
+        ok: true,
+        person: 'optimisticGeek',
+        people: [
+          { name: 'optimisticGeek', source: 'me', active: 2, done: 0, related: 2 },
+          { name: 'OptimisticGeek', source: 'git', active: 0, done: 0, related: 0 },
+        ],
+      },
+      {
+        interact: async ({ getTree }) => {
+          const box = findNode(getTree(), (node) => node && node.props && node.props.className === 'dpt-people')
+          assert.ok(box, 'people filter box missing')
+          const toggle = (box.children || []).find((child) => child && child.type === 'button')
+          assert.ok(toggle, 'people filter button missing')
+          toggle.props.onClick()
+        },
+      },
+    )
+
+    const classes = []
+    const texts = []
+    walk(tree, { class: (name) => classes.push(name), text: (text) => texts.push(text) })
+    const count = (name) => classes.filter((value) => value.split(/\s+/).includes(name)).length
+    // Default "mine" filter keeps both tasks even though one row stores the lower-case owner.
+    assert.equal(count('dpt-task'), 2)
+    // The open panel must show one option, not two casings of the same person.
+    assert.equal(count('dpt-people-row'), 1)
+    assert.ok(texts.includes('optimisticGeek（我）'))
+    assert.ok(!texts.includes('OptimisticGeek'))
+  })
+})
+
 test('done tab offers single and batch archive for completed tasks', async () => {
   await withRoot(async (root) => {
     const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })

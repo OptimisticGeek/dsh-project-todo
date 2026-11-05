@@ -369,6 +369,8 @@ batch:      { claimLimit: 3 }
 - **不提供的写入口**：删除任务、取消归档、导入、批量认领/释放、清空日志（这些只走 `ptodo admin`）。
 - **人员过滤**：工具栏「人员」下拉，默认「与我相关」（person 命中 holder/createdBy/doneBy），
   支持勾选多人与「全部人员」；计数/Tab 跟随该过滤。人员来源 = **仅 git 历史作者**（`GET /people`）；
+  **人员身份大小写不敏感**：`optimisticGeek` / `OptimisticGeek` 合并为同一人（显示名优先当前操作人，
+  其次任务里最常见的写法，再其次 git 作者；筛选/勾选也按小写比较），不会出现两条。
 - **Holder/操作人**：工具栏「操作人」localStorage 优先，否则 `state.actor.person`，作为所有动作的 `person`
   （工具身份仍以 `--by` 记账）；负责人列/详情显示 holder，已完成任务额外显示完成人与完成时间。
 - **保留的只读入口**：导出 md/xlsx（active/all）、刷新、校验、搜索/筛选/排序；快速新建（标题/P/紧急度/阶段，

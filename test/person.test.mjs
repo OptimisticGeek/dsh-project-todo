@@ -5,6 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { act, getPeople, getTask, repairPeople } from '../lib/service.js'
+import { TodoStore } from '../lib/store.js'
 import { normalizeConfig } from '../lib/config.js'
 import { initOrg } from '../lib/org.js'
 
@@ -137,6 +138,37 @@ test('getPeople includes distinct git commit authors', async (t) => {
     assert.ok(gitAuthor, 'git 作者应出现在人员列表')
     assert.equal(gitAuthor.source, 'git')
     assert.equal(gitAuthor.related, 1)
+  })
+})
+
+test('getPeople merges case variants of the same git author', async (t) => {
+  await withRoot(async (root) => {
+    if (!gitAvailable()) return t.skip('git 不可用')
+    const init = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8', windowsHide: true })
+    if (init.status !== 0) return t.skip('git init 失败')
+    const commit = spawnSync(
+      'git',
+      ['-C', root, '-c', 'user.name=OptimisticGeek', '-c', 'user.email=git@example.com', 'commit', '--allow-empty', '-m', 'seed'],
+      { encoding: 'utf8', windowsHide: true },
+    )
+    if (commit.status !== 0) return t.skip('git commit 失败')
+
+    await create(root, 'A', { person: 'OptimisticGeek', holder: 'OptimisticGeek' })
+    await create(root, 'B', { person: 'OptimisticGeek', holder: 'OptimisticGeek' })
+    // Simulate a legacy/imported row with different casing.
+    const store = new TodoStore(root, CONFIG)
+    await store.mutate('test', 'tester', (board) => {
+      const task = board.tasks.find((entry) => entry.title === 'B')
+      task.holder = 'optimisticgeek'
+      return { changedTasks: [task.id] }
+    })
+
+    const { people } = await getPeople(root, CONFIG, { person: 'optimisticGeek' })
+    const matches = people.filter((entry) => entry.name.toLowerCase() === 'optimisticgeek')
+    assert.equal(matches.length, 1, '同一人不应出现两条')
+    assert.equal(matches[0].name, 'optimisticGeek', '当前操作人的大小写优先')
+    assert.equal(matches[0].source, 'me')
+    assert.equal(matches[0].active, 2, '两条任务都应计入同一人')
   })
 })
 
