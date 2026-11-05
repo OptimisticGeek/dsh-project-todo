@@ -1,5 +1,5 @@
 /**
- * Browser half of `@local/dsh-project-todo`.
+ * Browser half of `dsh-project-todo`.
  *
  * v3 Web view: six fixed tabs (all/ready/doing/blocked/done/archived) whose
  * counts follow the active tag/milestone/stage/search filters, a compact
@@ -12,7 +12,7 @@
  * React.createElement only (no JSX), no dependencies, one inline stylesheet.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-project-todo',
+  id: 'dsh-project-todo',
   factory(require) {
     const React = require('react')
     const h = React.createElement

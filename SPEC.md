@@ -21,7 +21,7 @@
 
 ## 2. 交付形态
 
-- 包：`@local/dsh-project-todo`（目录 `dsh-plugins/dsh-project-todo`），bin 为全局命令 `ptodo`。
+- 包：`dsh-project-todo`（目录 `dsh-plugins/dsh-project-todo`），bin 为全局命令 `ptodo`。
 - Host 半边：项目解析、JSON store、org/tag store、Markdown 快照、CLI、HTTP（供 Web UI）。
 - Client 半边：`conversation.view` 标签页「待办」；**不注册** `sidebar.panellist` / `main`。
 - **不再注册任何 model-facing `ptodo_*` 工具**；CLI 与页面共用 `service.act()` 与 `getState/getTask/getTimeline`。

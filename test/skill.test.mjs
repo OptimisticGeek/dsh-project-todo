@@ -99,7 +99,7 @@ test('SKILL.md keeps the cross-tool protocol and G0-G4 gates', async () => {
   assert.match(skill, /PTODO_ACTOR/)
   assert.match(skill, /没有冒号/)
   // PATH fallback that works from any tool.
-  assert.match(skill, /node "\$\(npm root -g\)\/@local\/dsh-project-todo\/bin\/ptodo\.mjs"/)
+  assert.match(skill, /node "\$\(npm root -g\)\/dsh-project-todo\/bin\/ptodo\.mjs"/)
   // G0.5 must degrade instead of blocking when a project has no PRD registry.
   assert.match(skill, /无需求资产/)
   assert.match(skill, /不得.{0,4}阻塞/)

@@ -312,7 +312,7 @@ ptodo task status
 
 ```bash
 ptodo --version                                              # 1) 在 PATH（Windows 同时有 ptodo / ptodo.cmd / ptodo.ps1）
-node "$(npm root -g)/@local/dsh-project-todo/bin/ptodo.mjs" --version   # 2) 全局 npm 包
+node "$(npm root -g)/dsh-project-todo/bin/ptodo.mjs" --version   # 2) 全局 npm 包
 node "<源码仓>/dsh-plugins/dsh-project-todo/bin/ptodo.mjs" --version    # 3) 源码仓（本机示例：E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs）
 ```
 

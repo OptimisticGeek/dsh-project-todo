@@ -105,3 +105,13 @@ test('doctor lists at most three missing versions and omits the rest', async () 
     assert.match(doctor.stdout, /等 4 个版本/)
   })
 })
+
+test('a never-archived project reports the archive as normal, not a warning', async () => {
+  await withRoot(async (root) => {
+    assert.equal(run(root, ['init']).status, 0)
+    const doctor = run(root, ['doctor'])
+    assert.equal(doctor.status, 0, doctor.stderr)
+    assert.doesNotMatch(doctor.stdout, /⚠ archive/)
+    assert.match(doctor.stdout, /尚未归档，首次归档时创建/)
+  })
+})

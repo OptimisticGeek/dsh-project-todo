@@ -2,4 +2,4 @@
 # the global `ptodo` CLI bin. Client half: the per-session "待办" view.
 - insert:
     - id: project-todo
-      name: '@local/dsh-project-todo'
+      name: 'dsh-project-todo'

@@ -864,7 +864,7 @@ DSH 另有 Host 注入的常驻提示和会话摘要，即使 Agent 没加载技
 
 ```text
 ptodo 2.0.2 · E:\java\fuyao-ai
-✅ package  @local/dsh-project-todo@2.0.2
+✅ package  dsh-project-todo@2.0.2
 ✅ node     22.19.0
 ✅ root     E:\java\fuyao-ai
 ✅ board    ...\docs\ptodo\todos.json（revision 96，46 条）

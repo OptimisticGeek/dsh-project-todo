@@ -238,7 +238,9 @@ DSH 会话页的「待办」标签页；Host 只监听回环，按会话工作�
 
 ## 安装与接入
 
-### CLI
+> 发布到 npm 前先用源码安装；包名固定为 `dsh-project-todo`，Loader 条目、客户端模块 id 与 npm 包名一致。
+
+### CLI（任何终端）
 
 ```bash
 git clone https://github.com/OptimisticGeek/dsh-project-todo.git
@@ -248,9 +250,27 @@ npm link          # 开发期：全局 ptodo 指向本目录
 ptodo doctor
 ```
 
-### DSH 页面
+发布后：`npm i -g dsh-project-todo`。
 
-包通过 `package.json` 的 `dsh.bundle.patch` 提供 Host/Client 两半。把包加入当前 DSH profile 的 `dsh.profile.bundles`（并确保 `dependencies` 能解析，例如 `link:E:/.../dsh-project-todo`），重启 DSH 后会话页出现「待办」标签页。DSH 桌面版的 profile 由应用管理，改完在应用里重载/重启。
+### DSH 页面（Host + Client 两半）
+
+```bash
+# 1) 装进目标 profile（会自动登记依赖；profile 名按你的实际名字，如 desktop / web）
+dsh plugin --profile desktop add <本目录路径或 dsh-project-todo>
+
+# 2) 确认 profile 的 dsh.profile.bundles 含 dsh-project-todo
+# 3) 完全退出 DSH 再启动（不是刷新页面）
+```
+
+启动后在页面控制台自检：
+
+```js
+fetch('/api/dsh-project-todo/health').then(r => r.json()).then(console.log)
+// { ok:true, version:'3.0.0', services:{...}, hint:'' }
+```
+
+- 接口挂在 DSH 共享 `/api` Fetch 通道上，Web 载体（浏览器）与桌面壳载体（`dsh-app://`）通用，不依赖端口或注入 token。
+- 纯终端 profile（tui / headless）没有 Web 载体，看板不存在；那里用 `ptodo` CLI 与技能。
 
 ### 跨工具技能
 

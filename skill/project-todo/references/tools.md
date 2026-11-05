@@ -50,7 +50,7 @@ ptodo task ready --limit 3
 ptodo --version
 
 # 2) 全局 npm 包（node 在 PATH 但 ptodo 不在时）
-node "$(npm root -g)/@local/dsh-project-todo/bin/ptodo.mjs" --version
+node "$(npm root -g)/dsh-project-todo/bin/ptodo.mjs" --version
 
 # 3) 源码仓（node 用绝对路径；本机示例）
 node "E:\dsh-plugins\dsh-project-todo\bin\ptodo.mjs" --version

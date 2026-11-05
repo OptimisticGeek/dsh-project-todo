@@ -1,5 +1,5 @@
 /**
- * Host entry of `@local/dsh-project-todo`.
+ * Host entry of `dsh-project-todo`.
  *
  * Model-facing tools were removed on purpose: the one command surface is the
  * global `ptodo` CLI shipped by this same package. The plugin keeps the Web
