@@ -1,11 +1,11 @@
 # 待办
 
-> 本文件由 dsh-project-todo / ptodo 自动生成（revision 164，2026-11-05 15:05），请勿手工编辑。
+> 本文件由 dsh-project-todo / ptodo 自动生成（revision 165，2026-11-05 15:06），请勿手工编辑。
 > 数据源：`docs/ptodo/todos.json`；已完成任务归档后进入 `docs/ptodo/ARCHIVE.md`。
 > **工作入口**：agent 请加载技能 `project-todo`（或直接执行 `ptodo task ready`）后按 G0–G4 推进；
 > 本文件与 `todos.json` 都是只读快照/存储，**不要直接编辑，也不要以读 JSON 代替认领**。
 
-进行中 1 · 未开始 0 · 阻塞 0 · 已完成 29 · 已取消 0
+进行中 0 · 未开始 0 · 阻塞 0 · 已完成 30 · 已取消 0
 
 | ID | 优先级 | 紧急度 | 状态 | 任务 | 标签 | 持有 | 认领 | 状态更新 | 备注 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -32,7 +32,7 @@
 | T-0107 | P1 | 普通 | 已完成 | 发版 2.3.0：版本号、版本文档、标签与推送 | PLUGIN、RELEASE | optimisticGeek | 11-05 13:59 | 11-05 13:59 |  |
 | T-0110 | P1 | 普通 | 已完成 | 安装规范化 3.0.2：一键安装文档、环境矩阵、engines.dsh 版本闸门 | PLUGIN、RELEASE | optimisticGeek | 11-05 14:51 | 11-05 14:52 |  |
 | T-0111 | P1 | 普通 | 已完成 | 待办页首次安装一键软链技能到 Claude/Codex/WorkBuddy/ZCode/Trae | PLUGIN、UX | optimisticGeek | 11-05 14:58 | 11-05 14:58 |  |
-| T-0112 | P1 | 普通 | 进行中 | 跨平台规范化 3.1.1：macOS/Linux 支持、CI 矩阵、行尾与 bin 权限 | PLUGIN、RELEASE | optimisticGeek | 11-05 15:05 | 11-05 15:05 |  |
+| T-0112 | P1 | 普通 | 已完成 | 跨平台规范化 3.1.1：macOS/Linux 支持、CI 矩阵、行尾与 bin 权限 | PLUGIN、RELEASE | optimisticGeek | 11-05 15:05 | 11-05 15:06 |  |
 | T-0044 | P2 | 普通 | 已完成 | ptodo Web UI：紧凑表格/只读详情/指派负责人 | TODO-SYSTEM | optimisticGeek | 11-04 15:39 | 11-04 15:56 | 方向已确认：美观紧凑表格；只读详情（context/依赖/前置/资料/因果只展示）；仅允许状态变更、指派负责人、编辑任务描述；移除删除/导入/清空日志/批量等写入口；计数/排序/筛选跟随筛选条件。 |
 | T-0046 | P2 | 普通 | 已完成 | 技能跨工具可移植性：WorkBuddy 等工具能正确使用 ptodo | TODO-SYSTEM | optimisticGeek | 11-04 16:05 | 11-04 16:05 |  |
 | T-0049 | P2 | 普通 | 已完成 | 技能与提示词：完成人是 git 用户名、里程碑全部完成后询问是否归档 | TODO-SYSTEM | optimisticGeek | 11-04 16:09 | 11-04 16:15 |  |

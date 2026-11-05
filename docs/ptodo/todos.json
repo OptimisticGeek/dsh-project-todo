@@ -2,8 +2,8 @@
   "version": 3,
   "project": "dsh-project-todo",
   "nextId": 113,
-  "revision": 164,
-  "updatedAt": "2026-11-05T07:05:12.083Z",
+  "revision": 165,
+  "updatedAt": "2026-11-05T07:06:08.808Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1331,7 +1331,7 @@
       "legacyId": null,
       "parentId": null,
       "title": "跨平台规范化 3.1.1：macOS/Linux 支持、CI 矩阵、行尾与 bin 权限",
-      "status": "doing",
+      "status": "done",
       "priority": "P1",
       "urgency": 3,
       "holder": "optimisticGeek",
@@ -1344,7 +1344,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": null,
+        "progress": "完成于 2026-11-05T07:06:08.807Z：node --test 149/149；git ls-files -s bin/ptodo.mjs = 100755；.gitattributes 全 LF；CI 矩阵 ubuntu/macos/windows × Node 20/22 (node --test)；skills 目录哈希排序改码点比较；docs/INSTALL.md 增加跨平台章节；tag v3.1.1 已推送",
         "decisions": [],
         "openLoops": []
       },
@@ -1355,18 +1355,18 @@
       "causes": [],
       "createdBy": "optimisticGeek",
       "claimedBy": "optimisticGeek",
-      "doneBy": null,
+      "doneBy": "optimisticGeek",
       "releasedBy": null,
       "createdAt": "2026-11-05T07:05:11.888Z",
-      "updatedAt": "2026-11-05T07:05:12.083Z",
+      "updatedAt": "2026-11-05T07:06:08.807Z",
       "claimedAt": "2026-11-05T07:05:12.083Z",
-      "statusChangedAt": "2026-11-05T07:05:12.083Z",
+      "statusChangedAt": "2026-11-05T07:06:08.807Z",
       "archivedAt": null,
       "archiveExempt": false,
-      "doneAt": null,
-      "doneVersion": null,
-      "doneEvidence": null,
-      "revision": 2,
+      "doneAt": "2026-11-05T07:06:08.807Z",
+      "doneVersion": "3.1.1",
+      "doneEvidence": "node --test 149/149；git ls-files -s bin/ptodo.mjs = 100755；.gitattributes 全 LF；CI 矩阵 ubuntu/macos/windows × Node 20/22 (node --test)；skills 目录哈希排序改码点比较；docs/INSTALL.md 增加跨平台章节；tag v3.1.1 已推送",
+      "revision": 3,
       "archivedBy": null
     }
   ]
