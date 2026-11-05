@@ -5,7 +5,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { createTask, emptyArchive, emptyBoard } from '../lib/model.js'
 import { TodoStore } from '../lib/store.js'
-import { exportMarkdown, importRows, parseMarkdownRows } from '../lib/transfer.js'
+import { exportMarkdown, importRows, parseMarkdownRows, rowsOf } from '../lib/transfer.js'
+import { reportOf } from '../lib/report.js'
 import { buildXlsx, parseXlsx } from '../lib/xlsx.js'
 
 const CONFIG = {
@@ -106,5 +107,33 @@ test('dashboard export round-trips through the detail sheet', async () => {
     assert.match(parsed[0]['完成日'], /^2026-11-04 \d{2}:\d{2}$/)
   } finally {
     await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('tag registry names are exported and restored to codes on import', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'dsh-tags-'))
+  try {
+    const board = emptyBoard('demo')
+    createTask(board, { title: '标签任务', tags: ['AUTH', 'ARCH'] })
+    const tagRegistry = [
+      { code: 'AUTH', name: '账号权限', aliases: ['权限'] },
+      { code: 'ARCH', name: '代码架构', aliases: [] },
+    ]
+    const state = { board, archived: [], tags: tagRegistry }
+    const rows = rowsOf(state, 'active')
+    assert.equal(rows[0]['标签'], '账号权限、代码架构')
+    const report = reportOf(state, 'active')
+    assert.equal(report.tags.find((tag) => tag.code === 'AUTH').name, '账号权限')
+
+    const store = new TodoStore(root, CONFIG)
+    const result = await importRows(store, [{ 标题: '回导任务', 标签: '账号权限、代码架构、权限' }], {
+      by: 'tester',
+      tags: tagRegistry,
+    })
+    assert.equal(result.imported, 1)
+    const imported = (await store.read()).tasks.find((task) => task.title === '回导任务')
+    assert.deepEqual(imported.tags.sort(), ['ARCH', 'AUTH'])
+  } finally {
+    await rm(root, { recursive: true, force: true })
   }
 })

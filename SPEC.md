@@ -375,6 +375,7 @@ batch:      { claimLimit: 3 }
   当前标签筛选值作为 create tag；默认负责人 = 当前操作人）。
 - **XLSX 导出（v2.2）**：纯 JS 生成（`node:zlib`，无 Python/openpyxl/辅助脚本路径依赖）；
   `总览` = KPI + 状态/优先级/里程碑/标签统计 + 4 张原生图表；`任务明细` = 配色/隔行/冻结/筛选/打印设置；
+  标签列与标签 Top 用注册表 `name`（缺失回退 `code`），回导按 `code/name/alias` 还原编码；
   导出失败返回 HTTP 500 + JSON，面板展示错误而不是保存坏文件。
 - **里程碑完成提示**：`done` 返回 `milestone.complete=true` 时提示「里程碑已全部完成，可在已完成页归档」。
 - **开工简报弹窗**：渲染 `start` 返回的 `brief`，分区展示

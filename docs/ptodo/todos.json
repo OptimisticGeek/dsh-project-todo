@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 103,
-  "revision": 133,
-  "updatedAt": "2026-11-05T02:40:24.432Z",
+  "nextId": 104,
+  "revision": 136,
+  "updatedAt": "2026-11-05T02:41:49.506Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -931,6 +931,49 @@
       "doneAt": "2026-11-05T02:40:24.431Z",
       "doneVersion": "2.2.0",
       "doneEvidence": "根因：Host 仍从 E:\\java\\fuyao-ai\\dsh-plugins 旧路径加载 import.meta.url，xlsx_helper.py 不存在且 /export 把错误当 200 JSON 下载。修复：lib/xlsx.js 改为纯 JS（node:zlib）生成/解析，删除 tools/xlsx_helper.py；/export 失败返回 500 JSON；client 显示错误。验证：node --test 124/124；fuyao-ai 58 条导出 openpyxl 可读、LibreOffice 渲染 5 页（总览 2+明细 3，无空白）、回导 skipped=58 幂等；插件热重载后 HTTP /export 200 + PK。提交 2f74678；版本文档 docs/version/2.2.0.md",
+      "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0103",
+      "legacyId": null,
+      "parentId": null,
+      "title": "导出 Excel 标签列改用标签字典中文名（含回导时按名称/别名还原编码）",
+      "status": "doing",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "TODO-SYSTEM",
+        "UI"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "定位：rowsOf/reportOf 直接用 task.tags 编码；UI 用 registry name。改为导出显示 name，导入按 name/alias 还原 code",
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": null,
+      "releasedBy": null,
+      "createdAt": "2026-11-05T02:41:46.637Z",
+      "updatedAt": "2026-11-05T02:41:49.505Z",
+      "claimedAt": "2026-11-05T02:41:49.375Z",
+      "statusChangedAt": "2026-11-05T02:41:49.375Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": null,
+      "doneVersion": null,
+      "doneEvidence": null,
       "revision": 3,
       "archivedBy": null
     }

@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-project-todo",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "private": true,
   "type": "module",
   "description": "DeepSeek Harness 项目待办：里程碑/阶段/任务三层、依赖与就绪、开工简报；数据在 docs/ptodo/*.json；Web 看板 + 全局 ptodo CLI + 内置纯 JS Excel 导出（总览图表 + 任务明细，无 Python 依赖）",

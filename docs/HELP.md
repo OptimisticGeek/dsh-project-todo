@@ -618,7 +618,7 @@ ptodo admin export [--format md|xlsx] [--scope active|archive|all]
 ptodo admin people
 ```
 
-`--format xlsx` 生成 `总览`（KPI、状态/优先级/里程碑/标签统计、4 张图表）与 `任务明细`（配色、冻结表头、筛选、打印设置）两张表；纯 JS 生成，不需要 Python/openpyxl。导出失败时面板显示错误信息，不会保存成坏文件。
+`--format xlsx` 生成 `总览`（KPI、状态/优先级/里程碑/标签统计、4 张图表）与 `任务明细`（配色、冻结表头、筛选、打印设置）两张表；标签列显示标签字典中文名（未命名回退编码），回导时按 code/name/alias 还原。纯 JS 生成，不需要 Python/openpyxl。导出失败时面板显示错误信息，不会保存成坏文件。
 
 ### 9.8 退出码
 

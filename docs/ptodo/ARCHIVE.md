@@ -1,6 +1,6 @@
 # 已归档待办
 
-> 本文件由 dsh-project-todo / ptodo 自动生成（revision 0，2026-11-05 10:40），请勿手工编辑。
+> 本文件由 dsh-project-todo / ptodo 自动生成（revision 0，2026-11-05 10:41），请勿手工编辑。
 > 数据源：`docs/ptodo/archive.json`；用于完成后的归档留存，不参与进行中统计。
 
 共 0 条

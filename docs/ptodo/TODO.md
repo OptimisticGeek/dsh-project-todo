@@ -1,11 +1,11 @@
 # 待办
 
-> 本文件由 dsh-project-todo / ptodo 自动生成（revision 133，2026-11-05 10:40），请勿手工编辑。
+> 本文件由 dsh-project-todo / ptodo 自动生成（revision 136，2026-11-05 10:41），请勿手工编辑。
 > 数据源：`docs/ptodo/todos.json`；已完成任务归档后进入 `docs/ptodo/ARCHIVE.md`。
 > **工作入口**：agent 请加载技能 `project-todo`（或直接执行 `ptodo task ready`）后按 G0–G4 推进；
 > 本文件与 `todos.json` 都是只读快照/存储，**不要直接编辑，也不要以读 JSON 代替认领**。
 
-进行中 0 · 未开始 0 · 阻塞 0 · 已完成 20 · 已取消 0
+进行中 1 · 未开始 0 · 阻塞 0 · 已完成 20 · 已取消 0
 
 | ID | 优先级 | 紧急度 | 状态 | 任务 | 标签 | 持有 | 认领 | 状态更新 | 备注 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -23,6 +23,7 @@
 | T-0056 | P1 | 普通 | 已完成 | dsh-plugins 迁出到 E:\dsh-plugins：移动目录并修复 profile link / 技能 junction / npm link / 文档路径 | TODO-SYSTEM | optimisticGeek | 11-04 17:01 | 11-04 17:07 |  |
 | T-0100 | P1 | 普通 | 已完成 | 技能激活改造：SKILL.md 从 CLI 手册改为标准技能定义 | skill、docs | optimisticGeek | 11-04 18:07 | 11-04 18:07 |  |
 | T-0101 | P1 | 普通 | 已完成 | 默认里程碑免归档：代码+提示词+文档一致化 | — | optimisticGeek | 11-04 19:27 | 11-04 19:27 |  |
+| T-0103 | P1 | 普通 | 进行中 | 导出 Excel 标签列改用标签字典中文名（含回导时按名称/别名还原编码） | TODO-SYSTEM、UI | optimisticGeek | 11-05 10:41 | 11-05 10:41 |  |
 | T-0044 | P2 | 普通 | 已完成 | ptodo Web UI：紧凑表格/只读详情/指派负责人 | TODO-SYSTEM | optimisticGeek | 11-04 15:39 | 11-04 15:56 | 方向已确认：美观紧凑表格；只读详情（context/依赖/前置/资料/因果只展示）；仅允许状态变更、指派负责人、编辑任务描述；移除删除/导入/清空日志/批量等写入口；计数/排序/筛选跟随筛选条件。 |
 | T-0046 | P2 | 普通 | 已完成 | 技能跨工具可移植性：WorkBuddy 等工具能正确使用 ptodo | TODO-SYSTEM | optimisticGeek | 11-04 16:05 | 11-04 16:05 |  |
 | T-0049 | P2 | 普通 | 已完成 | 技能与提示词：完成人是 git 用户名、里程碑全部完成后询问是否归档 | TODO-SYSTEM | optimisticGeek | 11-04 16:09 | 11-04 16:15 |  |
