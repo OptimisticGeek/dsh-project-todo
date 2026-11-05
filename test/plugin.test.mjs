@@ -75,7 +75,7 @@ test('the portable route is mounted on /api as soon as connection exists', () =>
   for (const factory of effects) factory()
   assert.equal(webRoutes.length, 1)
   assert.deepEqual({ kind: webRoutes[0].kind, path: webRoutes[0].path }, { kind: 'prefix', path: '/dsh-project-todo' })
-  assert.equal(fetchRoutes.length, 9)
+  assert.equal(fetchRoutes.length, 10)
   assert.ok(fetchRoutes.every((route) => route.path.startsWith('/api/dsh-project-todo/')))
   assert.ok(fetchRoutes.some((route) => route.path === '/api/dsh-project-todo/state'))
 })

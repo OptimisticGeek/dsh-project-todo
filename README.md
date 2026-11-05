@@ -277,14 +277,23 @@ ptodo doctor
 
 ### 跨工具技能
 
+**首次使用（Web）**：打开「待办」页时，如果检测到本机装有 Claude Code / Codex / WorkBuddy / ZCode / Trae
+等工具，页面顶部会出现「一键安装到已检测工具」提示；点一下就把 `project-todo` 技能以 junction
+链接进这些工具的 skills 目录。之后可随时点工具栏「技能」查看每个目标的状态（已链接 / 已复制 /
+未安装 / 内容不一致），也可以在这里补装。
+
+- Trae 的部分版本需要在 Settings → Rule & Skills → Skills 里手动导入该目录；
+- 等价的 CLI：
+
 ```bash
-ptodo skill install --targets all          # 7 个目标
+ptodo skill install --targets all          # project + claude/codex/workbuddy/zcode/trae/dsh/agents
 ptodo skill install --targets project,codex
 ptodo skill status
 ptodo skill remove --targets all
 ```
 
-目标：项目 `.agents/skills/project-todo`，以及 `~/.agents/skills`、`~/.dsh/skills`、`~/.zcode/skills`、`~/.workbuddy/skills`、`~/.claude/skills`、`~/.codex/skills`。Windows 优先目录 junction，失败回退复制。
+目标：项目 `.agents/skills/project-todo`，以及 `~/.agents`、`~/.dsh`、`~/.zcode`、`~/.workbuddy`、
+`~/.claude`、`~/.codex`、`~/.trae` 下的 `skills/project-todo`。Windows 优先目录 junction，失败回退复制。
 
 ### 配置（`docs/ptodo/config.json`，可缺省）
 

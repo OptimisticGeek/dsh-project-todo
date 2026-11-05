@@ -45,10 +45,28 @@ ptodo doctor
 
 ### 2.3 跨工具技能（可选）
 
+**Web 一键安装**：首次打开「待办」页时，若检测到本机装有 Claude Code / Codex / WorkBuddy / ZCode / Trae，
+顶部出现「一键安装到已检测工具」；点击后以 junction 链接技能目录，点工具栏「技能」可随时查看/补装。
+
 ```bash
+# 等价的 CLI
 ptodo skill install --targets all
 ptodo skill status
+ptodo skill remove --targets all
 ```
+
+| 目标 | 目录 |
+|---|---|
+| project | `<项目>/.agents/skills/project-todo` |
+| claude | `~/.claude/skills/project-todo` |
+| codex | `~/.codex/skills/project-todo` |
+| workbuddy | `~/.workbuddy/skills/project-todo` |
+| zcode | `~/.zcode/skills/project-todo` |
+| trae | `~/.trae/skills/project-todo`（部分版本需在 Settings → Rule & Skills 手动导入） |
+| dsh | `~/.dsh/skills/project-todo` |
+| agents | `~/.agents/skills/project-todo` |
+
+Windows 优先目录 junction，失败回退复制；「内容不一致（drifted）」表示目标目录里是旧副本，重新安装即可。
 
 ## 3. 自检
 

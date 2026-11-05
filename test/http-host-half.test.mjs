@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { mkdir, mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { API_CHANNEL, registerConnectionRoutes } from '../lib/http.js'
@@ -32,7 +33,7 @@ const get = (routes, path) => routes.get(API_CHANNEL + '/dsh-project-todo' + pat
 
 test('every endpoint is mounted as an exact route on the shared /api channel', () => {
   const { routes } = mount()
-  const expected = ['/health', '/state', '/task', '/timeline', '/people', '/version', '/export', '/import', '/action']
+  const expected = ['/health', '/state', '/task', '/timeline', '/people', '/version', '/export', '/import', '/action', '/skills']
   assert.deepEqual(
     [...routes.keys()].sort(),
     expected.map((suffix) => `${API_CHANNEL}/dsh-project-todo${suffix}`).sort(),
@@ -111,6 +112,43 @@ test('POST action parses a JSON body from the Fetch request', async () => {
   assert.equal(response.status, 200)
   const body = await response.json()
   assert.equal(body.code, 'NO_PROJECT')
+})
+
+test('skills status and one-click install are served on the shared channel', async () => {
+  const base = await mkdtemp(path.join(os.tmpdir(), 'ptodo-skills-http-'))
+  const home = path.join(base, 'home')
+  const previous = process.env.DSH_PROJECT_TODO_HOME
+  process.env.DSH_PROJECT_TODO_HOME = home
+  try {
+    await mkdir(path.join(home, '.claude'), { recursive: true })
+    const agent = { id: 'session-x', session: { id: 'session-x', header: { cwd: base } } }
+    const { routes } = mount({ agents: { get: () => agent } })
+
+    const status = await get(routes, '/skills').fetch(
+      new Request('http://localhost/api/dsh-project-todo/skills?sessionId=session-x'),
+    )
+    assert.equal(status.status, 200)
+    const before = await status.json()
+    assert.equal(before.ok, true)
+    assert.equal(before.firstRun, true, 'detected tool + nothing installed means first run')
+    assert.equal(before.targets.find((row) => row.name === 'claude').detected, true)
+
+    const install = await get(routes, '/skills').fetch(
+      new Request('http://localhost/api/dsh-project-todo/skills', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sessionId: 'session-x', action: 'install', targets: ['claude'] }),
+      }),
+    )
+    const after = await install.json()
+    assert.equal(after.ok, true)
+    assert.equal(after.results[0].state, 'linked')
+    assert.ok(existsSync(path.join(home, '.claude', 'skills', 'project-todo', 'SKILL.md')))
+  } finally {
+    if (previous === undefined) delete process.env.DSH_PROJECT_TODO_HOME
+    else process.env.DSH_PROJECT_TODO_HOME = previous
+    await rm(base, { recursive: true, force: true })
+  }
 })
 
 test('an unregistered path is not claimed by this plugin', () => {

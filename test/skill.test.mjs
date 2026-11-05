@@ -59,12 +59,13 @@ test('skill install --targets all covers every tool directory, including workbud
 
     const expected = {
       project: path.join(root, '.agents', 'skills', 'project-todo'),
-      agents: path.join(home, '.agents', 'skills', 'project-todo'),
-      dsh: path.join(home, '.dsh', 'skills', 'project-todo'),
-      zcode: path.join(home, '.zcode', 'skills', 'project-todo'),
-      workbuddy: path.join(home, '.workbuddy', 'skills', 'project-todo'),
       claude: path.join(home, '.claude', 'skills', 'project-todo'),
       codex: path.join(home, '.codex', 'skills', 'project-todo'),
+      workbuddy: path.join(home, '.workbuddy', 'skills', 'project-todo'),
+      zcode: path.join(home, '.zcode', 'skills', 'project-todo'),
+      trae: path.join(home, '.trae', 'skills', 'project-todo'),
+      dsh: path.join(home, '.dsh', 'skills', 'project-todo'),
+      agents: path.join(home, '.agents', 'skills', 'project-todo'),
     }
     const report = skillReport(ctx, { home, targets: 'all' })
     assert.deepEqual(report.results.map((item) => item.name), Object.keys(expected))
@@ -77,7 +78,7 @@ test('skill install --targets all covers every tool directory, including workbud
     // Re-running install is idempotent and must not downgrade links.
     ctx.positional = ['install']
     await skillCommand(ctx, { home, targets: 'all', json: true })
-    assert.deepEqual(skillReport(ctx, { home, targets: 'all' }).results.map((item) => item.state), Array(7).fill('linked'))
+    assert.deepEqual(skillReport(ctx, { home, targets: 'all' }).results.map((item) => item.state), Array(8).fill('linked'))
   })
 })
 

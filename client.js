@@ -73,6 +73,11 @@ window.__ModuleLoader__.load({
     const DICT = {
       zh: {
         nav: '待办', title: '项目待办', loading: '读取项目待办 …', refresh: '刷新', check: '校验',
+      skillNav: '技能', skillTitle: '把 project-todo 技能装给 Agent 工具',
+      skillBanner: '首次使用：把 project-todo 技能链接给已检测到的 Agent 工具，它们就能按 G0–G4 用 ptodo 干活。',
+      skillInstallDetected: '一键安装到已检测工具', skillLater: '稍后', skillDone: '技能安装完成', skillFailed: '部分目标失败',
+      skillLinked: '已链接', skillCopy: '已复制', skillMissing: '未安装', skillDrift: '内容不一致', skillForeign: '已存在其他内容',
+      skillDetected: '已检测到', skillNotDetected: '未检测到',
         quickAdd: '快速新建：输入标题，回车即可', add: '添加', holder: '会话名',
         priority: '优先级', urgency: '紧急度', status: '状态', tag: '标签',
         allTags: '全部标签', search: '搜索任务…',
@@ -145,6 +150,11 @@ window.__ModuleLoader__.load({
       },
       en: {
         nav: 'Todo', title: 'Project todo', loading: 'Loading project todo …', refresh: 'Refresh', check: 'Check',
+      skillNav: 'Skills', skillTitle: 'Install the project-todo skill for your agents',
+      skillBanner: 'First run: link the project-todo skill into the detected agent tools so they can run ptodo with the G0–G4 protocol.',
+      skillInstallDetected: 'Install into detected tools', skillLater: 'Later', skillDone: 'Skill installed', skillFailed: 'Some targets failed',
+      skillLinked: 'linked', skillCopy: 'copied', skillMissing: 'not installed', skillDrift: 'drifted', skillForeign: 'occupied',
+      skillDetected: 'detected', skillNotDetected: 'not detected',
         quickAdd: 'Quick add a title and press Enter', add: 'Add', holder: 'Session',
         priority: 'Priority', urgency: 'Urgency', status: 'Status', tag: 'Tag',
         allTags: 'All tags', search: 'Search tasks…',
@@ -469,6 +479,13 @@ window.__ModuleLoader__.load({
       '.dpt-alert{border-color:var(--dsw-alias-state-error-primary);color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb, var(--dsw-alias-state-error-primary) 10%, transparent)}',
       '.dpt-notice--ok{border-color:var(--dsw-alias-state-success-primary);color:var(--dsw-alias-state-success-primary)}',
       '.dpt-notice--err{border-color:var(--dsw-alias-state-error-primary);color:var(--dsw-alias-state-error-primary)}',
+      '.dpt-skill-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--dsw-alias-border-l1)}',
+      '.dpt-skill-row:last-child{border-bottom:0}',
+      '.dpt-skill-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}',
+      '.dpt-skill-name{font-size:12.5px;font-weight:600}',
+      '.dpt-skill-path{font-size:10.5px;color:var(--dsw-alias-label-secondary);word-break:break-all}',
+      '.dpt-skill-note{font-size:10.5px;color:var(--dsw-alias-label-secondary)}',
+      '.dpt-skill-state{flex:none;font-size:11px;color:var(--dsw-alias-label-secondary)}',
       '.dpt-empty{padding:32px 0;text-align:center;color:var(--dsw-alias-label-secondary);border:1px dashed var(--dsw-alias-border-l1);border-radius:8px}',
       '.dpt-menu{position:relative;display:inline-block}',
       '.dpt-menu-panel{position:absolute;top:30px;right:0;z-index:45;min-width:180px;padding:4px;border:1px solid var(--dsw-alias-border-l1);border-radius:8px;background:var(--dsw-alias-bg-overlay);box-shadow:0 8px 24px var(--dsw-alias-border-l2)}',
@@ -614,6 +631,17 @@ window.__ModuleLoader__.load({
           const [quickUrgency, setQuickUrgency] = useState(3)
           const [quickStage, setQuickStage] = useState('default')
           const [exportOpen, setExportOpen] = useState(false)
+          const [skills, setSkills] = useState(null)
+          const [skillsOpen, setSkillsOpen] = useState(false)
+          const [skillBusy, setSkillBusy] = useState(false)
+          const [skillMsg, setSkillMsg] = useState('')
+          const [skillDismissed, setSkillDismissed] = useState(() => {
+            try {
+              return window.localStorage.getItem('dsh-project-todo-skills-dismissed') === '1'
+            } catch {
+              return false
+            }
+          })
           const mounted = useRef(true)
           const tabInitialized = useRef(false)
           const holderReady = useRef(false)
@@ -634,6 +662,16 @@ window.__ModuleLoader__.load({
               setPeople(Array.isArray(data && data.people) ? data.people : [])
             } catch {
               /* the people list is best-effort; filters still work from tasks */
+            }
+          }, [query, sessionId])
+
+          const loadSkills = useCallback(async () => {
+            if (!sessionId) return
+            try {
+              const data = await call('/skills' + query)
+              if (mounted.current && data && data.ok) setSkills(data)
+            } catch {
+              /* the first-run banner is optional; the page still works */
             }
           }, [query, sessionId])
 
@@ -660,14 +698,63 @@ window.__ModuleLoader__.load({
               }
               setError('')
               loadPeople()
+              loadSkills()
             } catch (cause) {
               if (mounted.current) setError(cause.message || String(cause))
             }
-          }, [query, sessionId, loadPeople])
+          }, [query, sessionId, loadPeople, loadSkills])
 
           useEffect(() => {
             load()
           }, [load])
+
+          const detectedSkillTargets = (skills && Array.isArray(skills.targets) ? skills.targets : [])
+            .filter((row) => row.detected)
+            .map((row) => row.name)
+
+          const skillStateLabel = (state) =>
+            ({ linked: t('skillLinked'), copy: t('skillCopy'), missing: t('skillMissing'), drift: t('skillDrift'), foreign: t('skillForeign') })[state] || state
+
+          const postSkills = useCallback(
+            async (names, action) => {
+              if (!sessionId || !names.length) return null
+              setSkillBusy(true)
+              setSkillMsg('')
+              try {
+                const data = await call('/skills', {
+                  method: 'POST',
+                  body: JSON.stringify({ sessionId, action, targets: names }),
+                })
+                if (!data || data.ok === false) throw new Error((data && data.message) || '技能操作失败')
+                const failed =
+                  action === 'install'
+                    ? (data.results || []).filter((item) => item.state !== 'linked' && item.state !== 'copy')
+                    : []
+                setSkillMsg(
+                  failed.length
+                    ? `${t('skillFailed')}：${failed.map((item) => `${item.name} ${item.state || ''}`).join('、')}`
+                    : t('skillDone'),
+                )
+                await loadSkills()
+                return data
+              } catch (cause) {
+                setSkillMsg(cause.message || String(cause))
+                return null
+              } finally {
+                setSkillBusy(false)
+              }
+            },
+            [loadSkills, sessionId, t],
+          )
+
+          const dismissSkillBanner = () => {
+            setSkillDismissed(true)
+            try {
+              window.localStorage.setItem('dsh-project-todo-skills-dismissed', '1')
+            } catch {
+              /* ignore */
+            }
+          }
 
           useEffect(() => {
             if (!detailId) return undefined
@@ -2092,6 +2179,7 @@ window.__ModuleLoader__.load({
                   }),
                   exportMenu,
                   h('button', { className: 'dpt-btn', disabled: busy, onClick: load }, t('refresh')),
+                  h('button', { className: 'dpt-btn', onClick: () => setSkillsOpen(true), title: t('skillTitle') }, t('skillNav')),
                   h(
                     'button',
                     {
@@ -2106,6 +2194,21 @@ window.__ModuleLoader__.load({
                   ),
                 ),
               ),
+              skills && skills.firstRun && !skillDismissed && !skillsOpen
+                ? h(
+                    'div',
+                    { className: 'dpt-notice' },
+                    h('span', null, t('skillBanner')),
+                    ' ',
+                    h(
+                      'button',
+                      { className: 'dpt-btn dpt-btn--primary', disabled: skillBusy, onClick: () => postSkills(detectedSkillTargets, 'install') },
+                      t('skillInstallDetected'),
+                    ),
+                    ' ',
+                    h('button', { className: 'dpt-btn', onClick: dismissSkillBanner }, t('skillLater')),
+                  )
+                : null,
               error ? h('div', { className: 'dpt-alert' }, error) : null,
               notice ? h('div', { className: 'dpt-notice dpt-notice--' + notice.kind }, notice.text) : null,
               h(
@@ -2247,6 +2350,56 @@ window.__ModuleLoader__.load({
               briefModal,
               assignModal,
               doneModal,
+              skillsOpen && skills
+                ? h(
+                    'div',
+                    { className: 'dpt-modal-layer' },
+                    h('div', { className: 'dpt-modal-backdrop', onClick: () => setSkillsOpen(false) }),
+                    h(
+                      'div',
+                      { className: 'dpt-modal', role: 'dialog', 'aria-modal': 'true' },
+                      h(
+                        'div',
+                        { className: 'dpt-modal-head' },
+                        h('span', { className: 'dpt-modal-title' }, t('skillTitle')),
+                        h('button', { className: 'dpt-x', title: t('close'), onClick: () => setSkillsOpen(false) }, '×'),
+                      ),
+                      h(
+                        'div',
+                        { className: 'dpt-modal-body' },
+                        skillMsg ? h('div', { className: 'dpt-notice' }, skillMsg) : null,
+                        ...skills.targets.map((row) =>
+                          h(
+                            'div',
+                            { className: 'dpt-skill-row', key: row.name },
+                            h(
+                              'div',
+                              { className: 'dpt-skill-main' },
+                              h('div', { className: 'dpt-skill-name' }, `${row.label}${row.detected ? '' : `（${t('skillNotDetected')}）`}`),
+                              h('div', { className: 'dpt-skill-path' }, row.path),
+                              row.note ? h('div', { className: 'dpt-skill-note' }, row.note) : null,
+                            ),
+                            h('span', { className: 'dpt-skill-state' }, skillStateLabel(row.state)),
+                          ),
+                        ),
+                      ),
+                      h(
+                        'div',
+                        { className: 'dpt-modal-foot' },
+                        h('button', { className: 'dpt-btn', onClick: () => setSkillsOpen(false) }, t('close')),
+                        h(
+                          'button',
+                          {
+                            className: 'dpt-btn dpt-btn--primary',
+                            disabled: skillBusy || !detectedSkillTargets.length,
+                            onClick: () => postSkills(detectedSkillTargets, 'install'),
+                          },
+                          t('skillInstallDetected'),
+                        ),
+                      ),
+                    ),
+                  )
+                : null,
               exportOpen ? h('div', { style: { position: 'fixed', inset: 0, zIndex: 44, background: 'transparent' }, onClick: () => setExportOpen(false) }) : null,
               peopleOpen ? h('div', { style: { position: 'fixed', inset: 0, zIndex: 44, background: 'transparent' }, onClick: () => setPeopleOpen(false) }) : null,
             ),
