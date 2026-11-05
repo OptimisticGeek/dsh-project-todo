@@ -2,8 +2,8 @@
   "version": 3,
   "project": "dsh-project-todo",
   "nextId": 105,
-  "revision": 139,
-  "updatedAt": "2026-11-05T03:20:43.019Z",
+  "revision": 140,
+  "updatedAt": "2026-11-05T03:23:35.120Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -982,7 +982,7 @@
       "legacyId": null,
       "parentId": null,
       "title": "人员筛选/人员列表按大小写不敏感合并同一负责人（optimisticGeek / OptimisticGeek）",
-      "status": "doing",
+      "status": "done",
       "priority": "P1",
       "urgency": 3,
       "holder": "optimisticGeek",
@@ -995,7 +995,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": null,
+        "progress": "完成于 2026-11-05T03:23:35.120Z：根因：git 历史同时存在 optimisticGeek / OptimisticGeek 两种作者写法，GET /people 按精确字符串分组产生两条；client 人员选项与过滤也用 === 比较。修复：getPeople 以小写为人员键合并（显示名优先当前操作人，计数合并；同一任务内的大小写变体只计一次）；client 人员选项按小写去重、matchesPerson/togglePerson 按小写比较、指派下拉按小写回显。验证：node --test 127/127；新用例（git 作者 OptimisticGeek + holder optimisticgeek → 单条、active=2；UI 两任务默认都在、人员面板 1 项）；真实仓库 /people 由 2 条变 1 条 optimisticGeek（related 22）；热重载后 HTTP /people 返回单条、/export 200。提交 2993d9f；版本文档 docs/version/2.2.2.md",
         "decisions": [],
         "openLoops": []
       },
@@ -1006,18 +1006,18 @@
       "causes": [],
       "createdBy": "optimisticGeek",
       "claimedBy": "optimisticGeek",
-      "doneBy": null,
+      "doneBy": "optimisticGeek",
       "releasedBy": null,
       "createdAt": "2026-11-05T03:20:42.852Z",
-      "updatedAt": "2026-11-05T03:20:43.019Z",
+      "updatedAt": "2026-11-05T03:23:35.120Z",
       "claimedAt": "2026-11-05T03:20:43.019Z",
-      "statusChangedAt": "2026-11-05T03:20:43.019Z",
+      "statusChangedAt": "2026-11-05T03:23:35.120Z",
       "archivedAt": null,
       "archiveExempt": false,
-      "doneAt": null,
-      "doneVersion": null,
-      "doneEvidence": null,
-      "revision": 2,
+      "doneAt": "2026-11-05T03:23:35.120Z",
+      "doneVersion": "2.2.2",
+      "doneEvidence": "根因：git 历史同时存在 optimisticGeek / OptimisticGeek 两种作者写法，GET /people 按精确字符串分组产生两条；client 人员选项与过滤也用 === 比较。修复：getPeople 以小写为人员键合并（显示名优先当前操作人，计数合并；同一任务内的大小写变体只计一次）；client 人员选项按小写去重、matchesPerson/togglePerson 按小写比较、指派下拉按小写回显。验证：node --test 127/127；新用例（git 作者 OptimisticGeek + holder optimisticgeek → 单条、active=2；UI 两任务默认都在、人员面板 1 项）；真实仓库 /people 由 2 条变 1 条 optimisticGeek（related 22）；热重载后 HTTP /people 返回单条、/export 200。提交 2993d9f；版本文档 docs/version/2.2.2.md",
+      "revision": 3,
       "archivedBy": null
     }
   ]
