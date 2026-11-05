@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 109,
-  "revision": 153,
-  "updatedAt": "2026-11-05T06:04:32.842Z",
+  "nextId": 110,
+  "revision": 155,
+  "updatedAt": "2026-11-05T06:44:51.638Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1196,6 +1196,48 @@
       "doneVersion": "3.0.0",
       "doneEvidence": "node --test 136/136；ptodo doctor version ✅（回填 13 份历史版本文档）与 archive ✅（未归档不再告警）；npm registry dsh-project-todo 返回 404（未占用）；profile 目录 import('dsh-project-todo') 解析成功；tag v3.0.0 已推送（8cc567c）",
       "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0109",
+      "legacyId": null,
+      "parentId": null,
+      "title": "workingDirectory 服务缺失时回退会话目录，修复新环境看板 NO_PROJECT",
+      "status": "doing",
+      "priority": "P0",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "PLUGIN"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": null,
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": null,
+      "releasedBy": null,
+      "createdAt": "2026-11-05T06:44:51.473Z",
+      "updatedAt": "2026-11-05T06:44:51.638Z",
+      "claimedAt": "2026-11-05T06:44:51.638Z",
+      "statusChangedAt": "2026-11-05T06:44:51.638Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": null,
+      "doneVersion": null,
+      "doneEvidence": null,
+      "revision": 2,
       "archivedBy": null
     }
   ]

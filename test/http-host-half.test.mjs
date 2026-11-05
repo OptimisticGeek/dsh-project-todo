@@ -1,6 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { mkdtemp, rm } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import { API_CHANNEL, registerConnectionRoutes } from '../lib/http.js'
+import { normalizeConfig } from '../lib/config.js'
 
 /**
  * Mount the portable API on a fake shared Fetch registry. The handler resolves
@@ -20,7 +24,7 @@ function mount(services = {}) {
       },
     },
   }
-  registerConnectionRoutes(ctx, () => ({}), '/dsh-project-todo', 'tok')
+  registerConnectionRoutes(ctx, () => normalizeConfig({}), '/dsh-project-todo', 'tok')
   return { routes, ctx }
 }
 
@@ -46,7 +50,32 @@ test('health reports the Host-half services through the Fetch channel', async ()
   assert.equal(body.ok, true)
   assert.match(body.version, /^\d+\.\d+\.\d+/)
   assert.deepEqual(body.services, { webServer: false, agents: false, workingDirectory: false })
-  assert.match(body.hint, /Host 半边缺少会话服务/)
+  assert.match(body.hint, /缺少 agents 服务/)
+})
+
+test('a missing workingDirectory is survivable and reported as a fallback', async () => {
+  const { routes } = mount({ agents: {} })
+  const response = await get(routes, '/health').fetch(new Request('http://localhost/api/dsh-project-todo/health'))
+  const body = await response.json()
+  assert.deepEqual(body.services, { webServer: false, agents: true, workingDirectory: false })
+  assert.match(body.hint, /回退到会话头/)
+})
+
+test('state resolves the project from the Session header when workingDirectory is absent', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-http-root-'))
+  try {
+    const agent = { id: 'session-x', session: { id: 'session-x', header: { cwd: root } } }
+    const { routes } = mount({ agents: { get: () => agent } })
+    const response = await get(routes, '/state').fetch(
+      new Request('http://localhost/api/dsh-project-todo/state?sessionId=session-x'),
+    )
+    assert.equal(response.status, 200)
+    const body = await response.json()
+    assert.equal(body.ok, true)
+    assert.equal(path.resolve(body.root), path.resolve(root))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })
 
 test('health turns green once the session services exist', async () => {

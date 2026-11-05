@@ -270,6 +270,8 @@ fetch('/api/dsh-project-todo/health').then(r => r.json()).then(console.log)
 ```
 
 - 接口挂在 DSH 共享 `/api` Fetch 通道上，Web 载体（浏览器）与桌面壳载体（`dsh-app://`）通用，不依赖端口或注入 token。
+- **新项目不需要预建 `docs/ptodo`**：空看板照常打开，数据文件在首次写入时创建；想显式初始化可跑 `ptodo init`。
+- 会话目录解析优先用 Host 的 `workingDirectory` 服务；该服务缺失时回退到会话头记录的目录，不会因此打不开看板。
 - 纯终端 profile（tui / headless）没有 Web 载体，看板不存在；那里用 `ptodo` CLI 与技能。
 
 ### 跨工具技能
