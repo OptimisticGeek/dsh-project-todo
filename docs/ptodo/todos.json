@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 111,
-  "revision": 159,
-  "updatedAt": "2026-11-05T06:52:02.738Z",
+  "nextId": 112,
+  "revision": 162,
+  "updatedAt": "2026-11-05T06:58:55.470Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1280,6 +1280,49 @@
       "doneAt": "2026-11-05T06:52:02.738Z",
       "doneVersion": "3.0.2",
       "doneEvidence": "node --test 143/143；docs/INSTALL.md 新增环境矩阵/自检/排障/契约清单；README 安装改为一键 dsh plugin add 并禁用手工改 bundles；package.json 增加 engines.dsh>=0.1.5-rc.2；依据 dsh lib/plugin-*.js 的 reconcilePlugins 确认自动登记 bundles；tag v3.0.2 已推送",
+      "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0111",
+      "legacyId": null,
+      "parentId": null,
+      "title": "待办页首次安装一键软链技能到 Claude/Codex/WorkBuddy/ZCode/Trae",
+      "status": "done",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "PLUGIN",
+        "UX"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "完成于 2026-11-05T06:58:55.470Z：node --test 149/149；新增 lib/skills.js 共享核心（8 目标、junction/复制、firstRun），CLI 改用同一核心并新增 trae；GET/POST /api/dsh-project-todo/skills 端到端用例通过（临时 HOME，安装后 linked 且 SKILL.md 存在）；client.js 新增首次安装横幅与技能面板；tag v3.1.0 已推送",
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": "optimisticGeek",
+      "releasedBy": null,
+      "createdAt": "2026-11-05T06:58:40.238Z",
+      "updatedAt": "2026-11-05T06:58:55.470Z",
+      "claimedAt": "2026-11-05T06:58:40.412Z",
+      "statusChangedAt": "2026-11-05T06:58:55.470Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": "2026-11-05T06:58:55.470Z",
+      "doneVersion": "3.1.0",
+      "doneEvidence": "node --test 149/149；新增 lib/skills.js 共享核心（8 目标、junction/复制、firstRun），CLI 改用同一核心并新增 trae；GET/POST /api/dsh-project-todo/skills 端到端用例通过（临时 HOME，安装后 linked 且 SKILL.md 存在）；client.js 新增首次安装横幅与技能面板；tag v3.1.0 已推送",
       "revision": 3,
       "archivedBy": null
     }
