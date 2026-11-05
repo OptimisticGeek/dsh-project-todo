@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "revision": 4,
-  "updatedAt": "2026-11-05T03:20:42.844Z",
+  "revision": 5,
+  "updatedAt": "2026-11-05T05:35:37.814Z",
   "tags": [
     {
       "code": "skill",
@@ -42,6 +42,26 @@
       "deprecatedBy": null,
       "createdAt": "2026-11-05T02:28:44.724Z",
       "updatedAt": "2026-11-05T02:28:44.724Z"
+    },
+    {
+      "code": "PLUGIN",
+      "name": "PLUGIN",
+      "description": "",
+      "aliases": [],
+      "status": "draft",
+      "deprecatedBy": null,
+      "createdAt": "2026-11-05T05:35:37.813Z",
+      "updatedAt": "2026-11-05T05:35:37.813Z"
+    },
+    {
+      "code": "UX",
+      "name": "UX",
+      "description": "",
+      "aliases": [],
+      "status": "draft",
+      "deprecatedBy": null,
+      "createdAt": "2026-11-05T05:35:37.813Z",
+      "updatedAt": "2026-11-05T05:35:37.813Z"
     }
   ]
 }

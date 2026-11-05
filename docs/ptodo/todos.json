@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 105,
-  "revision": 140,
-  "updatedAt": "2026-11-05T03:23:35.120Z",
+  "nextId": 106,
+  "revision": 144,
+  "updatedAt": "2026-11-05T05:37:36.544Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1018,6 +1018,55 @@
       "doneVersion": "2.2.2",
       "doneEvidence": "根因：git 历史同时存在 optimisticGeek / OptimisticGeek 两种作者写法，GET /people 按精确字符串分组产生两条；client 人员选项与过滤也用 === 比较。修复：getPeople 以小写为人员键合并（显示名优先当前操作人，计数合并；同一任务内的大小写变体只计一次）；client 人员选项按小写去重、matchesPerson/togglePerson 按小写比较、指派下拉按小写回显。验证：node --test 127/127；新用例（git 作者 OptimisticGeek + holder optimisticgeek → 单条、active=2；UI 两任务默认都在、人员面板 1 项）；真实仓库 /people 由 2 条变 1 条 optimisticGeek（related 22）；热重载后 HTTP /people 返回单条、/export 200。提交 2993d9f；版本文档 docs/version/2.2.2.md",
       "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0105",
+      "legacyId": null,
+      "parentId": null,
+      "title": "加固 Host/Client 半边失联：路由注册降级、注册告警、404 明确提示、README 排障",
+      "status": "done",
+      "priority": "P1",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "PLUGIN",
+        "UX"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "完成于 2026-11-05T05:37:36.543Z：node --test 134/134 通过；新增 test/http-host-half.test.mjs 5 例（health 报告 webServer/agents/workingDirectory 缺失、无 agents 时 state 返回可读 NO_PROJECT、未知子路径 404 JSON、非本机 403），test/plugin.test.mjs 覆盖只注入 webServer 即注册路由、ui.enabled=false 告警；node --check client.js/index.js/lib/http.js 通过",
+        "decisions": [
+          {
+            "text": "无需求资产（dsh-project-todo），按任务描述 DoD 执行：路由注册降级 + 告警 + 404 提示 + 排障文档",
+            "by": "optimisticGeek",
+            "at": "2026-11-05T05:37:32.360Z"
+          }
+        ],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": "optimisticGeek",
+      "releasedBy": null,
+      "createdAt": "2026-11-05T05:35:37.820Z",
+      "updatedAt": "2026-11-05T05:37:36.544Z",
+      "claimedAt": "2026-11-05T05:35:40.040Z",
+      "statusChangedAt": "2026-11-05T05:37:36.544Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": "2026-11-05T05:37:36.544Z",
+      "doneVersion": "1ddf0bb",
+      "doneEvidence": "node --test 134/134 通过；新增 test/http-host-half.test.mjs 5 例（health 报告 webServer/agents/workingDirectory 缺失、无 agents 时 state 返回可读 NO_PROJECT、未知子路径 404 JSON、非本机 403），test/plugin.test.mjs 覆盖只注入 webServer 即注册路由、ui.enabled=false 告警；node --check client.js/index.js/lib/http.js 通过",
+      "revision": 4,
       "archivedBy": null
     }
   ]
