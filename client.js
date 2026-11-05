@@ -1100,7 +1100,19 @@ window.__ModuleLoader__.load({
               const response = await window.fetch(`${BASE}/export?sessionId=${encodeURIComponent(sessionId || '')}&format=${format}&scope=${scope}`, {
                 headers: Object.assign({ 'x-dsh-project-todo-client': '1' }, TOKEN ? { 'x-dsh-project-todo-token': TOKEN } : {}),
               })
-              if (!response.ok) throw new Error('HTTP ' + response.status)
+              const contentType = response.headers.get('content-type') || ''
+              if (!response.ok || contentType.includes('application/json')) {
+                // The host answers failures with a JSON body; surface the real
+                // message instead of downloading it under an .xlsx extension.
+                let message = `HTTP ${response.status}`
+                try {
+                  const payload = await response.json()
+                  if (payload && payload.message) message = payload.message
+                } catch {
+                  /* keep the HTTP status text */
+                }
+                throw new Error(message)
+              }
               const blob = await response.blob()
               const disposition = response.headers.get('content-disposition') || ''
               const match = /filename="([^"]+)"/.exec(disposition)

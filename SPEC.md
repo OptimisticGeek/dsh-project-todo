@@ -312,7 +312,6 @@ context:    { maxDecisions: 50, maxOpenLoops: 20 }
 actor:      { requirePrefix: false }
 skill:      { targets: [project, agents, dsh, zcode, workbuddy, claude, codex] }
 batch:      { claimLimit: 3 }
-python:     ""
 ```
 
 优先级：默认值 < 文件 < loader 行配置；非法值回退默认值，不阻断加载；配置文件损坏是硬错误。
@@ -374,6 +373,9 @@ python:     ""
   （工具身份仍以 `--by` 记账）；负责人列/详情显示 holder，已完成任务额外显示完成人与完成时间。
 - **保留的只读入口**：导出 md/xlsx（active/all）、刷新、校验、搜索/筛选/排序；快速新建（标题/P/紧急度/阶段，
   当前标签筛选值作为 create tag；默认负责人 = 当前操作人）。
+- **XLSX 导出（v2.2）**：纯 JS 生成（`node:zlib`，无 Python/openpyxl/辅助脚本路径依赖）；
+  `总览` = KPI + 状态/优先级/里程碑/标签统计 + 4 张原生图表；`任务明细` = 配色/隔行/冻结/筛选/打印设置；
+  导出失败返回 HTTP 500 + JSON，面板展示错误而不是保存坏文件。
 - **里程碑完成提示**：`done` 返回 `milestone.complete=true` 时提示「里程碑已全部完成，可在已完成页归档」。
 - **开工简报弹窗**：渲染 `start` 返回的 `brief`，分区展示
   `goal/progress/decisions/upstreamDone/upstreamPending/changes/resources/openLoops/preconditions/blocking/nextStep`；

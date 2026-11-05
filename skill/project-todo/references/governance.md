@@ -37,7 +37,6 @@
 | `actor.requirePrefix` | `false` | 是否要求 actor 带 `<agent>:` 前缀（仅提示，不阻断） |
 | `skill.targets` | 7 个目标 | `project/agents/dsh/zcode/workbuddy/claude/codex` |
 | `batch.claimLimit` | `3` | 兼容批量认领默认条数 |
-| `python` | `''` | XLSX 导入导出使用的 Python |
 
 配置优先级：默认值 < `config.json` < DSH loader 行配置。配置文件损坏是硬错误，避免 CLI 与页面悄悄使用不同路径。
 

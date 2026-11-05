@@ -43,25 +43,67 @@ test('Markdown export round-trips through parser and importRows', async () => {
   }
 })
 
-test('XLSX export and parse use the Python helper', async () => {
+test('XLSX export and parse are pure JavaScript', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'dsh-xlsx-'))
   try {
     const headers = ['ID', '标题', '标签']
-    const rows = [{ ID: 'T-0001', 标题: '表格任务', 标签: 'KB、交付' }]
-    const buffer = await buildXlsx({ headers, rows, sheet: 'todos' }, {})
-    assert.ok(buffer.length > 100)
+    const rows = [
+      { ID: 'T-0001', 标题: '表格任务', 标签: 'KB、交付' },
+      { ID: 'T-0002', 标题: '=SUM(A1:A2)', 标签: 'x' },
+      { ID: 'T-0003', 标题: '\u0000带控制字符', 标签: '' },
+    ]
+    const buffer = await buildXlsx({ headers, rows, sheet: 'todos' })
+    assert.equal(buffer.subarray(0, 2).toString(), 'PK')
     const file = path.join(dir, 'out.xlsx')
     await writeFile(file, buffer)
-    const parsed = await parseXlsx(file, {})
-    assert.equal(parsed.length, 1)
+    const parsed = await parseXlsx(file)
+    assert.equal(parsed.length, 3)
     assert.equal(parsed[0]['标题'], '表格任务')
     assert.equal(parsed[0]['标签'], 'KB、交付')
-  } catch (error) {
-    if (error.code === 'IO_ERROR') {
-      // Environment without Python/openpyxl: the feature reports a clear error.
-      return
+    // Formula-looking text stays text (inline strings are never evaluated).
+    assert.equal(parsed[1]['标题'], '=SUM(A1:A2)')
+    // Illegal XML control characters are stripped, not written raw.
+    assert.equal(parsed[2]['标题'], '带控制字符')
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('dashboard export round-trips through the detail sheet', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'dsh-xlsx-report-'))
+  try {
+    const headers = ['ID', '标题', '状态', '优先级', '完成日']
+    const rows = [{ ID: 'T-0001', 标题: '带看板导出', 状态: '已完成', 优先级: 'P0', 完成日: '2026-11-04T12:36:18.060Z' }]
+    const report = {
+      project: 'demo',
+      revision: 3,
+      generatedAt: new Date('2026-11-05T02:00:00.000Z'),
+      scope: 'all',
+      total: 1,
+      done: 1,
+      doing: 0,
+      open: 0,
+      blocked: 0,
+      cancelled: 0,
+      rate: 1,
+      statuses: [
+        { key: 'done', label: '已完成', count: 1 },
+        { key: 'doing', label: '进行中', count: 0 },
+        { key: 'open', label: '未开始', count: 0 },
+        { key: 'blocked', label: '阻塞', count: 0 },
+        { key: 'cancelled', label: '已取消', count: 0 },
+      ],
+      priorities: [{ key: 'P0', count: 1 }],
+      milestones: [{ code: 'M-0001', name: '一阶段', done: 1, total: 1, percent: 1 }],
+      tags: [{ code: 'KB', count: 1 }],
     }
-    throw error
+    const buffer = await buildXlsx({ headers, rows, report })
+    const file = path.join(dir, 'report.xlsx')
+    await writeFile(file, buffer)
+    const parsed = await parseXlsx(file)
+    assert.equal(parsed.length, 1)
+    assert.equal(parsed[0]['标题'], '带看板导出')
+    assert.match(parsed[0]['完成日'], /^2026-11-04 \d{2}:\d{2}$/)
   } finally {
     await rm(dir, { recursive: true, force: true })
   }

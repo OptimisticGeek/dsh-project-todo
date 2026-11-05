@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 102,
-  "revision": 130,
-  "updatedAt": "2026-11-04T11:27:13.360Z",
+  "nextId": 103,
+  "revision": 132,
+  "updatedAt": "2026-11-05T02:28:47.214Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -889,6 +889,49 @@
       "doneVersion": "c1475cc",
       "doneEvidence": "node --test 123/123；默认里程碑 done 无归档提示实测；项目级 junction 已装（插件仓+工作区）",
       "revision": 4,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0102",
+      "legacyId": null,
+      "parentId": null,
+      "title": "修复待办导出 Excel 失败（插件目录迁移后 helper 路径失效）并按颜色/图表重做导出排版",
+      "status": "doing",
+      "priority": "P0",
+      "urgency": 3,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "TODO-SYSTEM",
+        "UI"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": null,
+        "decisions": [],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": null,
+      "releasedBy": null,
+      "createdAt": "2026-11-05T02:28:44.732Z",
+      "updatedAt": "2026-11-05T02:28:47.214Z",
+      "claimedAt": "2026-11-05T02:28:47.214Z",
+      "statusChangedAt": "2026-11-05T02:28:47.214Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": null,
+      "doneVersion": null,
+      "doneEvidence": null,
+      "revision": 2,
       "archivedBy": null
     }
   ]
