@@ -118,3 +118,18 @@ test('create without --claim leaves the task in the ready queue', async () => {
     assert.deepEqual(ready.data.tasks.map((task) => task.id), ['T-0001'])
   })
 })
+
+test('over-long descriptions warn but never block the create', async () => {
+  await withRoot(async (root) => {
+    assert.equal(run(root, ['init']).status, 0)
+    const long = '很长的描述'.repeat(80) // 400 字
+    const created = json(root, ['task', 'create', '--title', 'A', '--notes', long])
+    assert.equal(created.status, 0, created.stderr)
+    assert.equal(created.data.noteWarnings.length, 1)
+    assert.match(created.data.noteWarnings[0], /超过建议上限/)
+
+    const short = json(root, ['task', 'create', '--title', 'B', '--notes', '只写做什么和验收标准'])
+    assert.equal(short.status, 0, short.stderr)
+    assert.deepEqual(short.data.noteWarnings, [])
+  })
+})
