@@ -627,7 +627,9 @@ ptodo admin templates
 ptodo admin people
 ```
 
-**HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选与搜索 / 口径说明，含打印样式）。内置模板 `report`，`ptodo admin templates` 列出路径；`--template <name|path>` 可换成自己的 `.html`。模板只需放 `{{PTODO_DATA}}`（安全 JSON）与 `{{PTODO_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`，完整数据契约写在模板文件头部注释里。HTTP 面板 `?format=html` 也可用，**只接受内置模板名**，不接受任意路径。
+**HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选与搜索 / 口径说明，含打印样式）。内置模板 `report`，`ptodo admin templates` 列出路径；`--template <name|path>` 可换成自己的 `.html`。模板只需放 `{{PTODO_DATA}}`（安全 JSON）与 `{{PTODO_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`，完整数据契约写在模板文件头部注释里。HTTP 面板 `?format=html` 也可用（还可带 `&title=...`），**只接受内置模板名**，不接受任意路径。
+
+**Web 看板里导出**：点右上角「导出」，菜单里有「导出 HTML 汇报页」与「导出 HTML 汇报页（含归档）」，点完直接下载 `todos-<时间戳>.html`，双击即可离线打开。面板固定使用内置 `report` 模板；要换模板或改标题，用 CLI 的 `--template <name|path>` / `--title`。
 
 **JSON 通道（脚本/Agent 首选）**：`admin export --format json --scope all` 导出完整任务记录（`dependsOn` 为 id 数组，`dependsOnDetail` 带类型/备注）。`admin import-file <file> --dry-run` 先预览，去掉 `--dry-run` 写入；按 id **幂等合并**（存在则只更新该行给出的字段、`context.decisions` 追加，不存在则新建且原 id 存 `legacyId`）。每行返回 `created/updated/unchanged/failed` 与原因，有失败行时退出码为 1。跨项目复制用 `--create-only`，避免同 id 覆盖掉本项目里同号的另一条任务。依赖指向不存在的 id 会单独列出，不静默丢弃。
 

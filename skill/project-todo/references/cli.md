@@ -265,7 +265,7 @@ ptodo admin templates [--json]
 
 ### 批量与报告通道（用户明确要求导出/批量登记时）
 
-- **HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选 / 口径说明）。`ptodo admin templates` 列出内置模板绝对路径，复制出来改即可；`--template <name|path>` 指定模板，`--title` 改标题。
+- **HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选 / 口径说明）。`ptodo admin templates` 列出内置模板绝对路径，复制出来改即可；`--template <name|path>` 指定模板，`--title` 改标题。Web 看板「导出」菜单同样有「导出 HTML 汇报页（含归档）」两项，固定用内置模板。
 - **模板契约**：模板里放 `{{PTODO_DATA}}`（安全 JSON）与 `{{PTODO_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`；数据含 `meta/kpi/statuses/priorities/tags/groups/blocked/tasks/labels`，完整说明写在模板文件头部注释里。缺 `{{PTODO_DATA}}` 会报 `PARSE_ERROR`。HTTP 面板只接受内置模板名，不接受任意路径。
 - **JSON 幂等合并**：`admin export --format json` 导出完整记录（`dependsOn` 是 id 数组，`dependsOnDetail` 带类型/备注，派生容器带 `role:"container"`）。`admin import-file <file> --dry-run` 先预览；去掉 `--dry-run` 后按 id 合并（存在则只更新该行给出的字段、`context.decisions` 追加，不存在则新建且原 id 存 `legacyId`）。逐行返回 `created/updated/unchanged/failed` 与原因，含失败行退出码 1；跨项目复制用 `--create-only`。
 - **补登记与父任务收口**：`task done --backfill --version <版本>` 跳过 doing 校验，时间轴记 `backfill`；`task sync-parents [--dry-run]` 修复子任务已归档/历史遗留导致父任务仍 open 的情况，并聚合子任务版本与证据。

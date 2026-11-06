@@ -88,6 +88,7 @@ window.__ModuleLoader__.load({
         cancel: '取消', children: '子任务', parent: '父任务', history: '最近变更', notes: '备注',
         tags: '标签', taskTitle: '任务标题', claimBatch: '批量认领', releaseMine: '释放我的',
         more: '更多', export: '导出', import: '导入', exportMd: '导出 Markdown', exportXlsx: '导出 Excel',
+        exportHtml: '导出 HTML 汇报页',
         exportAll: '含归档', importHint: '支持 .md / .xlsx', needHolder: '先填写会话名（持有者）',
         ok: '完成', failed: '操作失败', empty: '本项目还没有待办，上面新建一条吧。',
         noMatch: '没有符合条件的任务。', searchEmpty: '没有匹配的任务。',
@@ -165,6 +166,7 @@ window.__ModuleLoader__.load({
         cancel: 'Cancel', children: 'Children', parent: 'Parent', history: 'Recent changes', notes: 'Notes',
         tags: 'Tags', taskTitle: 'Task title', claimBatch: 'Claim batch', releaseMine: 'Release mine',
         more: 'More', export: 'Export', import: 'Import', exportMd: 'Export Markdown', exportXlsx: 'Export Excel',
+        exportHtml: 'Export HTML report',
         exportAll: 'with archive', importHint: 'Supports .md / .xlsx', needHolder: 'Enter a session name first',
         ok: 'Done', failed: 'Action failed', empty: 'No todos in this project yet.',
         noMatch: 'No task matches this filter.', searchEmpty: 'No matching task.',
@@ -2098,8 +2100,11 @@ window.__ModuleLoader__.load({
                   { className: 'dpt-menu-panel' },
                   h('button', { onClick: () => downloadExport('md', 'active') }, t('exportMd')),
                   h('button', { onClick: () => downloadExport('xlsx', 'active') }, t('exportXlsx')),
+                  // HTML is a self-contained offline report (see templates/report.html).
+                  h('button', { onClick: () => downloadExport('html', 'active') }, t('exportHtml')),
                   h('button', { onClick: () => downloadExport('md', 'all') }, `${t('exportMd')}（${t('exportAll')}）`),
                   h('button', { onClick: () => downloadExport('xlsx', 'all') }, `${t('exportXlsx')}（${t('exportAll')}）`),
+                  h('button', { onClick: () => downloadExport('html', 'all') }, `${t('exportHtml')}（${t('exportAll')}）`),
                 )
               : null,
           )

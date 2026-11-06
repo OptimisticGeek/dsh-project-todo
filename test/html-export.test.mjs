@@ -5,8 +5,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { API_CHANNEL, registerConnectionRoutes } from '../lib/http.js'
+import { normalizeConfig } from '../lib/config.js'
 
 const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const CLIENT = fileURLToPath(new URL('../client.js', import.meta.url))
 
 function run(root, args) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], { encoding: 'utf8', windowsHide: true })
@@ -112,5 +115,65 @@ test('admin templates lists the built-in template and schema advertises html', a
     const domain = admin.commands.find((entry) => entry.name === 'admin')
     assert.ok(domain.actions.some((entry) => entry.name === 'templates'))
     assert.match(domain.actions.find((entry) => entry.name === 'export').usage, /html/)
+  })
+})
+
+/** Mount the same Fetch route the dsh panel calls for `/export`. */
+function mountExportRoute(root) {
+  const routes = new Map()
+  const agent = { id: 'session-x', session: { id: 'session-x', header: { cwd: root } } }
+  const ctx = {
+    get: (name) => (name === 'agents' ? { get: () => agent } : undefined),
+    connection: {
+      fetch: {
+        register: (route) => {
+          routes.set(route.path, route)
+          return async () => {}
+        },
+      },
+    },
+  }
+  registerConnectionRoutes(ctx, () => normalizeConfig({}), '/dsh-project-todo', 'tok')
+  return routes.get(`${API_CHANNEL}/dsh-project-todo/export`)
+}
+
+test('Web 面板导出菜单提供 HTML 汇报页（活跃 / 含归档）', async () => {
+  const source = await readFile(CLIENT, 'utf8')
+  assert.match(source, /downloadExport\('html', 'active'\)/)
+  assert.match(source, /downloadExport\('html', 'all'\)/)
+  assert.match(source, /exportHtml: '导出 HTML 汇报页'/)
+  assert.match(source, /exportHtml: 'Export HTML report'/)
+})
+
+test('面板 /export?format=html 返回单文件离线报告，并支持 title', async () => {
+  await withRoot(async (root) => {
+    await fixture(root)
+    const route = mountExportRoute(root)
+    assert.ok(route, '导出路由未注册')
+    const response = await route.fetch(
+      new Request('http://localhost/api/dsh-project-todo/export?sessionId=session-x&format=html&scope=all&title=%E6%B1%87%E6%8A%A5%E9%A1%B5'),
+    )
+    assert.equal(response.status, 200)
+    assert.match(response.headers.get('content-type'), /text\/html/)
+    assert.match(response.headers.get('content-disposition'), /\.html/)
+    const html = await response.text()
+    assert.match(html, /<script id="ptodo-data" type="application\/json">/)
+    assert.doesNotMatch(html, /\{\{PTODO_[A-Z_]+\}\}/)
+    assert.match(html, /汇报页/)
+    assert.equal(parseData(html).kpi.total, 2)
+  })
+})
+
+test('面板只接受内置模板名，任意路径不会落到内置模板之外', async () => {
+  await withRoot(async (root) => {
+    await fixture(root)
+    const route = mountExportRoute(root)
+    const response = await route.fetch(
+      new Request('http://localhost/api/dsh-project-todo/export?sessionId=session-x&format=html&template=..%2F..%2Fetc%2Fpasswd'),
+    )
+    assert.equal(response.status, 200)
+    const html = await response.text()
+    // An unknown name is ignored and the built-in report is used.
+    assert.match(html, /<script id="ptodo-data" type="application\/json">/)
   })
 })

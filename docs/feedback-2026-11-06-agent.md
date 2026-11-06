@@ -30,8 +30,11 @@
 | C6 | 管理型操作淹没时间轴 | **已修**：清除 open 任务残留 holder 记 `holder_fix`（`category=admin`），默认隐藏；`timeline --all` / `--type admin` 可看 |
 | E | 容器无法用命令标记 | **已修**：`create --container` / `update --role`、`role:container` 进导出与 UI 数据，派生容器在 `decorateTask` 给出有效 role（不污染存量数据） |
 | B4 命名参数 | `dep add A B` 方向 | 文档已澄清，未做命名参数（低优先级，保持 CLI 兼容） |
+| **面板导出菜单遗漏** | 第三批只接了 CLI 与 HTTP，Web 看板「导出」里仍只有 md/xlsx | **已修**：`client.js` 菜单加「导出 HTML 汇报页」+「（含归档）」，中英 i18n 同步；HTTP 补 `&title=` 与 CLI 对齐 |
 
 **第二批验证**：测试 156 → 171 全绿（新增 15 条回归，含 JSON 往返幂等、失败行非零退出、跨项目 `--create-only`、`--root` 守卫、父任务回退提示）。全局 `ptodo` 实测：三级帮助、`schema --json`（17 个命令域）、JSON 导出→导入→二次导入全未变、失败批退出码 1。
+
+**第四批（面板入口补齐）**：用户反馈「在 dsh 里只有导出 md / 导出 excel，没有导出 html」。根因是第三批只改了 `lib/http.js` 的 `?format=html` 与 CLI，**没动 `client.js` 的导出菜单**（该文件当时是作者在途改动，刻意未碰）。本次补 2 个菜单项 + 中英文案，HTTP 端点补 `title` 参数；新增 3 条测试（菜单静态契约、Fetch 通道 `format=html` 集成、模板名白名单），180 → 183 全绿。
 
 **第三批（skills + HTML 导出 + 剩余 5 项）**：新增 `lib/html-report.js` 与 `templates/report.html`（单文件离线汇报页，模板契约写在模板头部注释），`admin export --format html [--template ...] [--title ...]`、`admin templates`、HTTP `?format=html`；`SKILL.md` 升 2.2.0 并清掉「create 会占 holder」等被修复推翻的旧口径，`references/cli.md` 补全全部新参数与批量/报告通道。测试 171 → 180 全绿。
 
