@@ -3,7 +3,7 @@ name: project-todo
 description: "开发任务的开工、认领、写回与收尾登记。当用户问待办/任务/下一步做什么/谁在做/还有多少没做完，或即将动手改代码、跑构建、补测试、写文档、出交付物（哪怕他完全没提到「待办」二字），都应先用本技能认领任务再动手，完成后用它记录可复核证据并给出结论行。不适用：纯只读问答、概念解释、与仓库无关的临时命令——那些直接回答即可，不必进入本技能。"
 description_zh: "开发任务的开场与收尾登记：认领任务、查看下一步、写回进度、完成取证、交接归档。用户问待办或准备动手改代码时使用。"
 description_en: "Task claim and completion ledger for development work: read the ready queue, claim a task, write back progress, complete with verifiable evidence. Use when asked about todos/next steps, or before any change to the repo."
-version: 2.1.0
+version: 2.2.0
 license: Apache-2.0
 allowed-tools: Bash, PowerShell, Read, Glob, Grep, Edit, Write
 display_name: "项目待办"
@@ -71,18 +71,18 @@ display_name_en: "Project Todo"
 ```bash
 ptodo task ready --limit 3
 ptodo task start <T-xxxx>
-ptodo context progress <id> "做到哪、下一步"
+ptodo context progress <id> "做到哪、下一步"   # 覆盖式；补一段用 --append
 ptodo task done <id> --evidence "可复核证据"
 ptodo task status
 ```
 
-其余一切细节在下文与 `references/`。**不要凭记忆拼参数**：不确定就翻 `references/cli.md`。
+其余一切细节在下文与 `references/`。**不要凭记忆拼参数**：不确定先 `ptodo <命令> <子命令> --help`（三级帮助，会列出该子命令的全部参数），或 `ptodo schema --json` 一次拿到全部命令与参数；再不行才翻 `references/cli.md`，不要去读插件源码猜。
 
 ## 铁律
 
 1. 只用 `ptodo`；不要手改 `docs/ptodo/*.json`，不要用 `开发计划/todo/TODO.md`、`.dsh/TODO.md` 或会话内 todo 清单代替。
 2. 三层模型：里程碑（`M-0001`）→ 阶段（`S-0001`）→ 任务（`T-0001`）；`default/默认` 与 `default/未分类` 自动存在、不可删除，新建任务默认落到「未分类」。
-3. 任务编码由内核分配；禁止编造或手填 `T-xxxx`。父任务由子任务汇总，不要认领/完成父任务。
+3. 任务编码由内核分配；禁止编造或手填 `T-xxxx`。父任务由子任务汇总，不要认领/完成父任务；`--container` 可预先声明容器，`--role task` 可撤销。
 4. 不要动他人持有的任务；被持有时换一条（可能表现为 `NOT_READY` 或 `CONFLICT`），先看 holder，不要默认 `--force`。
 5. 依赖与前置条件由系统判定。`NOT_READY` 时看原因（硬依赖未完成 / 前置未满足 / 被他人持有 / 非 open），不要绕过或强开。
 6. 同一件事不要重复 `task create`：先 `ptodo task ready` 或 `ptodo task list` 按标题/`legacyId` 查重。
@@ -103,7 +103,7 @@ ptodo task ready --limit 3
 - 用户点名任务：直接 `ptodo task start <T-xxxx>`；不知道 ID 时用 `ptodo task list --status open` 找。
 - 用户说「**继续开发待办**」「**继续开发**」「继续」「下一步」且**没有指定任务/上下文**：
   直接 `ptodo task ready --limit 3`，从第一条开始 `task start`，不要反问「做哪个」。
-- 看板为空：`ptodo task create --title "..." --priority P2`，再 `task start <新 ID>`（create 会把负责人设成当前 person，所以新任务不会出现在 `task ready`，但 `start` 仍可直接认领）。
+- 看板为空：`ptodo task create --title "..." --priority P2`，再 `task start <新 ID>`（或直接 `task ready` 领第一条）。**`create` = 登记，不占 holder**：新建任务直接进 `ready`；只有显式 `--claim` / `--holder` 才会变成「已指派给你」。
 - 只读总览可用 `ptodo task status`（计数 + 进行中 + 建议优先）。
 
 ### G0.5 需求校验：认领后、改文件前
@@ -255,23 +255,26 @@ ptodo task status
 
 | 目的 | 命令 |
 |---|---|
+| 找**该做哪一条** | `ptodo task suggest [--json]`（只读，返回 1 条 + 排序理由 + 备选；不会认领） |
 | 找就绪任务 | `ptodo task ready [--limit N] [--stage S-0002] [--milestone M-0001]`（只列**未指派**的就绪任务；已指派给你的直接 `task start`） |
 | 认领 + 开工简报 | `ptodo task start T-0007` |
-| 完成 | `ptodo task done T-0007 --evidence "301/302 通过"` |
+| 完成 | `ptodo task done T-0007 --evidence "301/302 通过"`；补登历史完成项用 `--backfill --version <版本>`（跳过 doing 校验，时间轴记 backfill） |
 | 版本文档（批量完成/push 前） | 建/补 `utp/docs/version/<x.y.z>.md`（模板见「版本文档」），同批任务都 `done --version <x.y.z>` |
 | 交还/交接 | `ptodo task release T-0007 --note "等客户确认，下一步跑 X"` |
 | 阻塞 | `ptodo task block T-0007 --reason "等接口权限"` |
-| 新建（可拆子任务） | `ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5] [--tags a,b] [--parent T-0001] [--blocked-by T-0006]` |
-| 写回上下文 | `ptodo context decision/progress/loop <id> "..."` |
+| 新建（可拆子任务） | `ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5] [--tags a,b] [--parent T-0001] [--blocked-by T-0006] [--claim] [--container]`（`--claim` 才占负责人；`--container` 声明容器） |
+| 父任务收口 | `ptodo task sync-parents [--dry-run]`（子任务已全完成/已归档但父任务仍 open 时，聚合版本与证据） |
+| 写回上下文 | `ptodo context decision/progress/loop <id> "..."`；`decision` 追加、`progress` 覆盖（补段用 `--append`） |
 | 人员列表（人员多选/指派用） | `ptodo admin people [--json]`（仅列 git 历史作者） |
 | 修复无效负责人 | `ptodo admin repair-people --person <git用户名> [--dry-run]`（把非 git 人员的历史 person 字段改为该人） |
 | 里程碑/阶段完成后归档 | `ptodo admin archive-batch --milestone M-0001`（也支持 `--stage S-0001` / `--ids T-0001,T-0002`；只归档已完成，父任务/未完成会进 `skipped`；**先问用户**，未确认不执行；**`default` 里程碑不归档**） |
 | 取消归档 | `ptodo admin unarchive T-0007` |
-| 只读总览/详情 | `ptodo task status` / `ptodo task list` / `ptodo task get T-0007` |
+| 只读总览/详情 | `ptodo task status` / `ptodo task list` / `ptodo task get T-0007 [--full]`（备注默认截 300 字） |
 | 管理组织/依赖/标签 | `ptodo milestone ...` / `ptodo stage ...` / `ptodo task dep ...` / `ptodo tag ...` |
-| 时间轴/自检 | `ptodo timeline` / `ptodo whoami` / `ptodo doctor` |
+| 时间轴/自检 | `ptodo timeline [--all]`（默认隐藏 holder_fix 等管理事件）/ `ptodo timeline --type admin` / `ptodo whoami` / `ptodo doctor` |
+| 批量登记 / 导出报告（用户明确要求时） | `ptodo admin export --format json\|html --scope all`；`ptodo admin import-file <file> --dry-run` 预览后去掉 `--dry-run` 导入；`ptodo admin templates` 列出 HTML 模板 |
 
-页面/脚本动作（归档、删除、导入导出、批量、清空日志）在 `ptodo admin ...`，**不要主动使用**；需要清理时先问用户。
+**导入导出是交付/批量通道**：用户明确要求「导出报告」「批量登记任务」时，用 `admin export --format html`（单文件离线汇报页，可 `--template` 换模板）或 `--format json` + `admin import-file`（按 id 幂等合并，必须 `--dry-run` 预览）。归档、删除、批量认领、清空时间轴仍属管理动作，**不要主动使用**，需要先问用户。
 
 ## 身份与目录
 
@@ -289,7 +292,7 @@ ptodo task status
 
 ### 目录与调用
 
-- 从项目根执行；子目录也可以（CLI 向上找 `docs/ptodo/todos.json`，找不到再看 `.git`）。项目根不是 git 时可 `--root <项目根>`。
+- 从项目根执行；子目录也可以（CLI 向上找 `docs/ptodo/todos.json`，找不到再看 `.git`）。项目根不是 git 时可 `--root <项目根>`；**显式 `--root` 的目录必须已有待办库**，否则报 `NO_PROJECT`(7)，新项目先 `init`。
 - `ptodo` 不在 PATH 时**不要停**：按「跨工具执行 → ptodo 不在 PATH 时」三级降级（`node <包>/bin/ptodo.mjs`）；仍不可用再告诉用户安装方式，不要退回 Markdown 队列。
 
 ## 跨工具执行（WorkBuddy / ZCode / Claude Code / Codex）
@@ -349,7 +352,7 @@ node "<源码仓>/dsh-plugins/dsh-project-todo/bin/ptodo.mjs" --version    # 3) 
 | `INVALID` (5) | 参数或版本问题；三种常见：非 git 项目 `task done` 未带 `--version` → 补 `--version <版本>`；`task start` 漏任务 ID；任务自依赖 |
 | `TAG_NOT_FOUND` (9) | 标签未注册且 `tag.strict=true`；先 `ptodo tag add --name ...`，或改用已注册编码 |
 | `NOT_FOUND` (3) | `task list` 重新找 ID；不要新建重复任务 |
-| `NO_PROJECT` (7) | `--root <项目根>`，或先 `ptodo init` |
+| `NO_PROJECT` (7) | 显式 `--root`/`PTODO_ROOT` 指到没有 `docs/ptodo/todos.json` 的目录时会直接拒绝（防止路径打错静默建第二套库）：核对路径，或先 `ptodo --root <目录> init` |
 | 中文乱码 | 输出是 UTF-8；捕获端按 UTF-8 解码（PowerShell：`[Console]::OutputEncoding=[Text.Encoding]::UTF8`），需要机器读就加 `--json` |
 | 完成报版本缺失 | 显式 `--version <版本>`（非 git 项目必需），或从子仓目录执行，或 `git link` 关联仓库 |
 | `archive-batch` 有 `skipped` | 读每条 `reasonCode`：`NOT_DONE` 未完成 → 先完成；`HAS_CHILDREN` 还有子任务 → 先处理子任务；`ARCHIVED` 已归档 → 跳过；`NOT_FOUND` 不存在 → `task list` 核对 ID。**不要为了让归档通过而强改 done** |

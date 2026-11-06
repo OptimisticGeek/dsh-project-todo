@@ -212,7 +212,7 @@ DSH 会话页的「待办」标签页；Host 只监听回环，按会话工作�
 
 ## Excel 导出
 
-面板「导出 → 导出 Excel（含归档）」或 `ptodo admin export --format xlsx` 生成工作簿。**内置纯 JS 生成（`node:zlib`），不依赖 Python / openpyxl，也不依赖插件目录旁边的辅助脚本**。
+面板「导出 → 导出 Excel（含归档）」或 `ptodo admin export --format xlsx` 生成工作簿。另有 `ptodo admin export --format html --scope all` 生成单文件离线汇报页（模板可用 `ptodo admin templates` 找到后自行修改），以及 `--format json` + `admin import-file` 做按 id 幂等的批量登记。**内置纯 JS 生成（`node:zlib`），不依赖 Python / openpyxl，也不依赖插件目录旁边的辅助脚本**。
 
 - `总览`：KPI 彩色卡片；状态 / 优先级 / 里程碑 / 标签统计；4 张原生图表（柱状、环形、堆叠柱、条形），按 A4 横向排成 2 页。
 - `任务明细`：15 列；状态、优先级、紧急度按颜色区分；隔行底纹；冻结表头、自动筛选、A4 横向、逐页重复表头、页码页脚。

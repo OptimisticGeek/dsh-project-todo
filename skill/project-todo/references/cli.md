@@ -14,12 +14,12 @@ ptodo <命令> [子命令] [参数] [--root DIR] [--by ACTOR] [--config FILE] [-
 | `--by ACTOR` | 操作者；优先于 `PTODO_ACTOR` > git `user.name` > `DSH_SESSION_ID` > `cli-<用户>` |
 | `--config FILE` | 指定配置文件；默认 `docs/ptodo/config.json`（可缺省） |
 | `--json` | stdout 只输出一个 JSON 文档；诊断与错误 JSON 走 stderr |
-| `--help` | 打印帮助 |
+| `--help` | 分级帮助：`ptodo --help` 全览 / `ptodo task --help` 列子命令 / `ptodo task update --help` 列参数与示例 |
 
 列表参数（`--tags`、`--stages`、`--aliases`）支持逗号/顿号/分号分隔，也可重复传参。
 PowerShell 会把未加引号的逗号当作参数分隔符，写 `--tags "KB,auth"` 或 `--stages "调研,实现"`。
 
-`ptodo --version`（无其他命令）打印包版本。
+`ptodo --version`（无其他命令）打印包版本；`ptodo schema --json` 返回全部命令、子命令、参数、示例的机器可读结构（Agent 自发现首选，不需要读源码）。
 
 ## Agent 的六个动作
 
@@ -48,7 +48,7 @@ JSON：`{ok,action:"start",message,task,brief,warning?}`。
 ### task done
 
 ```
-ptodo task done <id> [--evidence "可复核证据"] [--version v] [--force] [--json]
+ptodo task done <id> [--evidence "可复核证据"] [--version v] [--force] [--backfill] [--json]
 ```
 
 仅当前持有者；`--evidence` 缺省时自动取 `git log --grep=<id>` 摘要；版本缺省自动取 git 短 hash。
@@ -76,11 +76,11 @@ ptodo task block <id> --reason "..." [--json]
 
 ```
 ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5]
-                  [--tags a,b] [--parent <id>] [--notes "..."]
-                  [--blocked-by <id>]... [--dep-type hard|soft] [--json]
+                  [--tags a,b] [--parent <id>] [--notes "..."] [--claim] [--holder X]
+                  [--container] [--blocked-by <id>]... [--dep-type hard|soft] [--json]
 ```
 
-ID 由内核分配（`T-0001` 起，不复用）；默认 `P2`、urgency 3、阶段 `default`（未分类）。
+ID 由内核分配（`T-0001` 起，不复用）；默认 `P2`、urgency 3、阶段 `default`（未分类）。**默认 `holder=null`，新建任务直接进 `ready`**；`--claim`/`--holder X` 才占负责人，`--container` 预声明容器（不可开工，`--role task` 可撤销）。
 `--blocked-by` 可重复，创建后立即加依赖（默认 `hard`）。标签未注册时自动建 `draft`，`tag.strict=true` 则报 `TAG_NOT_FOUND`。
 JSON：`{ok,action:"create",message,task,warnings,warning?}`。
 
@@ -90,11 +90,13 @@ JSON：`{ok,action:"create",message,task,warnings,warning?}`。
 ptodo task list [--status open|doing|blocked|done|cancelled|all] [--tag T]
                 [--stage S-0002] [--milestone M-0001] [--blocked] [--ready]
                 [--archived] [--flat] [--json]
-ptodo task get <id> [--no-history] [--json]
+ptodo task get <id> [--no-history] [--full] [--json]   # 备注默认截 300 字；JSON 始终全文
 ptodo task update <id> [--title t] [--priority P0..P5] [--urgency 1..5] [--tags a,b]
-                     [--notes s] [--parent <id>] [--stage S-0002]
+                     [--notes s] [--parent <id>] [--stage S-0002] [--role container|task]
                      [--status <s>] [--force] [--version v] [--evidence s]
 ptodo task status [--json]
+ptodo task suggest [--json]                  # 只读推荐 1 条 + 排序理由 + 备选
+ptodo task sync-parents [--dry-run] [--json] # 收口子任务已全完成的父任务
 ptodo task unblock <id>
 ptodo task reopen <id>
 ptodo task dep list <id> [--json]
@@ -156,7 +158,7 @@ ptodo tag todos <code> [--archived] [--json]
 ```
 ptodo context get <id> [--json]
 ptodo context decision <id> "决策内容"
-ptodo context progress <id> "当前进度"
+ptodo context progress <id> "当前进度" [--append]   # 默认覆盖，--append 才是追加
 ptodo context loop <id> "未关闭事项"
 ptodo context loop <id> --close 1
 ```
@@ -255,16 +257,26 @@ ptodo admin check
 ptodo admin timeline [--scope ...]
 ptodo admin timeline-clear --confirm
 ptodo admin import [--source <path>] [--dry-run]
-ptodo admin import-file <file> [--format md|xlsx] [--dry-run]
-ptodo admin export [--format md|xlsx] [--scope active|archive|all]
+ptodo admin import-file <file> [--format md|xlsx|json] [--dry-run] [--create-only]
+ptodo admin export [--format md|xlsx|json|html] [--scope active|archive|all]
+                   [--template report|<path>] [--title "..."]
+ptodo admin templates [--json]
 ```
+
+### 批量与报告通道（用户明确要求导出/批量登记时）
+
+- **HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选 / 口径说明）。`ptodo admin templates` 列出内置模板绝对路径，复制出来改即可；`--template <name|path>` 指定模板，`--title` 改标题。
+- **模板契约**：模板里放 `{{PTODO_DATA}}`（安全 JSON）与 `{{PTODO_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`；数据含 `meta/kpi/statuses/priorities/tags/groups/blocked/tasks/labels`，完整说明写在模板文件头部注释里。缺 `{{PTODO_DATA}}` 会报 `PARSE_ERROR`。HTTP 面板只接受内置模板名，不接受任意路径。
+- **JSON 幂等合并**：`admin export --format json` 导出完整记录（`dependsOn` 是 id 数组，`dependsOnDetail` 带类型/备注，派生容器带 `role:"container"`）。`admin import-file <file> --dry-run` 先预览；去掉 `--dry-run` 后按 id 合并（存在则只更新该行给出的字段、`context.decisions` 追加，不存在则新建且原 id 存 `legacyId`）。逐行返回 `created/updated/unchanged/failed` 与原因，含失败行退出码 1；跨项目复制用 `--create-only`。
+- **补登记与父任务收口**：`task done --backfill --version <版本>` 跳过 doing 校验，时间轴记 `backfill`；`task sync-parents [--dry-run]` 修复子任务已归档/历史遗留导致父任务仍 open 的情况，并聚合子任务版本与证据。
+- **时间轴管理事件**：清除 open 状态残留 holder 记 `holder_fix`（`category: admin`），默认时间轴隐藏；`timeline --all` 或 `--type admin` 查看。JSON 输出每条带 `category`。
 
 ## 退出码
 
 | 码 | 含义 |
 |---|---|
 | 0 | 成功 |
-| 1 | 通用错误 |
+| 1 | 通用错误；批量 JSON 导入含失败行（看 `rows` 逐条原因） |
 | 2 | 用法错误 |
 | 3 | `NOT_FOUND`（任务/里程碑/阶段/资料/前置不存在） |
 | 4 | `CONFLICT`（被他人持有、锁占用、已依赖、阶段仍有任务等） |

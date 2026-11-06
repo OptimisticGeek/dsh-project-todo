@@ -492,6 +492,7 @@ ptodo task release <id> [--note "交接说明"] [--force]
 ptodo task block <id> --reason "为什么卡住"
 ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5]
                   [--tags a,b] [--parent <id>] [--notes "..."] [--blocked-by <id>]...
+                  [--claim] [--container]
 ```
 
 补充：
@@ -502,7 +503,8 @@ ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 
 - `release` 的 `--note` 会进 `openLoops`，是下一手的可见交接。
 - `block` 的 `--reason` 必填。
 - `create` 的 ID 由内核分配；默认 `P2`、urgency 3、阶段 `default`；标签未注册自动建 `draft`（`tag.strict=true` 时报 `TAG_NOT_FOUND`）。
-- **`create` = 登记，不等于认领**：默认 `holder=null`，新建任务直接进 `ready`；想建完就归自己用 `--claim` 或 `--holder X`。给**已完成父任务**挂子任务会输出 `⚠ 父任务 … 已由 done 回退为 open`。描述超过 300 字会提示精简（不阻断）。
+- **`create` = 登记，不等于认领**：默认 `holder=null`，新建任务直接进 `ready`；想建完就归自己用 `--claim` 或 `--holder X`。`--container` 可预先声明容器（即使还没挂子任务也不能开工，`--role task` 撤销）。给**已完成父任务**挂子任务会输出 `⚠ 父任务 … 已由 done 回退为 open`。描述超过 300 字会提示精简（不阻断）。
+- `task suggest` 只读返回「现在最该做哪一条」+ 排序理由 + 备选；`task sync-parents [--dry-run]` 收口子任务已全完成/已归档但父任务仍 open 的情况，并聚合版本与证据。`task done --backfill --version <版本>` 补登历史完成项，时间轴记 `backfill`。
 
 ### 9.3 任务管理
 
@@ -619,9 +621,13 @@ ptodo admin timeline [--scope ...]
 ptodo admin timeline-clear --confirm
 ptodo admin import [--source <path>] [--dry-run]
 ptodo admin import-file <file> [--format md|xlsx|json] [--dry-run] [--create-only]
-ptodo admin export [--format md|xlsx|json] [--scope active|archive|all]
+ptodo admin export [--format md|xlsx|json|html] [--scope active|archive|all]
+                   [--template report|<path>] [--title "..."]
+ptodo admin templates
 ptodo admin people
 ```
+
+**HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选与搜索 / 口径说明，含打印样式）。内置模板 `report`，`ptodo admin templates` 列出路径；`--template <name|path>` 可换成自己的 `.html`。模板只需放 `{{PTODO_DATA}}`（安全 JSON）与 `{{PTODO_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`，完整数据契约写在模板文件头部注释里。HTTP 面板 `?format=html` 也可用，**只接受内置模板名**，不接受任意路径。
 
 **JSON 通道（脚本/Agent 首选）**：`admin export --format json --scope all` 导出完整任务记录（`dependsOn` 为 id 数组，`dependsOnDetail` 带类型/备注）。`admin import-file <file> --dry-run` 先预览，去掉 `--dry-run` 写入；按 id **幂等合并**（存在则只更新该行给出的字段、`context.decisions` 追加，不存在则新建且原 id 存 `legacyId`）。每行返回 `created/updated/unchanged/failed` 与原因，有失败行时退出码为 1。跨项目复制用 `--create-only`，避免同 id 覆盖掉本项目里同号的另一条任务。依赖指向不存在的 id 会单独列出，不静默丢弃。
 
