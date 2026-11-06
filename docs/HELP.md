@@ -38,7 +38,7 @@ ptodo task status               # G4 收尾，给结论行
 六条红线：
 
 1. **只走 `ptodo`**；不手改 `docs/ptodo/*.json`，不维护第二份待办。
-2. **改文件前先 `start`**；`create` 默认把负责人设成你，所以自己建的任务不在 `ready` 里，直接 `start`。
+2. **改文件前先 `start`**；`create` 只是登记、默认不挂负责人，所以新建任务会直接出现在 `ready` 里；要「建了就归自己」用 `--claim`。
 3. **需求未校验不开工**（仅当项目配置了需求注册表）；没有注册表就跳过，别卡住。
 4. **状态变化立即写回**：`progress / decision / loop / block / release`，不要等最后一次性补。
 5. **没有 `done` 不说完成**；证据要能被别人复核。
@@ -186,7 +186,7 @@ ptodo task ready --limit 3
 
 返回空不代表没任务，按顺序排查：
 
-1. 没有「未指派 + 就绪」的叶子（自己的任务带 holder，不在 `ready` 里）；
+1. 没有「未指派 + 就绪」的叶子（被 `start` / `--claim` 占住的任务带 holder，不在 `ready` 里）；
 2. 硬依赖未完成；
 3. 必填前置条件未满足（`pre list <id>`）；
 4. 所属阶段/里程碑已归档；
@@ -249,7 +249,7 @@ ptodo context decision T-0007 "G0.5 已查：注册表 R3 / CR-0007 / 版本 1.2
 | 有待确认/待补测 | `context loop <id> "…"`；关闭用 `--close N` | 未关闭事项 |
 | 外部条件卡住 | `task block <id> --reason "…"` | 状态 + openLoops |
 | 换人/收工 | `task release <id> --note "…"` | 进度 + openLoops + handoff |
-| 发现新工作 | `task create --title ... --parent <id> --blocked-by <id>` | 子任务/依赖 |
+| 发现新工作 | `task create --title ... --parent <id> --blocked-by <id>`（默认不占位；要认领加 `--claim`） | 子任务/依赖 |
 
 写回不是形式：下一位 `start` 只能看到你写进 `context` 的内容，看不到你的会话。
 

@@ -26,24 +26,23 @@ async function withRoot(runTest) {
   }
 }
 
-test('agent flow: create assigns the person → start → done via the new CLI', async () => {
+test('agent flow: create leaves it ready → start claims → done via the new CLI', async () => {
   await withRoot(async (root) => {
     assert.equal(run(root, ['init']).status, 0)
     const created = json(root, ['task', 'create', '--title', '任务 A', '--priority', 'P0', '--tags', 'REQ'])
     assert.equal(created.status, 0, created.stderr)
     assert.equal(created.data.task.id, 'T-0001')
-    // A CLI create belongs to the current person by default (new-task holder).
-    assert.equal(created.data.task.holder.length > 0, true)
+    // A create registers work; it does not claim it. Unassigned => shows up in ready.
+    assert.equal(created.data.task.holder, null)
 
-    // `ready` is the unassigned queue, so an assigned task is not listed there.
     const ready = json(root, ['task', 'ready'])
     assert.equal(ready.status, 0, ready.stderr)
-    assert.deepEqual(ready.data.tasks.map((task) => task.id), [])
+    assert.deepEqual(ready.data.tasks.map((task) => task.id), ['T-0001'])
 
     const started = json(root, ['task', 'start', 'T-0001'])
     assert.equal(started.status, 0, started.stderr)
     assert.equal(started.data.brief.task.id, 'T-0001')
-    assert.equal(started.data.task.holder, created.data.task.holder)
+    assert.ok(started.data.task.holder, 'start must assign a holder')
 
     const done = json(root, ['task', 'done', 'T-0001', '--evidence', '通过', '--version', 'v1'])
     assert.equal(done.status, 0, done.stderr)
@@ -64,7 +63,8 @@ test('not-ready tasks exit 10 and blocked tasks do not appear in ready', async (
     const listed = json(root, ['task', 'list'])
     assert.equal(listed.data.tasks.find((task) => task.id === 'T-0002').effectiveStatus, 'blocked')
     const ready = json(root, ['task', 'ready'])
-    assert.deepEqual(ready.data.tasks.map((task) => task.id), [])
+    // T-0001 is unassigned and unblocked; T-0002 is blocked by it.
+    assert.deepEqual(ready.data.tasks.map((task) => task.id), ['T-0001'])
   })
 })
 

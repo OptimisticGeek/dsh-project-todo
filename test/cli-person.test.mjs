@@ -48,14 +48,19 @@ test('whoami reports person and its source', async () => {
   })
 })
 
-test('create assigns the person, start accepts it and done reports milestone completion', async () => {
+test('create leaves the task unassigned, --claim assigns it, done reports milestone completion', async () => {
   await withRoot(async (root, env) => {
     assert.equal(run(root, ['init'], env).status, 0)
+    // Registration is not a claim: the task stays unassigned and reachable via `ready`.
     const created = json(root, ['task', 'create', '--title', '任务 A', '--by', 'codex:alice'], env)
     assert.equal(created.status, 0, created.stderr)
-    assert.equal(created.data.task.holder, 'alice')
+    assert.equal(created.data.task.holder, null)
     assert.equal(created.data.task.createdBy, 'alice')
     assert.equal(run(root, ['task', 'create', '--title', '任务 B', '--by', 'codex:alice'], env).status, 0)
+    // --claim keeps the old "create and take it now" behaviour.
+    const claimed = json(root, ['task', 'create', '--title', '任务 C', '--claim', '--by', 'codex:alice'], env)
+    assert.equal(claimed.status, 0, claimed.stderr)
+    assert.equal(claimed.data.task.holder, 'alice')
 
     const started = json(root, ['task', 'start', 'T-0001', '--by', 'codex:alice'], env)
     assert.equal(started.status, 0, started.stderr)
@@ -63,7 +68,7 @@ test('create assigns the person, start accepts it and done reports milestone com
 
     const first = json(root, ['task', 'done', 'T-0001', '--version', 'v1', '--evidence', '通过', '--by', 'codex:alice'], env)
     assert.equal(first.status, 0, first.stderr)
-    assert.deepEqual(first.data.milestone, { code: 'default', name: '默认', done: 1, total: 2, complete: false, archivable: false })
+    assert.deepEqual(first.data.milestone, { code: 'default', name: '默认', done: 1, total: 3, complete: false, archivable: false })
 
     assert.equal(run(root, ['task', 'start', 'T-0002', '--by', 'codex:alice'], env).status, 0)
     const text = run(root, ['task', 'done', 'T-0002', '--evidence', '通过', '--version', 'v2', '--by', 'codex:alice'], env)
