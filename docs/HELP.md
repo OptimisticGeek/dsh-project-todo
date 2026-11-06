@@ -476,7 +476,9 @@ ptodo <命令> [子命令] [参数] [--root DIR] [--by ACTOR] [--config FILE] [-
 | `--by ACTOR` | 工具身份；优先级 `--by` > `PTODO_ACTOR` > git `user.name` > `DSH_SESSION_ID` > `cli-<用户>` |
 | `--config FILE` | 指定配置文件；默认 `docs/ptodo/config.json`（可缺省） |
 | `--json` | stdout 恰好一个 JSON；错误 JSON 走 stderr |
-| `--help` | 帮助；`ptodo --version` 打印包版本 |
+| `--help` | 分级帮助：`ptodo --help` 全览、`ptodo task --help` 列子命令、`ptodo task update --help` 列参数 |
+
+`ptodo schema --json` 输出全部命令/子命令/参数/示例的机器可读结构（Agent 自发现用），不需要读源码猜参数。`ptodo --version` 打印包版本。
 
 列表参数（`--tags`、`--stages`、`--aliases`）支持逗号/顿号/分号分隔，也可重复传参。PowerShell 用户注意：未加引号的逗号会被当成参数分隔，写 `--tags "KB,api"`。
 
@@ -500,6 +502,7 @@ ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 
 - `release` 的 `--note` 会进 `openLoops`，是下一手的可见交接。
 - `block` 的 `--reason` 必填。
 - `create` 的 ID 由内核分配；默认 `P2`、urgency 3、阶段 `default`；标签未注册自动建 `draft`（`tag.strict=true` 时报 `TAG_NOT_FOUND`）。
+- **`create` = 登记，不等于认领**：默认 `holder=null`，新建任务直接进 `ready`；想建完就归自己用 `--claim` 或 `--holder X`。给**已完成父任务**挂子任务会输出 `⚠ 父任务 … 已由 done 回退为 open`。描述超过 300 字会提示精简（不阻断）。
 
 ### 9.3 任务管理
 
@@ -544,7 +547,7 @@ ptodo tag update|deprecate|list|todos ...
 ```bash
 ptodo context get <id>
 ptodo context decision <id> "决策内容"
-ptodo context progress <id> "当前进度"
+ptodo context progress <id> "当前进度" [--append]
 ptodo context loop <id> "未关闭事项"
 ptodo context loop <id> --close 1
 
@@ -576,6 +579,8 @@ ptodo timeline [--scope project|tag|task] [--tag T] [--task id] [--q 关键词]
                [--limit 20]
 ```
 
+- **`decision` 是追加式流水，`progress` 是当前快照（默认覆盖）**；想在已有进度后面补一段用 `context progress <id> "..." --append`。
+- `task get` 的备注默认截断到 300 字，看全文加 `--full`（`--json` 始终返回全文）；`--json` 另给 `dependsOnIds`（id 数组）与 `blockers`（挡住我的上游），`blocking` 仍指我挡住的下游。
 - 多个前置条件是 AND；`required=false` 恒视为满足；只有 `manual_confirm` 需要 `pre confirm`。
 - 资料是**任务内**列表，不是全局库；被替换的旧资料标 `superseded`，并出现在下一次简报的「变更提示」。
 - 因果纯叙事，不影响就绪与排期；`type=task` 会自动写反向边。
@@ -613,10 +618,12 @@ ptodo admin check
 ptodo admin timeline [--scope ...]
 ptodo admin timeline-clear --confirm
 ptodo admin import [--source <path>] [--dry-run]
-ptodo admin import-file <file> [--format md|xlsx] [--dry-run]
-ptodo admin export [--format md|xlsx] [--scope active|archive|all]
+ptodo admin import-file <file> [--format md|xlsx|json] [--dry-run] [--create-only]
+ptodo admin export [--format md|xlsx|json] [--scope active|archive|all]
 ptodo admin people
 ```
+
+**JSON 通道（脚本/Agent 首选）**：`admin export --format json --scope all` 导出完整任务记录（`dependsOn` 为 id 数组，`dependsOnDetail` 带类型/备注）。`admin import-file <file> --dry-run` 先预览，去掉 `--dry-run` 写入；按 id **幂等合并**（存在则只更新该行给出的字段、`context.decisions` 追加，不存在则新建且原 id 存 `legacyId`）。每行返回 `created/updated/unchanged/failed` 与原因，有失败行时退出码为 1。跨项目复制用 `--create-only`，避免同 id 覆盖掉本项目里同号的另一条任务。依赖指向不存在的 id 会单独列出，不静默丢弃。
 
 `--format xlsx` 生成 `总览`（KPI、状态/优先级/里程碑/标签统计、4 张图表）与 `任务明细`（配色、冻结表头、筛选、打印设置）两张表；标签列显示标签字典中文名（未命名回退编码），回导时按 code/name/alias 还原。纯 JS 生成，不需要 Python/openpyxl。导出失败时面板显示错误信息，不会保存成坏文件。
 
@@ -625,7 +632,7 @@ ptodo admin people
 | 码 | 含义 | 常见处理 |
 |---|---|---|
 | 0 | 成功 | — |
-| 1 | 通用错误 | 看 stderr |
+| 1 | 通用错误 / 批量导入含失败行 | 看 stderr；`import-file --json` 的 `rows` 逐条给原因 |
 | 2 | 用法错误 | 改参数 |
 | 3 | `NOT_FOUND` | 检查 ID / 路径 |
 | 4 | `CONFLICT` | 被他人持有、锁占用、已依赖；换一条或稍后 |
@@ -709,7 +716,7 @@ ptodo admin people
 2. 都没有，再找 `.git`，命中即该目录；
 3. 都没有 → 用 cwd 本身，首次写入时创建数据目录。
 
-CLI 可用 `--root` 覆盖，`PTODO_ROOT` 次之。Web 侧由 Host 用会话工作目录解析，浏览器不传路径。
+CLI 可用 `--root` 覆盖，`PTODO_ROOT` 次之。**显式指定 `--root`/`PTODO_ROOT` 时，若目标目录没有 `docs/ptodo/todos.json`，写操作会直接报 `NO_PROJECT`（7）而不是静默新建第二套库**——防止路径打错。`init`/`migrate`/`doctor` 不受此限制。Web 侧由 Host 用会话工作目录解析，浏览器不传路径。
 
 ### 11.2 文件
 

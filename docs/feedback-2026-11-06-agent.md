@@ -3,17 +3,32 @@
 > 使用场景：单项目（fuyao-ai）单体仓库，87 条任务、10 个容器父任务，一次会话内完成"批量建任务 + 调整结构 + 补决策记录 + 刷新看板"。
 > 本文只记**这一天真实踩到**的问题，每条附代码位置与复现方式。未验证的猜测不写。
 
-## 处理状态
+## 处理状态（第二批：2026-11-06 16:50 更新）
 
 | 编号 | 问题 | 状态 |
 |---|---|---|
 | A1 | `create` 默认占 holder | **已修**（79fffa3）：默认 `holder=null`，新增 `--claim` |
 | A2 | `NOT_READY` 报错方向反 | **已修**（79fffa3）：改用 `blockersOf`，`decorateTask` 增 `blockers` |
 | A3 | `release` 拒绝 open | **已修**（79fffa3）：open 可释放，done/cancelled 仍拒绝，未占位为 no-op |
-| C4 | 描述长度无护栏 | **已加提示**（`lib/cli/note-guard.mjs`）：create 时 >300 字提示，只警告不阻断 |
-| B1~B5、C1~C3、C5~C6、D1~D4、E | 其余 | **待定**，见下文建议 |
+| B1 | `progress` 覆盖 / `decision` 追加不一致 | **已修**：`context progress --append`；帮助里写清两种语义 |
+| B2 | 父任务由 done 静默回退 | **已修**：`create --parent` 输出 `⚠ 父任务 … 已由 done 回退为 open`，`warnings` 数组同步 |
+| B4 | `dep add` 看不出主语 | **文档已澄清**（`ptodo task dep --help` 明写「前者依赖后者」）；命名参数未做 |
+| C1 | 没有 JSON 导入导出 | **已修**：`admin export --format json` / `admin import-file *.json`，按 id 幂等合并 |
+| C2 | 批量无逐条结果、失败静默 | **已修（JSON 通道）**：逐行 `created/updated/unchanged/failed` + 原因，失败行退出码 1；md/xlsx 通道保持原行为 |
+| C4 | 描述长度无护栏 | **已加提示**（983c8da，`lib/cli/note-guard.mjs`） |
+| C5 | `task get` 长文本不截断 | **已修**：默认 300 字 + `--full`；`--json` 始终全文 |
+| D1 | `--help` 全命令同一份 | **已修**：三级帮助（总览 / 域 / 子命令），新增 `ptodo schema --json` |
+| D2 | admin 能力藏在暗处 | **已修**：`--help` 列全 16 个 admin 子命令，`schema --json` 可枚举 |
+| D3 | `dependsOn` 结构没约定 | **已修（增量）**：`decorateTask` 增 `dependsOnIds`，`task get --json` 增 `blockers`；原对象结构保留不破坏 |
+| D4 | `--root` 位置 / 静默建库 | **已修（真实根因）**：复现时位置解析正常，但 `--root` 指向无库目录会**静默新建一整套板**；现显式 root 无 `todos.json` 直接 `NO_PROJECT`(7)，`init/migrate/doctor` 例外 |
+| E | `tag list` 被 deprecated 淹没 | **已修**：默认隐藏 deprecated，`--all` / `--status deprecated` 可展开 |
+| 附带 | `--json --json` 重复传参失效 | **已修**：`bool()` 支持数组 |
+| 附带 | `--root` 跨项目时 person 取错仓库 | **已修**：目标项目是 git 工作树时取其自身 `user.name` |
+| B3、B5、C3、C6、E(容器 role) | 自动收口 / backfill / next 理由 / 时间轴分类 / `role:container` | **待定**，均属能力增强而非缺陷，建议按你的产品判断排 |
 
-已验证：156 条测试全绿（原 150 + 新增 6 条回归），且用全局 `ptodo` 在临时项目实测——新建任务 `holder=null` 直接进 ready；依赖链 A←B←C 启动 B 报「依赖 T-0001 未完成」（修复前会报 T-0003）；`--claim` 后可 `release` 回 open；440 字描述触发提示但任务照建。
+**第二批验证**：测试 156 → 171 全绿（新增 15 条回归，含 JSON 往返幂等、失败行非零退出、跨项目 `--create-only`、`--root` 守卫、父任务回退提示）。全局 `ptodo` 实测：三级帮助、`schema --json`（17 个命令域）、JSON 导出→导入→二次导入全未变、失败批退出码 1。
+
+第一批已验证：155 条测试全绿（原 150 + 新增 5 条回归），且用全局 `ptodo` 在临时项目实测——新建任务 `holder=null` 直接进 ready；依赖链 A←B←C 启动 B 报「依赖 T-0001 未完成」（修复前会报 T-0003）；`--claim` 后可 `release` 回 open；440 字描述触发提示但任务照建。
 
 ## 使用量（说明为什么下面几条重要）
 
