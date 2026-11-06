@@ -261,6 +261,16 @@ whoami | doctor | init [--template simple|standard] | migrate | skill install|st
 
 页面/脚本动作：`ptodo admin reopen|unblock|archive|archive-batch|unarchive|delete|claim-batch|release-batch|check|timeline|timeline-clear|import|import-file|export|people`（不进技能主流程提示词）。
 
+**命令自发现**：`lib/cli/schema.mjs` 是命令/参数/示例的唯一注册表，`--help` 分三级输出（总览 / 域 / 子命令），`ptodo schema --json` 返回全部 action 与参数。新增命令必须同时更新注册表。
+
+**JSON 通道**：`admin export --format json` 输出完整任务记录（`dependsOn` 为 id 数组，`dependsOnDetail` 带 type/note）；`admin import-file <file> [--dry-run] [--create-only]` 按 id 幂等合并——已存在只更新该行给出的字段、`context.decisions` 追加，不存在则新建并把原 id 写进 `legacyId`。导入逐行返回 `created/updated/unchanged/failed` 与原因，依赖找不到单独列出；含失败行时退出码 1。`--create-only` 不做 id 匹配，用于跨项目复制。
+
+**HTML 导出**：`admin export --format html` 由 `lib/html-report.js` 产出数据模型，`templates/report.html` 负责版式（单文件、无 CDN、离线可开）。模板用 `{{PTODO_*}}` 占位符，缺 `{{PTODO_DATA}}` 报 `PARSE_ERROR`；`--template` 支持内置名或本地路径，`admin templates` 列内置模板。CLI 与 HTTP 共用 `exportData(state, scope, format, config, options)`；HTTP 只接受内置模板名以防路径穿越。
+
+**五项能力补完**：`role: container` 可显式声明（派生容器在 `decorateTask` 里给出有效 role，JSON 导出携带）；`task sync-parents [--dry-run]` 收口子任务已全完成或已归档的父任务并聚合版本/证据；`task done --backfill --version` 跳过 doing 校验、时间轴记 `backfill`；`task suggest` 只读给一条建议 + 排序理由（顶层 `next` 的 JSON/文本也带 `reason`）；清除 open 任务残留 holder 记 `holder_fix`，`category=admin`，默认时间轴隐藏，`--all` / `--type admin` 可查看。
+
+**显式 root 守卫**：`--root`/`PTODO_ROOT` 指向没有 `docs/ptodo/todos.json` 的目录时，写操作报 `NO_PROJECT`(7) 而非静默新建第二套库；`init/migrate/doctor` 例外。`person` 在目标项目是 git 工作树时取该仓库的 `user.name`。
+
 ### 8.3 兼容别名（隐藏，不教给 agent）
 
 `status/list/get/next/continue/create/claim/release/block/done/update/admin`，以及 `unclaim`（= release）。
@@ -290,7 +300,7 @@ whoami | doctor | init [--template simple|standard] | migrate | skill install|st
 
 - 每次解析同时给出 `person`：优先 git `user.name`（本地仓 → 全局），没有 git 时取 `--by/PTODO_ACTOR` 去掉一个 `<工具>:` 前缀，再回落到 actor。
 - **人字段存 `person`**：`holder`、`createdBy/claimedBy/doneBy/releasedBy`、`archivedBy`、`context.*.by` 的“人”语义；历史日志的 `by` 仍记 actor（保留工具区分）。
-- 新建任务默认负责人：CLI 传 `holder=person`，UI 传当前操作人（默认 person）；service 不自动加 holder。
+- 新建任务默认负责人：**默认不指派**——`create` 是登记，不是认领，`holder=null`，任务直接进入 `ready`；需要"建了就归自己"时显式 `--claim`（或 `--holder <person>`）。UI 传当前操作人；service 不自动加 holder。
 - agent 建议格式 `<agent>:<name>`（`codex:zhangsan`）；`whoami` 显示 `actor/person/source/gitName/hasPrefix`。
 - git 名从 `.git/config`（worktree 用 `commondir`）或 `~/.gitconfig` 读取，不 spawn 子进程。
 - `actor.requirePrefix` 只提示，不阻断。
@@ -352,7 +362,11 @@ batch:      { claimLimit: 3 }
   被阻塞 = `effectiveStatus=blocked`；已完成 = `status=done`；已归档 = 过滤后的归档条数。
 - **默认 tab**：`ui.defaultTab` 有效值优先；`auto` 时有 doing → 进行中，否则有 ready → 就绪，否则全部。
 - **筛选/排序**：标签、搜索、里程碑、阶段；阶段下拉只列当前里程碑的阶段且 value=code/显示 name。
-  排序：优先级（P0→P5，再紧急度、更新时间）/ 最近更新 / 创建时间（新→旧），纯前端、只影响当前列表。
+  排序：优先级（P0→P5，再紧急度、更新时间）/ 最近更新 / 创建时间（新→旧），纯前端、只影响当前列表；
+  **默认「最近更新」倒序（新→旧）**，即 `sort` 初值 `updated`；用户切换只在当前会话生效，刷新后回到默认。
+  **分组视图下时间排序同时作用于层级**：里程碑与阶段按「组内排序键最靠前的那条任务」排列，组内任务
+  同样按该键排序，`default` 收件箱仍置底；优先级排序保持组织顺序（`order`）不变。否则阶段多、每阶段
+  任务少时，只排组内会让排序看起来完全没生效（T-0113）。
 - **分组视图层级**（全部/就绪/进行中/被阻塞）：里程碑 → 阶段 → 任务三级均可折叠；
   - 里程碑行：品牌色左侧竖条 + 组头 name（`title=code`）+ 编码徽标 + `effectiveStatus` + 任务数 + 进度条/进度；
   - 阶段行：缩进 30px、浅色底、组头 name + 编码徽标 + 任务数 + 进度；`blocked_by_upstream` 显示 ⚠；

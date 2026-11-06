@@ -235,6 +235,74 @@ test('client groups by milestone and stage once a real hierarchy exists', async 
   })
 })
 
+test('grouped view orders milestones, stages and tasks by the selected time key', async () => {
+  await withRoot(async (root) => {
+    const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })
+    const a = (await act(root, config, { action: 'create', title: '任务 A', priority: 'P0', urgency: 3, by: 'tester' }, 'tester')).task.id
+    const b = (await act(root, config, { action: 'create', title: '任务 B', priority: 'P2', urgency: 3, by: 'tester' }, 'tester')).task.id
+    const c = (await act(root, config, { action: 'create', title: '任务 C', priority: 'P1', urgency: 3, by: 'tester' }, 'tester')).task.id
+    const d = (await act(root, config, { action: 'create', title: '收件箱任务', priority: 'P3', urgency: 3, by: 'tester' }, 'tester')).task.id
+    const state = await getState(root, config, {})
+    state.actor = { actor: 'tester', person: 'tester', source: 'git', gitName: 'tester', hasPrefix: false }
+    state.config.defaultTab = 'all'
+    const byId = new Map(state.board.tasks.map((task) => [task.id, task]))
+    // A: highest priority, newest update. B/C: lower priority, newer creation.
+    // D: inbox task, newest of everything - it must stay pinned last.
+    const stamps = {
+      [a]: { stageCode: 'S-0003', milestoneCode: 'M-0002', createdAt: '2026-11-01T00:00:00.000Z', updatedAt: '2026-11-09T00:00:00.000Z' },
+      [b]: { stageCode: 'S-0001', milestoneCode: 'M-0001', createdAt: '2026-11-02T00:00:00.000Z', updatedAt: '2026-11-02T00:00:00.000Z' },
+      [c]: { stageCode: 'S-0002', milestoneCode: 'M-0001', createdAt: '2026-11-08T00:00:00.000Z', updatedAt: '2026-11-05T00:00:00.000Z' },
+      [d]: { stageCode: 'default', milestoneCode: 'default', createdAt: '2026-11-09T00:00:00.000Z', updatedAt: '2026-11-10T00:00:00.000Z' },
+    }
+    for (const [id, stamp] of Object.entries(stamps)) {
+      Object.assign(byId.get(id), stamp, { statusChangedAt: stamp.updatedAt })
+    }
+    state.milestones = [
+      { code: 'default', name: '默认', status: 'active', effectiveStatus: 'active', order: 0 },
+      { code: 'M-0001', name: '里程碑一', status: 'active', effectiveStatus: 'active', order: 1 },
+      { code: 'M-0002', name: '里程碑二', status: 'active', effectiveStatus: 'active', order: 2 },
+    ]
+    state.stages = [
+      { code: 'default', name: '默认', milestoneCode: 'default', status: 'active', effectiveStatus: 'active', order: 0 },
+      { code: 'S-0001', name: '阶段一', milestoneCode: 'M-0001', status: 'active', effectiveStatus: 'active', order: 1 },
+      { code: 'S-0002', name: '阶段二', milestoneCode: 'M-0001', status: 'active', effectiveStatus: 'active', order: 2 },
+      { code: 'S-0003', name: '阶段三', milestoneCode: 'M-0002', status: 'active', effectiveStatus: 'active', order: 1 },
+    ]
+
+    const rowIds = (tree) => {
+      const ids = []
+      walk(tree, { class() {}, text: (text) => { if (/^T-\d{4}$/.test(text)) ids.push(text) } })
+      return [...new Set(ids)]
+    }
+    const pickSort = (value) => async ({ getTree }) => {
+      const select = findNode(getTree(), (node) => node && node.type === 'select' && node.props && node.props.title === '排序')
+      assert.ok(select, 'sort select missing')
+      select.props.onChange({ target: { value } })
+    }
+
+    // 默认按最近更新倒序：里程碑 M-0002（最新任务 A）在前，M-0001 按阶段
+    // 新旧排（C 在 B 前），收件箱置底。下拉的默认值也必须是 updated。
+    const defaultTree = await renderClient(state)
+    assert.deepEqual(rowIds(defaultTree), [a, c, b, d])
+    const defaultSelect = findNode(defaultTree, (node) => node && node.type === 'select' && node.props && node.props.title === '排序')
+    assert.ok(defaultSelect, 'sort select missing')
+    assert.equal(defaultSelect.props.value, 'updated')
+
+    // Explicitly switching back to 优先级 restores organization order.
+    const priorityTree = await renderClient(state, null, { interact: pickSort('priority') })
+    assert.deepEqual(rowIds(priorityTree), [b, c, a, d])
+
+    // 最近更新 explicitly selected leads with M-0002 (newest task A), then
+    // M-0001 by stage recency (C before B); the inbox task stays last.
+    const updatedTree = await renderClient(state, null, { interact: pickSort('updated') })
+    assert.deepEqual(rowIds(updatedTree), [a, c, b, d])
+
+    // 创建时间 leads with M-0001 (newest creation C), B before A; inbox last.
+    const createdTree = await renderClient(state, null, { interact: pickSort('created') })
+    assert.deepEqual(rowIds(createdTree), [c, b, a, d])
+  })
+})
+
 test('client defaults the people filter to me and hides other people tasks', async () => {
   await withRoot(async (root) => {
     const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })

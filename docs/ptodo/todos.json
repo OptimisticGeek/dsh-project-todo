@@ -1,9 +1,9 @@
 {
   "version": 3,
   "project": "dsh-project-todo",
-  "nextId": 113,
-  "revision": 165,
-  "updatedAt": "2026-11-05T07:06:08.808Z",
+  "nextId": 114,
+  "revision": 171,
+  "updatedAt": "2026-11-06T02:13:16.754Z",
   "tasks": [
     {
       "id": "T-0041",
@@ -1367,6 +1367,54 @@
       "doneVersion": "3.1.1",
       "doneEvidence": "node --test 149/149；git ls-files -s bin/ptodo.mjs = 100755；.gitattributes 全 LF；CI 矩阵 ubuntu/macos/windows × Node 20/22 (node --test)；skills 目录哈希排序改码点比较；docs/INSTALL.md 增加跨平台章节；tag v3.1.1 已推送",
       "revision": 3,
+      "archivedBy": null
+    },
+    {
+      "id": "T-0113",
+      "legacyId": null,
+      "parentId": null,
+      "title": "待办页分组视图排序失效：最近更新/创建时间只排组内任务",
+      "status": "done",
+      "priority": "P1",
+      "urgency": 4,
+      "holder": "optimisticGeek",
+      "size": null,
+      "notes": "",
+      "tags": [
+        "UI"
+      ],
+      "stageCode": "default",
+      "context": {
+        "goal": null,
+        "progress": "修复：client.js 新增 comparatorFor；buildGroups 在 updated/created 排序下按组内最优任务排序里程碑与阶段（default 收件箱仍置底），优先级排序保持组织顺序；新增分组排序回归用例；SPEC 补充语义；版本 3.1.2 + docs/version/3.1.2.md",
+        "decisions": [
+          {
+            "text": "G0.5：本仓无 utp/docs/prd 需求注册表，按 SPEC.md §7/UI「排序：优先级/最近更新/创建时间（新→旧）」执行；分组视图层级见 SPEC 356-362，default 收件箱置底",
+            "by": "optimisticGeek",
+            "at": "2026-11-06T02:10:17.494Z"
+          }
+        ],
+        "openLoops": []
+      },
+      "dependsOn": [],
+      "preconditions": [],
+      "resources": [],
+      "causedBy": [],
+      "causes": [],
+      "createdBy": "optimisticGeek",
+      "claimedBy": "optimisticGeek",
+      "doneBy": "optimisticGeek",
+      "releasedBy": null,
+      "createdAt": "2026-11-06T02:10:10.673Z",
+      "updatedAt": "2026-11-06T02:13:16.754Z",
+      "claimedAt": "2026-11-06T02:10:13.656Z",
+      "statusChangedAt": "2026-11-06T02:13:16.754Z",
+      "archivedAt": null,
+      "archiveExempt": false,
+      "doneAt": "2026-11-06T02:13:16.754Z",
+      "doneVersion": "3.1.2",
+      "doneEvidence": "node --check client.js 通过；node --test 150/150（新增用例「grouped view orders milestones, stages and tasks by the selected time key」修复前红、修复后绿）；真实看板 E:\\java\\fuyao-ai（63 任务/21 阶段/4 里程碑）客户端渲染对比：修复前分组视图「最近更新」行序与「优先级」完全一致，修复后首行 T-0088（全局最新更新）、收件箱 T-0081 置底；SPEC §UI 补充分组排序语义；版本文档 docs/version/3.1.2.md",
+      "revision": 6,
       "archivedBy": null
     }
   ]

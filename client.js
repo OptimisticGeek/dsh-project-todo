@@ -324,10 +324,14 @@ window.__ModuleLoader__.load({
       return compareUpdated(left, right)
     }
 
+    /** Comparator for one toolbar sort key; priority is the default. */
+    function comparatorFor(sort) {
+      return sort === 'updated' ? compareUpdated : sort === 'created' ? compareCreated : comparePriority
+    }
+
     /** Client-side view order only; never sent to the backend. */
     function sortTasksFor(tasks, sort) {
-      const compare = sort === 'updated' ? compareUpdated : sort === 'created' ? compareCreated : comparePriority
-      return [...tasks].sort(compare)
+      return [...tasks].sort(comparatorFor(sort))
     }
 
     function progressText(progress) {
@@ -607,7 +611,9 @@ window.__ModuleLoader__.load({
           const [busy, setBusy] = useState(false)
           const [holder, setHolderState] = useState(readStoredHolder)
           const [tab, setTab] = useState('all')
-          const [sort, setSort] = useState('priority')
+          // Most boards are worked as a "what changed lately" queue; the sort
+          // select still offers 优先级 / 创建时间. compareUpdated is newest-first.
+          const [sort, setSort] = useState('updated')
           const [collapsed, setCollapsed] = useState(() => new Set())
           const [closedGroups, setClosedGroups] = useState(() => new Set())
           const [closedStages, setClosedStages] = useState(() => new Set())
@@ -1247,6 +1253,25 @@ window.__ModuleLoader__.load({
           const doneTasks = sortTasksFor(filteredActive.filter((task) => task.status === 'done'), sort)
           const archivedList = sortTasksFor(filteredArchived, sort)
 
+          // Time-based sorts must also order the hierarchy: roots are already
+          // sorted, but grouping re-bucketed them in organization order, so on a
+          // board with many small stages the list looked untouched. Each level now
+          // leads with the bucket holding the best task under the active key; the
+          // default inbox stays pinned last (SPEC §7 收件箱置底).
+          const compareSortKey = comparatorFor(sort)
+          const compareBuckets = (left, right, nodeOf) => {
+            const leftNode = nodeOf(left)
+            const rightNode = nodeOf(right)
+            const leftInbox = leftNode.code === 'default'
+            const rightInbox = rightNode.code === 'default'
+            if (leftInbox !== rightInbox) return leftInbox ? 1 : -1
+            if (sort !== 'priority') {
+              const byBest = compareSortKey(left.best, right.best)
+              if (byBest !== 0) return byBest
+            }
+            return compareNodes(leftNode, rightNode, 'default')
+          }
+
           const buildGroups = (roots) => {
             const byMilestone = new Map()
             for (const task of roots) {
@@ -1269,21 +1294,22 @@ window.__ModuleLoader__.load({
               }
               let entry = byMilestone.get(milestoneCode)
               if (!entry) {
-                entry = { milestone, stages: new Map() }
+                // `best` is the first task of the bucket in the already-sorted roots.
+                entry = { milestone, stages: new Map(), best: task }
                 byMilestone.set(milestoneCode, entry)
               }
               let bucket = entry.stages.get(stageCode)
               if (!bucket) {
-                bucket = { stage, roots: [] }
+                bucket = { stage, roots: [], best: task }
                 entry.stages.set(stageCode, bucket)
               }
               bucket.roots.push(task)
             }
             return [...byMilestone.values()]
-              .sort((left, right) => compareNodes(left.milestone, right.milestone, 'default'))
+              .sort((left, right) => compareBuckets(left, right, (entry) => entry.milestone))
               .map((entry) => ({
                 milestone: entry.milestone,
-                stages: [...entry.stages.values()].sort((left, right) => compareNodes(left.stage, right.stage, 'default')),
+                stages: [...entry.stages.values()].sort((left, right) => compareBuckets(left, right, (bucket) => bucket.stage)),
               }))
           }
 
