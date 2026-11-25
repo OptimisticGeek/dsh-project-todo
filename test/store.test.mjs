@@ -7,9 +7,8 @@ import { TodoStore } from '../lib/store.js'
 import { claimTask, completeTask, createTask } from '../lib/model.js'
 
 const CONFIG = {
-  store: { path: '.dsh/tasks.json' },
-  archive: { path: '.dsh/archive.json', afterDays: 3 },
-  markdown: { enabled: true, path: '.dsh/TODO.md', archivePath: '.dsh/ARCHIVE.md', doneLimit: 20 },
+  store: { path: '.dsh/todos.json' },
+  archive: { path: '.dsh/archive.json' },
   import: { source: '开发计划/todo/TODO.md' },
   batch: { claimLimit: 3 },
   history: { enabled: true },
@@ -32,7 +31,7 @@ function create(store, title, tags = []) {
   })
 }
 
-test('mutation persists board, markdown snapshot and history', async () => {
+test('mutation persists board and history without a snapshot', async () => {
   await withRoot(async (root) => {
     const store = new TodoStore(root, CONFIG)
     assert.equal((await store.read()).tasks.length, 0)
@@ -41,9 +40,6 @@ test('mutation persists board, markdown snapshot and history', async () => {
     const state = await store.read()
     assert.equal(state.tasks.length, 1)
     assert.deepEqual(state.tasks[0].tags, ['KB'])
-    const markdown = await readFile(path.join(root, '.dsh', 'TODO.md'), 'utf8')
-    assert.match(markdown, /第一个任务/)
-    assert.match(markdown, /KB/)
     const history = await store.readHistory(5)
     assert.equal(history.length, 1)
     assert.equal(history[0].action, 'create')
@@ -51,7 +47,7 @@ test('mutation persists board, markdown snapshot and history', async () => {
   })
 })
 
-test('completed tasks sweep into the separate archive and can be restored', async () => {
+test('completed tasks can be archived manually and restored', async () => {
   await withRoot(async (root) => {
     const store = new TodoStore(root, CONFIG)
     await create(store, '要归档的任务', ['归档'])
@@ -63,19 +59,12 @@ test('completed tasks sweep into the separate archive and can be restored', asyn
       completeTask(board, 'T-0001', 'a')
       return { changedTasks: ['T-0001'] }
     })
-    await store.mutate('age', 'a', (board) => {
-      const task = board.tasks.find((candidate) => candidate.id === 'T-0001')
-      task.doneAt = new Date(Date.now() - 4 * 86_400_000).toISOString()
-      return { changedTasks: ['T-0001'] }
-    })
-    const swept = await store.sweepArchive()
-    assert.deepEqual(swept.moved, ['T-0001'])
+    const archived = await store.archiveTasks(['T-0001'], 'a')
+    assert.deepEqual(archived.moved, ['T-0001'])
     assert.equal((await store.read()).tasks.length, 0)
     const archive = await store.readArchive()
     assert.equal(archive.tasks.length, 1)
     assert.ok(archive.tasks[0].archivedAt)
-    const archiveMarkdown = await readFile(path.join(root, '.dsh', 'ARCHIVE.md'), 'utf8')
-    assert.match(archiveMarkdown, /要归档的任务/)
     const restored = await store.unarchiveTask('T-0001', 'a')
     assert.equal(restored.board.tasks.length, 1)
     assert.equal((await store.readArchive()).tasks.length, 0)
@@ -109,7 +98,7 @@ test('invalid JSON refuses to write', async () => {
     const store = new TodoStore(root, CONFIG)
     const { mkdir, writeFile } = await import('node:fs/promises')
     await mkdir(path.join(root, '.dsh'), { recursive: true })
-    await writeFile(path.join(root, '.dsh', 'tasks.json'), '{ broken', 'utf8')
+    await writeFile(path.join(root, '.dsh', 'todos.json'), '{ broken', 'utf8')
     await assert.rejects(
       store.mutate('create', 'x', (board) => {
         createTask(board, { title: 'x' })
@@ -117,7 +106,7 @@ test('invalid JSON refuses to write', async () => {
       }),
       /PARSE_ERROR|合法 JSON/,
     )
-    const text = await readFile(path.join(root, '.dsh', 'tasks.json'), 'utf8')
+    const text = await readFile(path.join(root, '.dsh', 'todos.json'), 'utf8')
     assert.equal(text, '{ broken')
   })
 })

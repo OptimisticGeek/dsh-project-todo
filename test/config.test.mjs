@@ -16,13 +16,12 @@ async function withRoot(run) {
   }
 }
 
-test('defaults point at docs/ptask and keep snapshots in .dsh', () => {
+test('defaults point at docs/ptask without any snapshot layer', () => {
   const config = normalizeConfig({})
   assert.equal(config.store.path, 'docs/ptask/tasks.json')
   assert.equal(config.archive.path, 'docs/ptask/archive.json')
   assert.equal(config.history.path, 'docs/ptask/history.jsonl')
-  assert.equal(config.markdown.path, '.dsh/TODO.md')
-  assert.equal(config.markdown.archivePath, '.dsh/ARCHIVE.md')
+  assert.equal(config.markdown, undefined)
   assert.equal(config.version.docDir, '')
   const paths = pathsOf('E:/demo', config)
   assert.match(paths.store, /docs[\\/]ptask[\\/]tasks\.json$/)
