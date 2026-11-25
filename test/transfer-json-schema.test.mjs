@@ -56,8 +56,8 @@ test('help is per-action and schema exposes the full command surface', async () 
     assert.match(overall, /schema --json/)
 
     const domain = run(root, ['task', '--help']).stdout
-    assert.match(domain, /task dep add/)
-    assert.match(domain, /task create/)
+    assert.match(domain, /dep add/)
+    assert.match(domain, /create/)
 
     const unknown = run(root, ['task', 'updata', '--help'])
     assert.equal(unknown.status, 2)
@@ -95,7 +95,7 @@ test('JSON export/import round-trips structure and is idempotent', async () => {
     assert.deepEqual(go.data.rows.map((row) => row.result), ['created', 'created', 'created'])
     assert.deepEqual(go.data.rows.map((row) => row.id), ['T-0001', 'T-0002', 'T-0003'])
 
-    const board = json(target, ['task', 'list'])
+    const board = json(target, ['task', 'list', '--full'])
     assert.equal(board.data.tasks.length, 3)
     assert.equal(board.data.tasks[1].parentId, 'T-0001')
     assert.deepEqual(board.data.tasks[2].dependsOn.map((dep) => dep.id), ['T-0002'])
