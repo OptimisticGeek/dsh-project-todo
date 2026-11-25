@@ -1,9 +1,4 @@
 {
-  "markdown": {
-    "enabled": true,
-    "path": "docs/ptask/TODO.md",
-    "archivePath": "docs/ptask/ARCHIVE.md"
-  },
   "version": {
     "gitDir": ""
   }

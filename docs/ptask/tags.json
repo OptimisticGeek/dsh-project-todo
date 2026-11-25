@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "revision": 13,
-  "updatedAt": "2026-11-06T02:10:10.663Z",
+  "revision": 14,
+  "updatedAt": "2026-11-18T06:05:12.104Z",
   "tags": [
     {
       "code": "skill",
@@ -72,6 +72,16 @@
       "deprecatedBy": null,
       "createdAt": "2026-11-05T05:59:06.406Z",
       "updatedAt": "2026-11-05T05:59:06.407Z"
+    },
+    {
+      "code": "refactor",
+      "name": "refactor",
+      "description": "",
+      "aliases": [],
+      "status": "draft",
+      "deprecatedBy": null,
+      "createdAt": "2026-11-18T06:05:12.104Z",
+      "updatedAt": "2026-11-18T06:05:12.104Z"
     }
   ]
 }
