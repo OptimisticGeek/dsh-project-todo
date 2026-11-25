@@ -10,11 +10,10 @@
 | `docs/ptask/archive.json` | v2 | 已归档任务 |
 | `docs/ptask/history.jsonl` | — | 只追加操作日志（看板/组织/标签共用） |
 | `docs/ptask/config.json` | — | 可选配置（缺省用内置默认值） |
-| `.dsh/TODO.md`、`.dsh/ARCHIVE.md` | — | **只写** Markdown 快照，不回读 |
 
-- CLI 与 DSH 待办页面读写同一份数据；所有变更都走 `service.act()` 与同一把文件锁。
+- CLI 与 DSH 任务页面读写同一份数据；所有变更都走 `service.act()` 与同一把文件锁。
 - 任务编码由内核单调分配（`T-0001` 起，不复用）；导入件的外部编号只进 `legacyId`。
-- 每笔变更：拿锁 → 重读 → 校验 → 变更 → `revision+1` → 原子写（temp + fsync + rename）→ 追加日志 → 重写快照。
+- 每笔变更：拿锁 → 重读 → 校验 → 变更 → `revision+1` → 原子写（temp + fsync + rename）→ 追加日志。
 - 损坏 JSON / 版本不匹配 → `PARSE_ERROR`（6），拒绝写入并保留原文件。
 
 ## 配置（`docs/ptask/config.json`，可缺省）
@@ -25,9 +24,8 @@
 | `milestones.path` | `docs/ptask/milestones.json` | 组织文件路径 |
 | `tags.path` | `docs/ptask/tags.json` | 标签文件路径 |
 | `archive.path` | `docs/ptask/archive.json` | 归档路径 |
-| `archive.afterDays` | `3` | 完成后自动归档天数；`0` 关闭 |
+| `archive.afterDays` | `0` | 保留字段；读取不自动归档，归档用 `admin archive` |
 | `history.enabled` / `history.path` | `true` / `docs/ptask/history.jsonl` | 独立日志 |
-| `markdown.enabled/path/archivePath/doneLimit` | `true` / `.dsh/TODO.md` / `.dsh/ARCHIVE.md` / `20` | 快照 |
 | `version.auto` / `version.require` | `true` / `true` | 自动取 git 短 hash / 取不到时拒绝完成 |
 | `version.gitDir` | `''` | 仓库目录（相对项目根；`git link` 写入） |
 | `ui.enabled` / `ui.defaultTab` | `true` / `auto` | 页面开关与默认 tab |
@@ -78,12 +76,6 @@ ptask migrate
 - 查看：`ptask timeline [--scope project|tag|task] [--type ...] [--q ...]`。
 - 清空：`ptask admin timeline-clear --confirm`（破坏性，先问用户）。
 
-## Markdown 快照
-
-- 每次成功变更后重写 `<root>/.dsh/TODO.md` 与 `.dsh/ARCHIVE.md`；格式与 v1 一致，只写不读。
-- 写入失败只返回 `warning`，不回滚业务变更。
-- 快照不是事实源；冲突时以 `docs/ptask/*.json` 为准。
-
 ## 旧 Markdown 队列
 
 `开发计划/todo/TODO.md` 已冻结：只保留计划索引与历史快照，不再写任务状态。
@@ -95,9 +87,9 @@ ptask migrate
 当前版本不做定时/收尾审计命令；强制落在：
 
 1. 技能描述与 G0–G4 协议；
-2. 插件每轮注入的短提示（`index.js` 的 systemPrompt 段与会话上下文）；
+2. 插件每轮的短摘要（`index.js` 的会话上下文，≤160 字）；
 3. `AGENT.md` / `MEMORY.md` 的强制条款；
-4. 完成时 `--evidence` 与 `ptask task status` 的人工可见性。
+4. 完成时 `--evidence` 与 `ptask status` 的人工可见性。
 
 不做工具调用拦截，也不做 audit。需要复盘时用 `ptask timeline` 查看历史。
 

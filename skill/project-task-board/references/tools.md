@@ -1,19 +1,19 @@
 # 各工具安装、自检与跨工具执行
 
-技能源码：`dsh-plugins/dsh-project-task/skill/project-task`（本机：`E:\dsh-plugins\dsh-project-task\skill\project-task`）。
+技能源码：`dsh-plugins/dsh-project-task/skill/project-task-board`（本机：`E:\dsh-plugins\dsh-project-task\skill\project-task-board`）。
 安装（在项目根执行）：`ptask skill install --targets all`；检查：`ptask skill status` / `ptask doctor`。
 
 ## 安装目标
 
 | 目标 | 安装位置 | 说明 |
 |---|---|---|
-| `project` | `<项目根>/.agents/skills/project-task` | 随项目生效，DSH 等工具会自动发现 |
-| `agents` | `~/.agents/skills/project-task` | 跨项目通用目录 |
-| `dsh` | `~/.dsh/skills/project-task` | DSH 全局技能目录 |
-| `zcode` | `~/.zcode/skills/project-task` | ZCode |
-| `workbuddy` | `~/.workbuddy/skills/project-task` | WorkBuddy |
-| `claude` | `~/.claude/skills/project-task` | Claude Code |
-| `codex` | `~/.codex/skills/project-task` | Codex |
+| `project` | `<项目根>/.agents/skills/project-task-board` | 随项目生效，DSH 等工具会自动发现 |
+| `agents` | `~/.agents/skills/project-task-board` | 跨项目通用目录 |
+| `dsh` | `~/.dsh/skills/project-task-board` | DSH 全局技能目录 |
+| `zcode` | `~/.zcode/skills/project-task-board` | ZCode |
+| `workbuddy` | `~/.workbuddy/skills/project-task-board` | WorkBuddy |
+| `claude` | `~/.claude/skills/project-task-board` | Claude Code |
+| `codex` | `~/.codex/skills/project-task-board` | Codex |
 
 - `--targets` 可逗号分隔（如 `project,codex`）或 `all`；默认 7 个全装。
 - Windows 优先建目录 junction（更新源码即更新技能），权限不足自动退回复制；`--copy` 强制复制。
@@ -35,32 +35,32 @@ ptask whoami --by wb:<名字>
 # 3) 环境（不能有 ✗；⚠ git 无 = 完成时必须 --version）
 ptask doctor
 
-# 4) 数据（task ready 是「未指派」就绪队列；显示「本项目暂无待办」= 还没建看板）
-ptask task ready --limit 3
+# 4) 数据（ptask ready 是「未指派」就绪队列；显示「本项目暂无任务」= 还没建看板）
+ptask ready --limit 3
 ```
 
 通过后直接进入 SKILL.md 的 G0/G1，不要重复读技能。
 
 ## ptask 不在 PATH 时（三级降级）
 
-工具只给 cmd/PowerShell、或 PATH 被裁剪时，按顺序试，任一可用就把它当作 `ptask`：
+工具只给 cmd/PowerShell、或 PATH 被裁剪时，按顺序试，任一可用就把它当作 `PTASK`：
 
 ```bash
-# 1) 在 PATH（Windows 有 ptask / ptask.cmd / ptask.ps1 三个 shim）
+# 1) 在 PATH（Windows 有 ptask / PTASK.cmd / PTASK.ps1 三个 shim）
 ptask --version
 
 # 2) 全局 npm 包（node 在 PATH 但 ptask 不在时）
-node "$(npm root -g)/dsh-project-task/bin/ptask.mjs" --version
+node "$(npm root -g)/dsh-project-task/bin/PTASK.mjs" --version
 
 # 3) 源码仓（node 用绝对路径；本机示例）
-node "E:\dsh-plugins\dsh-project-task\bin\ptask.mjs" --version
+node "E:\dsh-plugins\dsh-project-task\bin\PTASK.mjs" --version
 ```
 
-- PowerShell 示例：`& "D:\Program Files\nodejs\node.exe" "E:\dsh-plugins\dsh-project-task\bin\ptask.mjs" whoami --by wb:<名字>`
-- cmd 示例：`node "E:\dsh-plugins\dsh-project-task\bin\ptask.mjs" task ready --limit 3`
+- PowerShell 示例：`& "D:\Program Files\nodejs\node.exe" "E:\dsh-plugins\dsh-project-task\bin\PTASK.mjs" whoami --by wb:<名字>`
+- cmd 示例：`node "E:\dsh-plugins\dsh-project-task\bin\PTASK.mjs" ptask ready --limit 3`
 - 后续命令只需替换前缀，参数完全一致：`--by`、`--root`、`--json`、`--version` 都支持。
 - 路径含空格/中文逐段加引号；找不到项目根用 `--root "<项目根>"`。
-- 实测（本机）：`PATH` 只剩 `C:\Windows\System32` 时，用 node 绝对路径 + 源码仓 `bin/ptask.mjs` 仍能 `whoami` / `task ready` / `task status`，退出码 0。
+- 实测（本机）：`PATH` 只剩 `C:\Windows\System32` 时，用 node 绝对路径 + 源码仓 `bin/PTASK.mjs` 仍能 `whoami` / `ptask ready` / `task status`，退出码 0。
 
 ## Actor：必须带 `<工具>:` 前缀
 
@@ -89,15 +89,15 @@ node "E:\dsh-plugins\dsh-project-task\bin\ptask.mjs" --version
 - `ptask whoami --json` 有 `person` 与 `personSource`（`git|flag|env|session|fallback`）；`actor`、`actorSource`、`gitName`、`hasPrefix` 保留，别把 `actor` 当人。
 - **person 取不到 git 名时的后果**：`doneBy/holder` 可能变成 `session-xxx` 之类机器串，页面按人筛选会失效。先 `git config user.name "张三"`，或设 `PTASK_ACTOR=wb:张三`（person 会取 `张三`）。
 - 人员列表来源：**只列 git 历史作者**（`git log --format=%an` 去重；当前 person 也必须是 git 作者）。命令：`ptask admin people [--json]`（JSON：`{ ok, action:'people', person, people:[{name,source,active,done,related}] }`，`source` = `me|git`，按名字排序）。
-- **负责人（holder）只能是 git 作者**：`task create --holder`、`task start`、页面「指派」都会校验，无效名字报 `INVALID`。旧数据里的 `session-xxx`、`dsh:xxx`、`wb-agent` 已不再作为人员；历史遗留值用 `ptask admin repair-people --person <git用户名> --dry-run` 预览，确认后去掉 `--dry-run` 修复。
+- **负责人（holder）只能是 git 作者**：`task create --holder`、`ptask start`、页面「指派」都会校验，无效名字报 `INVALID`。旧数据里的 `session-xxx`、`dsh:xxx`、`wb-agent` 已不再作为人员；历史遗留值用 `ptask admin repair-people --person <git用户名> --dry-run` 预览，确认后去掉 `--dry-run` 修复。
 - 指派负责人/完成人：从人员列表选人名，不要手填机器 id；页面默认「与我相关」，支持人员多选/全部。
 - 归档：任务 `done` 后才会进归档；`ptask admin archive-batch --milestone/--stage/--ids` 批量归档（只处理已完成，父任务/未完成进 `skipped`），`ptask admin unarchive <id>` 可恢复。**里程碑全部完成时先问用户，未确认不归档。**
 
 ## WorkBuddy（重点）
 
-- 安装位置：`C:\Users\<用户>\.workbuddy\skills\project-task`（Windows 为 junction，指向源码，改源码不需要重装）。
+- 安装位置：`C:\Users\<用户>\.workbuddy\skills\project-task-board`（Windows 为 junction，指向源码，改源码不需要重装）。
 - 注册实测：junction 可读，`SKILL.md` 哈希与源码一致；`.skill-list-cache.json` 的 `results[]` 中第 9 条即
-  `project-task`（`filePath` 指向该 junction，`disable`/`disableModelInvocation` 均为 `false`）——**能否被发现不是问题**。
+  `project-task-board`（`filePath` 指向该 junction，`disable`/`disableModelInvocation` 均为 `false`）——**能否被发现不是问题**。
 - 装了不被调用属于「选择层」问题，不是安装问题：判定顺序与修法见 `references/activation.md`。
 - 装/改后**重启 WorkBuddy**（或让其重新扫描技能）再开新会话；不重启仍会用旧缓存里的旧 description。
 - 看到技能但执行失败时，先确认「看到的技能」确实是工作区项目根：
@@ -106,33 +106,33 @@ node "E:\dsh-plugins\dsh-project-task\bin\ptask.mjs" --version
 
 | 现象 | 处理 |
 |---|---|
-| WorkBuddy 技能列表里没有 `project-task` | 这是**注册层（L1）**问题：`ptask skill install --targets workbuddy`；重启应用；再 `ptask skill status` 看 workbuddy 是否 `linked` |
+| WorkBuddy 技能列表里没有 `project-task-board` | 这是**注册层（L1）**问题：`ptask skill install --targets workbuddy`；重启应用；再 `ptask skill status` 看 workbuddy 是否 `linked` |
 | 技能有，但模型不调用 | 这是**选择层（L2）**问题，先别怀疑安装：① 缓存里 `disableModelInvocation:false` 且 `disable:false`；② 量 description 长度（≤400 字符）并确认含「不适用」负例、不含命令清单；③ 按 `references/activation.md` §4 跑正例/负例。**不要**把「让用户点名技能」当常规解法 |
 | 技能被调用但只跑了一半（漏 `done` / 漏归档询问） | **执行层（L3）**问题：`SKILL.md` 的「调用约定」与 G3 是否被压缩或删节；改完跑 `node --test "test/skill.test.mjs"` |
-| 执行时 `ptask: command not found` | 用三级降级（node + `bin/ptask.mjs`）；不要在 WorkBuddy 里 `npm install` 重装 |
-| 认领人显示 `optimisticGeek` 而非 `wb:xxx` | 命令漏了 `--by wb:<名字>`，补上；已用错身份认领 → `ptask task release <id> --note "身份写错，重认领"` 后重来。注意：这只影响 actor，**人（doneBy/holder）由 person 决定**，见下一行 |
+| 执行时 `PTASK: command not found` | 用三级降级（node + `bin/PTASK.mjs`）；不要在 WorkBuddy 里 `npm install` 重装 |
+| 认领人显示 `optimisticGeek` 而非 `wb:xxx` | 命令漏了 `--by wb:<名字>`，补上；已用错身份认领 → `ptask release <id> --note "身份写错，重认领"` 后重来。注意：这只影响 actor，**人（doneBy/holder）由 person 决定**，见下一行 |
 | `doneBy`/`holder` 是 `session-xxx` 或空 | person 没取到 git `user.name`：先 `ptask whoami` 看 `person`；配 `git config user.name "张三"` 或设 `PTASK_ACTOR=wb:张三` 后重做该动作；不要在参数里手填 session id |
-| 完成最后一个任务后没问归档 | `done` 返回 `milestone.complete=true` **且 `archivable=true`** 时必须先问用户；确认后 `ptask admin archive-batch --milestone M-x`，拒绝则 `ptask context loop <id> "里程碑 M-x 待归档，用户暂不归档"`。**`default` 里程碑 `archivable=false`：不归档、不问**。`admin archive-batch` 的 `skipped` 带 `reasonCode`（NOT_FOUND/NOT_DONE/HAS_CHILDREN/ARCHIVED） |
-| `task create` 后 `task ready` 找不到新任务 | 正常：create 把 holder 设为当前 person，ready 只列**未指派**任务；直接 `task start <id>` |
-| 归档后列表里找不到任务 | 归档不是删除：页面切「已完成/存档」或 `ptask task list --archived`；恢复用 `ptask admin unarchive <id>` |
-| 找不到 `ptask admin people` | 版本旧；用 `ptask whoami` 的 `person` + `ptask task list` 里的人员字段汇总，或升级到含 person/people 的版本 |
+| 完成最后一个任务后没问归档 | `done` 返回 `milestone.complete=true` **且 `archivable=true`** 时必须先问用户；确认后 `ptask admin archive-batch --milestone M-x`，拒绝则 `ptask note loop <id> "里程碑 M-x 待归档，用户暂不归档"`。**`default` 里程碑 `archivable=false`：不归档、不问**。`admin archive-batch` 的 `skipped` 带 `reasonCode`（NOT_FOUND/NOT_DONE/HAS_CHILDREN/ARCHIVED） |
+| `task create` 后 `ptask ready` 找不到新任务 | 正常：create 把 holder 设为当前 person，ready 只列**未指派**任务；直接 `ptask start <id>` |
+| 归档后列表里找不到任务 | 归档不是删除：页面切「已完成/存档」或 `ptask list --archived`；恢复用 `ptask admin unarchive <id>` |
+| 找不到 `ptask admin people` | 版本旧；用 `ptask whoami` 的 `person` + `ptask list` 里的人员字段汇总，或升级到含 person/people 的版本 |
 | 中文乱码 | 输出是 UTF-8；捕获端按 UTF-8 解码，或改用 `--json` |
-| 完成报 `[INVALID] 未能解析 git 短 hash` | 项目不是 git 仓：`ptask task done <id> --evidence "..." --version <版本>` |
+| 完成报 `[INVALID] 未能解析 git 短 hash` | 项目不是 git 仓：`ptask done <id> --evidence "..." --version <版本>` |
 
 ## ZCode / Claude Code / Codex
 
 | 工具 | 技能目录 | 自检命令 |
 |---|---|---|
-| ZCode | `~/.zcode/skills/project-task` | `ptask skill status` 看 `zcode`；`ptask whoami --by zcode:<名字>` |
-| Claude Code | `~/.claude/skills/project-task` | `ptask skill status` 看 `claude`；`ptask whoami --by claude:<名字>` |
-| Codex | `~/.codex/skills/project-task` | `ptask skill status` 看 `codex`；`ptask whoami --by codex:<名字>` |
+| ZCode | `~/.zcode/skills/project-task-board` | `ptask skill status` 看 `zcode`；`ptask whoami --by zcode:<名字>` |
+| Claude Code | `~/.claude/skills/project-task-board` | `ptask skill status` 看 `claude`；`ptask whoami --by claude:<名字>` |
+| Codex | `~/.codex/skills/project-task-board` | `ptask skill status` 看 `codex`；`ptask whoami --by codex:<名字>` |
 
-- Codex 若没有统一技能格式，可把 `skill/project-task/SKILL.md` 作为项目规则/AGENTS 引用，命令仍用 `--by codex:<名字>`。
+- Codex 若没有统一技能格式，可把 `skill/project-task-board/SKILL.md` 作为项目规则/AGENTS 引用，命令仍用 `--by codex:<名字>`。
 - 三个工具都可省略 `--by` 的只有一种情况：会话里已设 `PTASK_ACTOR` 且 `whoami` 显示「有工具前缀」。
 
 ## DSH
 
-- 不注册 `ptask_*` 模型工具；在 DSH 内也用终端 `ptask`（或页面「待办」，读写同一份数据）。
+- 不注册 `PTASK_*` 模型工具；在 DSH 内也用终端 `PTASK`（或页面「待办」，读写同一份数据）。
 - DSH 会注入 `DSH_SESSION_ID`，可省略 `--by`；但为了和 WorkBuddy 等区分，推荐 `--by dsh:<名字>`。
 - 技能目录刚装好需开新会话或刷新技能列表；页面与 CLI 数据同源。
 
@@ -141,20 +141,20 @@ node "E:\dsh-plugins\dsh-project-task\bin\ptask.mjs" --version
 - 输出 UTF-8 中文；`--json` 给机器读（键名 ASCII，顶层 `ok`）。人读输出不要强行解析。
 - 退出码：`0` 成功；`3 NOT_FOUND`；`4 CONFLICT`；`5 INVALID`（参数/版本）；`7 NO_PROJECT`；`8 DEPENDENCY_CYCLE`；`9 TAG_NOT_FOUND`；`10 NOT_READY`。
 - 非 0 时读错误行的 `[CODE]` 与处理建议，不要猜、不要重试成环。
-- 实测：`ptask task get T-9999` → `[NOT_FOUND]` 退出码 3；非 git 项目 `task done` 不带 `--version` → `[INVALID]` 退出码 5，带 `--version 0.0.1` → 退出码 0。
+- 实测：`ptask show T-9999` → `[NOT_FOUND]` 退出码 3；非 git 项目 `ptask done` 不带 `--version` → `[INVALID]` 退出码 5，带 `--version 0.0.1` → 退出码 0。
 
 ## 新项目 / 资产缺失
 
-- 目录里没有 `docs/ptask/tasks.json` 时，`ptask task status` 显示「本项目暂无待办」（自动建空看板，退出码 0）：先 `ptask task create --title "..."` 再 `task start`，不要空转。
+- 目录里没有 `docs/ptask/tasks.json` 时，`ptask status` 显示「本项目暂无任务」（不自动建库）：先 `ptask create --title "..."` 再 `ptask start`，不要空转。
 - 换项目后先确认 `root`；可用 `--root "<项目根>"` 强制指定，避免读到上层项目的待办。
 - G0.5 的需求三查只对配了 `utp/docs/prd/README.md` 的项目生效；其他项目缺 `utp/` 或任务无 PRD 时，写回
-  `ptask context decision <id> "无需求资产（<项目>），按任务描述 DoD 执行"` 即可，**不得阻塞**。
+  `ptask note decision <id> "无需求资产（<项目>），按任务描述 DoD 执行"` 即可，**不得阻塞**。
 
 ## 换机/新项目检查清单
 
 1. `ptask whoami --by <工具>:<名字>`：root 指向目标项目、actor 有前缀、`person` 是真实姓名（git user.name）；
 2. `ptask doctor`：没有 ✗（`git 无` 只影响 G3，用 `--version`）；
-3. `ptask task ready --limit 3`：能读到就绪任务即打通；空看板先 `task create`；
+3. `ptask ready --limit 3`：能读到就绪任务即打通；空看板先 `task create`；
 4. `ptask skill status`：目标工具 `linked`（`copy` 表示源码更新后需重装）；
 5. `ptask admin people`：能列出人员（仅 git 历史作者），用于指派/筛选。
 5. 技能未生效：确认目标目录存在且指向源码（junction），重启应用/开新会话。

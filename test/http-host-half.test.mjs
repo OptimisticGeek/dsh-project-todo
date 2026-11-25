@@ -143,7 +143,7 @@ test('skills status and one-click install are served on the shared channel', asy
     const after = await install.json()
     assert.equal(after.ok, true)
     assert.equal(after.results[0].state, 'linked')
-    assert.ok(existsSync(path.join(home, '.claude', 'skills', 'project-task', 'SKILL.md')))
+    assert.ok(existsSync(path.join(home, '.claude', 'skills', 'project-task-board', 'SKILL.md')))
   } finally {
     if (previous === undefined) delete process.env.DSH_PROJECT_TASK_HOME
     else process.env.DSH_PROJECT_TASK_HOME = previous

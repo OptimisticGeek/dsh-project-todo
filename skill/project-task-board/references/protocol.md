@@ -19,9 +19,9 @@
 
 ```
 create → open
-open --task start--> doing                  （被他人持有/非 open → NOT_READY；强抢用兼容别名 claim --force）
+open --ptask start--> doing                  （被他人持有/非 open → NOT_READY；强抢用兼容别名 claim --force）
 doing | blocked --task release--> open       （写「中断于 …」，可带交接 note）
-doing --task done--> done                    （非持有者 → CONFLICT；force 才可完成）
+doing --ptask done--> done                    （非持有者 → CONFLICT；force 才可完成）
 open | doing --task block--> blocked         （--reason 追加到 openLoops）
 blocked --unblock--> doing | open            （有 holder 回 doing，否则 open）
 done | cancelled --reopen--> open
@@ -74,7 +74,7 @@ done | cancelled --reopen--> open
 | 字段 | 含义 |
 |---|---|
 | `effectiveStatus` | 硬依赖/前置后的有效状态 |
-| `isReady` | 是否可被 `task start` |
+| `isReady` | 是否可被 `ptask start` |
 | `blocking` | 哪些任务依赖我（反向边） |
 | `preconditions[].satisfied` | 前置条件实时判定结果 |
 | `staleResources` | 已被替换（`superseded`）的资料 |
@@ -84,10 +84,10 @@ done | cancelled --reopen--> open
 | `counts.ready / counts.blockedEffective` | 就绪数、有效阻塞数 |
 | 标签 `usageCount` | 活跃+归档任务引用数 |
 
-## 4. 开工简报（task start）
+## 4. 开工简报（ptask start）
 
 ```bash
-ptask task start T-0007
+ptask start T-0007
 ```
 
 `start` 一次完成「检查就绪 → 认领 → 组装简报」，不需要再 `task get`。简报字段：
@@ -114,16 +114,16 @@ ptask task start T-0007
 ## 5. 释放与交接（task release）
 
 ```bash
-ptask task release T-0007 --note "等客户确认，下一步跑 probe_citation"
+ptask release T-0007 --note "等客户确认，下一步跑 probe_citation"
 ```
 
 - 状态 `doing|blocked → open`，holder/claimedAt 清空，记录 `releasedBy`。
 - `context.progress` 改写为 `中断于 <本地时间>：<原进度>`（原进度为空则只写时间）。
 - `--note` 追加一条 `context.openLoops`（也会被后续折叠）。
-- 返回 `handoff`：`{id, title, progress, openLoops, note, nextStep}`；下一位 `task start` 会在简报里看到。
+- 返回 `handoff`：`{id, title, progress, openLoops, note, nextStep}`；下一位 `ptask start` 会在简报里看到。
 - 非持有者释放 → `CONFLICT`；`--force` 仅在用户明确要求时使用。
 
-## 6. 完成与解锁（task done）
+## 6. 完成与解锁（ptask done）
 
 - 仅当前持有者可完成；`--evidence` 缺省时用 `git log --grep=<id>` 的前 3 条提交摘要（无 git 则为空）。
 - 版本解析顺序：显式 `--version` → `version.gitDir` → 会话 cwd → 项目根；优先直接读 `.git`（不依赖子进程），取不到才尝试 `git`。
@@ -152,5 +152,5 @@ ptask task release T-0007 --note "等客户确认，下一步跑 probe_citation"
 
 ## 10. 需求门在协议中的位置
 
-G0.5 在 `task start` 之后、第一次改文件之前执行；结果用 `context decision` 写回。
+G0.5 在 `ptask start` 之后、第一次改文件之前执行；结果用 `ptask note decision` 写回。
 口径不能裁决时用 `task block --reason "等客户确认口径"`，不要带着未决口径实现或写证据。

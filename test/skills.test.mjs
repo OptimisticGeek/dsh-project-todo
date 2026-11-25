@@ -32,8 +32,8 @@ test('every tool target lives under the user home and detects an installed tool'
   await withDirs(async ({ root, home }) => {
     const map = skillTargets(root, home)
     assert.deepEqual(Object.keys(map).sort(), [...SKILL_TARGETS].sort())
-    assert.equal(map.project, path.join(root, '.agents', 'skills', 'project-task'))
-    assert.equal(map.claude, path.join(home, '.claude', 'skills', 'project-task'))
+    assert.equal(map.project, path.join(root, '.agents', 'skills', 'project-task-board'))
+    assert.equal(map.claude, path.join(home, '.claude', 'skills', 'project-task-board'))
     mkdirSync(path.join(home, '.trae'), { recursive: true })
     const rows = skillStatus(root, home)
     assert.equal(rows.find((row) => row.name === 'trae').detected, true)

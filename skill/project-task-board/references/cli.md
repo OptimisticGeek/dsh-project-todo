@@ -14,7 +14,7 @@ ptask <命令> [子命令] [参数] [--root DIR] [--by ACTOR] [--config FILE] [-
 | `--by ACTOR` | 操作者；优先于 `PTASK_ACTOR` > git `user.name` > `DSH_SESSION_ID` > `cli-<用户>` |
 | `--config FILE` | 指定配置文件；默认 `docs/ptask/config.json`（可缺省） |
 | `--json` | stdout 只输出一个 JSON 文档；诊断与错误 JSON 走 stderr |
-| `--help` | 分级帮助：`ptask --help` 全览 / `ptask task --help` 列子命令 / `ptask task update --help` 列参数与示例 |
+| `--help` | 分级帮助：`ptask --help` 全览 / `ptask --help` 列子命令 / `ptask update --help` 列参数与示例 |
 
 列表参数（`--tags`、`--stages`、`--aliases`）支持逗号/顿号/分号分隔，也可重复传参。
 PowerShell 会把未加引号的逗号当作参数分隔符，写 `--tags "KB,auth"` 或 `--stages "调研,实现"`。
@@ -23,19 +23,19 @@ PowerShell 会把未加引号的逗号当作参数分隔符，写 `--tags "KB,au
 
 ## Agent 的六个动作
 
-### task ready
+### ptask ready
 
 ```
-ptask task ready [--limit N] [--stage S-0002] [--milestone M-0001] [--json]
+ptask ready [--limit N] [--stage S-0002] [--milestone M-0001] [--json]
 ```
 
 只返回**就绪叶子任务**：`status=open`、无 holder、硬依赖全部 done、必填前置条件满足、阶段/里程碑未归档。
 `--limit` 取前 N 条；`--stage`/`--milestone` 过滤。JSON：`{ok,action:"ready",counts,tasks}`。
 
-### task start
+### ptask start
 
 ```
-ptask task start <id> [--json]
+ptask start <id> [--json]
 ```
 
 认领并返回**开工简报**（`brief`）。已在本人名下时幂等，只回简报。
@@ -45,10 +45,10 @@ ptask task start <id> [--json]
 JSON：`{ok,action:"start",message,task,brief,warning?}`。
 `brief` 字段：`task / stage / milestone / goal / progress / decisions / upstreamDone / upstreamPending / changes / resources / openLoops / preconditions / blocking / nextStep`。
 
-### task done
+### ptask done
 
 ```
-ptask task done <id> [--evidence "可复核证据"] [--version v] [--force] [--backfill] [--json]
+ptask done <id> [--evidence "可复核证据"] [--version v] [--force] [--backfill] [--json]
 ```
 
 仅当前持有者；`--evidence` 缺省时自动取 `git log --grep=<id>` 摘要；版本缺省自动取 git 短 hash。
@@ -57,7 +57,7 @@ ptask task done <id> [--evidence "可复核证据"] [--version v] [--force] [--b
 ### task release
 
 ```
-ptask task release <id> [--note "交接说明"] [--force] [--json]
+ptask release <id> [--note "交接说明"] [--force] [--json]
 ```
 
 把任务交还（`doing|blocked → open`），进度改写为「中断于 <时间>：<原进度>」，`--note` 追加到 `context.openLoops`。
@@ -66,16 +66,16 @@ JSON：`{ok,action:"release",message,handoff,warning?}`；`handoff = {id,title,p
 ### task block
 
 ```
-ptask task block <id> --reason "..." [--json]
+ptask block <id> --reason "..." [--json]
 ```
 
 `open|doing → blocked`；`--reason` 必填，并追加到 `context.openLoops`。
-解除用 `ptask task unblock <id>`（有人持有回 `doing`，否则回 `open`）。
+解除用 `ptask unblock <id>`（有人持有回 `doing`，否则回 `open`）。
 
 ### task create
 
 ```
-ptask task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5]
+ptask create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5]
                   [--tags a,b] [--parent <id>] [--notes "..."] [--claim] [--holder X]
                   [--container] [--blocked-by <id>]... [--dep-type hard|soft] [--json]
 ```
@@ -87,21 +87,21 @@ JSON：`{ok,action:"create",message,task,warnings,warning?}`。
 ## 任务管理
 
 ```
-ptask task list [--status open|doing|blocked|done|cancelled|all] [--tag T]
+ptask list [--status open|doing|blocked|done|cancelled|all] [--tag T]
                 [--stage S-0002] [--milestone M-0001] [--blocked] [--ready]
                 [--archived] [--flat] [--json]
-ptask task get <id> [--no-history] [--full] [--json]   # 备注默认截 300 字；JSON 始终全文
-ptask task update <id> [--title t] [--priority P0..P5] [--urgency 1..5] [--tags a,b]
+ptask show <id> [--no-history] [--full] [--json]   # 备注默认截 300 字；JSON 始终全文
+ptask update <id> [--title t] [--priority P0..P5] [--urgency 1..5] [--tags a,b]
                      [--notes s] [--parent <id>] [--stage S-0002] [--role container|task]
                      [--status <s>] [--force] [--version v] [--evidence s]
-ptask task status [--json]
-ptask task suggest [--json]                  # 只读推荐 1 条 + 排序理由 + 备选
-ptask task sync-parents [--dry-run] [--json] # 收口子任务已全完成的父任务
-ptask task unblock <id>
-ptask task reopen <id>
-ptask task dep list <id> [--json]
-ptask task dep add <id> --blocked-by <depId> [--type hard|soft] [--note s]
-ptask task dep remove <id> --blocked-by <depId>
+ptask status [--json]
+ptask suggest [--json]                  # 只读推荐 1 条 + 排序理由 + 备选
+ptask sync-parents [--dry-run] [--json] # 收口子任务已全完成的父任务
+ptask unblock <id>
+ptask reopen <id>
+ptask dep list <id> [--json]
+ptask dep add <id> --blocked-by <depId> [--type hard|soft] [--note s]
+ptask dep remove <id> --blocked-by <depId>
 ```
 
 - `task list` 默认按里程碑/阶段分组显示（树），`--flat` 关闭分组；`--archived` 只列归档。
@@ -156,11 +156,11 @@ ptask tag todos <code> [--archived] [--json]
 ## 任务上下文
 
 ```
-ptask context get <id> [--json]
-ptask context decision <id> "决策内容"
-ptask context progress <id> "当前进度" [--append]   # 默认覆盖，--append 才是追加
-ptask context loop <id> "未关闭事项"
-ptask context loop <id> --close 1
+ptask note get <id> [--json]
+ptask note decision <id> "决策内容"
+ptask note progress <id> "当前进度" [--append]   # 默认覆盖，--append 才是追加
+ptask note loop <id> "未关闭事项"
+ptask note loop <id> --close 1
 ```
 
 - 文本也可用 `--text "..."`。
@@ -194,7 +194,7 @@ ptask pre list    <id> [--json]
 
 - 多个前置条件是 AND；`required=false` 恒视为满足。
 - 只有 `manual_confirm` 需要 `pre confirm`；其余类型在读取时实时判定（任务是否 done、标签是否全部 done、资料是否 approved、提交是否存在）。
-- 未满足的必填前置会让任务不可 ready，`task start` 返回 `NOT_READY`。
+- 未满足的必填前置会让任务不可 ready，`ptask start` 返回 `NOT_READY`。
 
 ## 因果
 
@@ -268,7 +268,7 @@ ptask admin templates [--json]
 - **HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选 / 口径说明）。`ptask admin templates` 列出内置模板绝对路径，复制出来改即可；`--template <name|path>` 指定模板，`--title` 改标题。Web 看板「导出」菜单同样有「导出 HTML 汇报页（含归档）」两项，固定用内置模板。
 - **模板契约**：模板里放 `{{PTASK_DATA}}`（安全 JSON）与 `{{PTASK_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`；数据含 `meta/kpi/statuses/priorities/tags/groups/blocked/tasks/labels`，完整说明写在模板文件头部注释里。缺 `{{PTASK_DATA}}` 会报 `PARSE_ERROR`。HTTP 面板只接受内置模板名，不接受任意路径。
 - **JSON 幂等合并**：`admin export --format json` 导出完整记录（`dependsOn` 是 id 数组，`dependsOnDetail` 带类型/备注，派生容器带 `role:"container"`）。`admin import-file <file> --dry-run` 先预览；去掉 `--dry-run` 后按 id 合并（存在则只更新该行给出的字段、`context.decisions` 追加，不存在则新建且原 id 存 `legacyId`）。逐行返回 `created/updated/unchanged/failed` 与原因，含失败行退出码 1；跨项目复制用 `--create-only`。
-- **补登记与父任务收口**：`task done --backfill --version <版本>` 跳过 doing 校验，时间轴记 `backfill`；`task sync-parents [--dry-run]` 修复子任务已归档/历史遗留导致父任务仍 open 的情况，并聚合子任务版本与证据。
+- **补登记与父任务收口**：`ptask done --backfill --version <版本>` 跳过 doing 校验，时间轴记 `backfill`；`ptask sync-parents [--dry-run]` 修复子任务已归档/历史遗留导致父任务仍 open 的情况，并聚合子任务版本与证据。
 - **时间轴管理事件**：清除 open 状态残留 holder 记 `holder_fix`（`category: admin`），默认时间轴隐藏；`timeline --all` 或 `--type admin` 查看。JSON 输出每条带 `category`。
 
 ## 退出码
