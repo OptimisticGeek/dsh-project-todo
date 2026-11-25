@@ -8,8 +8,8 @@ import { skillCommand, skillReport, SKILL_SOURCE } from '../lib/cli/skill.mjs'
 import { normalizeConfig } from '../lib/config.js'
 
 async function withRoot(run) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-skill-'))
-  const home = await mkdtemp(path.join(os.tmpdir(), 'ptodo-home-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-skill-'))
+  const home = await mkdtemp(path.join(os.tmpdir(), 'ptask-home-'))
   try {
     await run(root, home)
   } finally {
@@ -31,11 +31,11 @@ test('skill install / status / remove work against an isolated home', async () =
     await skillCommand(ctx, { home, targets: 'agents,zcode', json: true })
 
     for (const target of [
-      path.join(home, '.agents', 'skills', 'project-todo'),
-      path.join(home, '.zcode', 'skills', 'project-todo'),
+      path.join(home, '.agents', 'skills', 'project-task'),
+      path.join(home, '.zcode', 'skills', 'project-task'),
     ]) {
       assert.ok(existsSync(path.join(target, 'SKILL.md')), target)
-      assert.match(await readFile(path.join(target, 'SKILL.md'), 'utf8'), /name: project-todo/)
+      assert.match(await readFile(path.join(target, 'SKILL.md'), 'utf8'), /name: project-task/)
     }
 
     const report = skillReport(ctx, { home, targets: 'agents,zcode' })
@@ -46,8 +46,8 @@ test('skill install / status / remove work against an isolated home', async () =
 
     ctx.positional = ['remove']
     await skillCommand(ctx, { home, targets: 'agents,zcode', json: true })
-    assert.equal(existsSync(path.join(home, '.agents', 'skills', 'project-todo')), false)
-    assert.equal(existsSync(path.join(home, '.zcode', 'skills', 'project-todo')), false)
+    assert.equal(existsSync(path.join(home, '.agents', 'skills', 'project-task')), false)
+    assert.equal(existsSync(path.join(home, '.zcode', 'skills', 'project-task')), false)
   })
 })
 
@@ -58,14 +58,14 @@ test('skill install --targets all covers every tool directory, including workbud
     await skillCommand(ctx, { home, targets: 'all', json: true })
 
     const expected = {
-      project: path.join(root, '.agents', 'skills', 'project-todo'),
-      claude: path.join(home, '.claude', 'skills', 'project-todo'),
-      codex: path.join(home, '.codex', 'skills', 'project-todo'),
-      workbuddy: path.join(home, '.workbuddy', 'skills', 'project-todo'),
-      zcode: path.join(home, '.zcode', 'skills', 'project-todo'),
-      trae: path.join(home, '.trae', 'skills', 'project-todo'),
-      dsh: path.join(home, '.dsh', 'skills', 'project-todo'),
-      agents: path.join(home, '.agents', 'skills', 'project-todo'),
+      project: path.join(root, '.agents', 'skills', 'project-task'),
+      claude: path.join(home, '.claude', 'skills', 'project-task'),
+      codex: path.join(home, '.codex', 'skills', 'project-task'),
+      workbuddy: path.join(home, '.workbuddy', 'skills', 'project-task'),
+      zcode: path.join(home, '.zcode', 'skills', 'project-task'),
+      trae: path.join(home, '.trae', 'skills', 'project-task'),
+      dsh: path.join(home, '.dsh', 'skills', 'project-task'),
+      agents: path.join(home, '.agents', 'skills', 'project-task'),
     }
     const report = skillReport(ctx, { home, targets: 'all' })
     assert.deepEqual(report.results.map((item) => item.name), Object.keys(expected))
@@ -84,23 +84,23 @@ test('skill install --targets all covers every tool directory, including workbud
 
 test('SKILL.md keeps the cross-tool protocol and G0-G4 gates', async () => {
   const skill = await readSkill()
-  assert.match(skill, /^---\nname: project-todo\ndescription: /)
-  for (const heading of ['## 铁律', '### G0 开工', '### G0.5 需求校验', '### G1 认领', '### G2 进行中', '### G3 完成', '### G4 收尾', '## 跨工具执行', '### ptodo 不在 PATH 时', '## 身份与目录', '## 失败处理']) {
+  assert.match(skill, /^---\nname: project-task\ndescription: /)
+  for (const heading of ['## 铁律', '### G0 开工', '### G0.5 需求校验', '### G1 认领', '### G2 进行中', '### G3 完成', '### G4 收尾', '## 跨工具执行', '### ptask 不在 PATH 时', '## 身份与目录', '## 失败处理']) {
     assert.ok(skill.includes(heading), `missing section: ${heading}`)
   }
   // Four-step self-check, in order, inside the cross-tool section.
   const crossTool = skill.slice(skill.indexOf('## 跨工具执行'), skill.indexOf('## 失败处理'))
   assert.ok(crossTool.length > 0, 'cross-tool section missing')
-  const selfCheck = ['ptodo skill status', 'ptodo whoami', 'ptodo doctor', 'ptodo task ready']
+  const selfCheck = ['ptask skill status', 'ptask whoami', 'ptask doctor', 'ptask task ready']
   const positions = selfCheck.map((command) => crossTool.indexOf(command))
   assert.ok(positions.every((index) => index >= 0), 'self-check commands missing')
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'self-check order changed')
   // Actor must be <tool>:<name>; colon, not dash.
   assert.match(skill, /--by wb:/)
-  assert.match(skill, /PTODO_ACTOR/)
+  assert.match(skill, /PTASK_ACTOR/)
   assert.match(skill, /没有冒号/)
   // PATH fallback that works from any tool.
-  assert.match(skill, /node "\$\(npm root -g\)\/dsh-project-todo\/bin\/ptodo\.mjs"/)
+  assert.match(skill, /node "\$\(npm root -g\)\/dsh-project-task\/bin\/ptask\.mjs"/)
   // G0.5 must degrade instead of blocking when a project has no PRD registry.
   assert.match(skill, /无需求资产/)
   assert.match(skill, /不得.{0,4}阻塞/)
@@ -121,7 +121,7 @@ test('references/tools.md documents per-tool self-check, PATH fallback and actor
   for (const tool of ['DSH', 'WorkBuddy', 'ZCode', 'Claude Code', 'Codex']) {
     assert.ok(tools.includes(tool), `missing tool: ${tool}`)
   }
-  for (const command of ['ptodo skill status', 'ptodo whoami', 'ptodo doctor', 'ptodo task ready']) {
+  for (const command of ['ptask skill status', 'ptask whoami', 'ptask doctor', 'ptask task ready']) {
     assert.ok(tools.includes(command), `missing self-check command: ${command}`)
   }
   assert.match(tools, /npm root -g/)
@@ -141,10 +141,10 @@ test('references/tools.md documents per-tool self-check, PATH fallback and actor
   assert.match(tools, /## 人（person）与人员列表/)
   assert.match(tools, /createdBy` \/ `holder` \/ `doneBy` \/ `archivedBy`/)
   assert.match(tools, /personSource/)
-  assert.match(tools, /ptodo admin people/)
+  assert.match(tools, /ptask admin people/)
   assert.match(tools, /session-xxx/)
-  assert.match(tools, /ptodo admin archive-batch --milestone/)
-  assert.match(tools, /ptodo context loop <id> "里程碑 M-x 待归档/)
+  assert.match(tools, /ptask admin archive-batch --milestone/)
+  assert.match(tools, /ptask context loop <id> "里程碑 M-x 待归档/)
   assert.match(tools, /reasonCode/)
   assert.match(tools, /未指派/)
 })
@@ -161,14 +161,14 @@ test('SKILL.md separates person identity from --by and mandates the milestone ar
   assert.match(skill, /git `user\.name`（person）/)
   assert.match(skill, /createdBy \/ holder \/ doneBy \/ archivedBy/)
   assert.match(skill, /person 由 CLI 计算/)
-  assert.match(skill, /ptodo admin people/)
+  assert.match(skill, /ptask admin people/)
   assert.match(skill, /git log --format=%an/)
   // Archive ask is mandatory only when complete=true, never when milestone is null.
   assert.match(skill, /milestone\.complete=true/)
   assert.match(skill, /必须先问用户/)
   assert.match(skill, /未确认不得归档/)
   assert.match(skill, /milestone=null/)
-  assert.match(skill, /ptodo admin archive-batch --milestone M-xxxx/)
+  assert.match(skill, /ptask admin archive-batch --milestone M-xxxx/)
   assert.match(skill, /里程碑 M-xxxx 待归档，用户暂不归档/)
   // 默认里程碑（收件箱）不归档：complete 只表示做完，不触发归档询问。
   assert.match(skill, /archivable/)
@@ -190,7 +190,7 @@ test('POLICY_TEXT injects the archive-ask rule without touching other logic', as
   const policy = index.slice(index.indexOf('const POLICY_TEXT'), index.indexOf('/** Short summary'))
   assert.match(policy, /milestone\.complete=true/)
   assert.match(policy, /先询问用户是否归档/)
-  assert.match(policy, /ptodo admin archive-batch --milestone/)
+  assert.match(policy, /ptask admin archive-batch --milestone/)
   // 默认里程碑不归档，提示词里必须写死这条豁免。
   assert.match(policy, /archivable=true/)
   assert.match(policy, /默认里程碑/)
@@ -211,7 +211,7 @@ test('SKILL.md carries the activation layer that decides whether it is invoked a
   assert.ok(description[1].length <= 400, `description too long: ${description[1].length} chars`)
   assert.match(description[1], /任务/, 'description must name the domain in natural language')
   assert.match(description[1], /不适用|不要用/, 'description must carry a negative boundary')
-  assert.doesNotMatch(description[1], /ptodo [a-z]/, 'description must not be a CLI cheat sheet')
+  assert.doesNotMatch(description[1], /ptask [a-z]/, 'description must not be a CLI cheat sheet')
   assert.doesNotMatch(description[1], /\bANY\b/, 'description must not claim universal scope')
 
   // Metadata parity with peer skills in this ecosystem.
@@ -279,7 +279,7 @@ test('SKILL.md documents version docs for batch completion / push and links them
   assert.match(section, /最多列 3 个版本/)
   assert.match(section, /checks\[\]/)
   assert.match(section, /done 行为不变/)
-  assert.match(skill, /ptodo doctor/)
+  assert.match(skill, /ptask doctor/)
   // G3 must carry one step for it, not only the standalone section.
   const g3 = skill.slice(skill.indexOf('### G3 完成'), skill.indexOf('### G4 收尾'))
   assert.match(g3, /版本文档（批量完成 \/ push 前）/)

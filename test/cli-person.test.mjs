@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import os from 'node:os'
 import path from 'node:path'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function run(root, args, env) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], {
@@ -22,8 +22,8 @@ function json(root, args, env) {
 }
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-cli-person-'))
-  const home = await mkdtemp(path.join(os.tmpdir(), 'ptodo-cli-person-home-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-cli-person-'))
+  const home = await mkdtemp(path.join(os.tmpdir(), 'ptask-cli-person-home-'))
   // An empty home means no git user.name, so the person is the stripped --by.
   const env = { USERPROFILE: home, HOME: home }
   try {

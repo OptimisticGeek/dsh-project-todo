@@ -7,14 +7,14 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function run(root, args) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], { encoding: 'utf8', windowsHide: true })
 }
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-migrate-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-migrate-'))
   try {
     await runTest(root)
   } finally {
@@ -58,8 +58,8 @@ function v2Board() {
 
 test('in-place v2 → v3 migration backs up and preserves revision/nextId', async () => {
   await withRoot(async (root) => {
-    await mkdir(path.join(root, 'docs', 'ptodo'), { recursive: true })
-    const file = path.join(root, 'docs', 'ptodo', 'todos.json')
+    await mkdir(path.join(root, 'docs', 'ptask'), { recursive: true })
+    const file = path.join(root, 'docs', 'ptask', 'tasks.json')
     await writeFile(file, JSON.stringify(v2Board()), 'utf8')
 
     const dry = run(root, ['migrate', '--dry-run', '--json'])
@@ -74,9 +74,9 @@ test('in-place v2 → v3 migration backs up and preserves revision/nextId', asyn
     assert.equal(saved.nextId, 3)
     assert.equal(saved.tasks[0].stageCode, 'default')
     assert.equal(saved.tasks[0].legacyId, 'A-1')
-    assert.ok(existsSync(path.join(root, 'docs', 'ptodo', 'milestones.json')))
-    assert.ok(existsSync(path.join(root, 'docs', 'ptodo', 'tags.json')))
-    assert.ok(existsSync(path.join(root, 'docs', 'ptodo', '.backup')))
+    assert.ok(existsSync(path.join(root, 'docs', 'ptask', 'milestones.json')))
+    assert.ok(existsSync(path.join(root, 'docs', 'ptask', 'tags.json')))
+    assert.ok(existsSync(path.join(root, 'docs', 'ptask', '.backup')))
   })
 })
 

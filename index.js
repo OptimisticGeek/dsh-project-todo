@@ -1,8 +1,8 @@
 /**
- * Host entry of `dsh-project-todo`.
+ * Host entry of `dsh-project-task`.
  *
  * Model-facing tools were removed on purpose: the one command surface is the
- * global `ptodo` CLI shipped by this same package. The plugin keeps the Web
+ * global `ptask` CLI shipped by this same package. The plugin keeps the Web
  * view, the per-session project resolution and two short prompt injections so
  * an agent that never loaded the skill still knows where the board lives.
  */
@@ -16,18 +16,18 @@ import { decorateState } from './lib/derive.js'
 import { formatAgentSummary } from './lib/format.js'
 import { configFor, normalizeConfig } from './lib/config.js'
 
-export const name = 'project-todo'
-const HTTP_PREFIX = '/dsh-project-todo'
+export const name = 'project-task'
+const HTTP_PREFIX = '/dsh-project-task'
 
 const POLICY_TEXT =
-  '项目待办唯一入口：终端 ptodo（数据 docs/ptodo/todos.json，页面同源）。' +
-  '任何开发任务开工先 ptodo task ready 或 ptodo task start <id>；' +
-  '完成 ptodo task done <id> --evidence；阻塞 ptodo task block <id> --reason；交接 ptodo task release <id> --note。' +
-  '里程碑下最后一个任务完成时（done 返回 milestone.complete=true 且 archivable=true），先询问用户是否归档，确认后再执行 ptodo admin archive-batch --milestone <M-x>。' +
+  '项目待办唯一入口：终端 ptask（数据 docs/ptask/tasks.json，页面同源）。' +
+  '任何开发任务开工先 ptask task ready 或 ptask task start <id>；' +
+  '完成 ptask task done <id> --evidence；阻塞 ptask task block <id> --reason；交接 ptask task release <id> --note。' +
+  '里程碑下最后一个任务完成时（done 返回 milestone.complete=true 且 archivable=true），先询问用户是否归档，确认后再执行 ptask admin archive-batch --milestone <M-x>。' +
   '默认里程碑（code=default，收件箱）不参与归档：complete 只表示全做完了，不要问归档、不要执行 archive-batch。' +
   '禁止手改数据、禁止维护第二份待办。' +
-  '用户说「继续开发」「继续开发待办」且无上下文时，先 ptodo task ready --limit 3，再 ptodo task start <id>。' +
-  '（兼容旧口令：ptodo status / ptodo continue。）'
+  '用户说「继续开发」「继续开发待办」且无上下文时，先 ptask task ready --limit 3，再 ptask task start <id>。' +
+  '（兼容旧口令：ptask status / ptask continue。）'
 
 /**
  * Run one Web-half effect, keeping a readable reason in the host log instead of
@@ -41,7 +41,7 @@ function guarded(ctx, action, run) {
   try {
     return run()
   } catch (error) {
-    ctx.logger?.warn?.(`project-todo: ${action}失败：${error?.message || error}；待办页接口会返回 404`)
+    ctx.logger?.warn?.(`project-task: ${action}失败：${error?.message || error}；待办页接口会返回 404`)
     return () => {}
   }
 }
@@ -98,14 +98,14 @@ export function apply(ctx, rawConfig) {
   } else {
     // The Web half is off by config, so the tab would answer 404 forever.
     ctx.logger?.warn?.(
-      'project-todo: ui.enabled=false，未注册 Web 路由，待办页接口会返回 404；删除该配置或设为 true 后重启 DSH',
+      'project-task: ui.enabled=false，未注册 Web 路由，待办页接口会返回 404；删除该配置或设为 true 后重启 DSH',
     )
   }
 
   ctx.inject(['systemPrompt'], (scoped) => {
     scoped.effect(() =>
       scoped.systemPrompt.section({
-        name: 'project-todo',
+        name: 'project-task',
         order: 950,
         text: POLICY_TEXT,
       }),
@@ -121,14 +121,14 @@ export function apply(ctx, rawConfig) {
         const systemPrompt = agent.ctx.get('systemPrompt')
         if (!systemPrompt) return () => {}
         return systemPrompt.context({
-          name: 'project-todo',
+          name: 'project-task',
           order: 950,
           text: () => agentTodoText(ctx, configOf, agent),
         })
       })
       agentScopes.set(agent.id, disposer)
     } catch (error) {
-      ctx.logger?.warn?.(`project-todo: 无法注册会话上下文：${error.message}`)
+      ctx.logger?.warn?.(`project-task: 无法注册会话上下文：${error.message}`)
     }
   })
 

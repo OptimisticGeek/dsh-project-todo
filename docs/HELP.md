@@ -1,6 +1,6 @@
-# ptodo 使用帮助
+# ptask 使用帮助
 
-> 适用 2.0.x。本文讲清 **Agent 工具使用 ptodo 的完整生命周期**：谁在什么时机、用什么命令、读写什么。
+> 适用 2.0.x。本文讲清 **Agent 工具使用 ptask 的完整生命周期**：谁在什么时机、用什么命令、读写什么。
 > 只想知道怎么装：看 [README](../README.md#30-秒上手)。想改代码：看 [SPEC](../SPEC.md)。
 
 ## 目录
@@ -27,24 +27,24 @@
 一条命令流水线：
 
 ```text
-ptodo task ready --limit 3      # G0 找活（不知道做什么时）
-ptodo task start T-0007         # G1 认领 + 开工简报
-ptodo context decision T-0007 "口径/选型"   # G0.5 校验（仅需求注册表项目）
-ptodo context progress T-0007 "做到哪/下一步"
-ptodo task done T-0007 --evidence "可复核证据" --version v1.2.3
-ptodo task status               # G4 收尾，给结论行
+ptask task ready --limit 3      # G0 找活（不知道做什么时）
+ptask task start T-0007         # G1 认领 + 开工简报
+ptask context decision T-0007 "口径/选型"   # G0.5 校验（仅需求注册表项目）
+ptask context progress T-0007 "做到哪/下一步"
+ptask task done T-0007 --evidence "可复核证据" --version v1.2.3
+ptask task status               # G4 收尾，给结论行
 ```
 
 六条红线：
 
-1. **只走 `ptodo`**；不手改 `docs/ptodo/*.json`，不维护第二份待办。
+1. **只走 `ptask`**；不手改 `docs/ptask/*.json`，不维护第二份待办。
 2. **改文件前先 `start`**；`create` 只是登记、默认不挂负责人，所以新建任务会直接出现在 `ready` 里；要「建了就归自己」用 `--claim`。
 3. **需求未校验不开工**（仅当项目配置了需求注册表）；没有注册表就跳过，别卡住。
 4. **状态变化立即写回**：`progress / decision / loop / block / release`，不要等最后一次性补。
 5. **没有 `done` 不说完成**；证据要能被别人复核。
 6. **不抢 holder、不默认 `--force`**；`NOT_READY / CONFLICT` 时换任务或等释放。
 
-> `ptodo task status`、`task list`、`task get` 是只读的；纯问答可以直接用，不必认领。
+> `ptask task status`、`task list`、`task get` 是只读的；纯问答可以直接用，不必认领。
 
 ## 2. 角色与职责
 
@@ -52,13 +52,13 @@ ptodo task status               # G4 收尾，给结论行
 |---|---|---|
 | **用户 / 人类** | 提需求、说「继续开发」、确认归档、在看板上监督 | 不直接改 JSON；不替 Agent 抢任务 |
 | **Agent（DSH / Codex / Claude / WorkBuddy / ZCode）** | 找活、认领、需求校验、实现、写回、完成、收尾 | 不绕过就绪判定；不手填任务 ID；不篡改证据 |
-| **ptodo CLI** | 解析项目根、判定就绪、状态机、文件锁、原子落盘、生成简报 | 不替 Agent 做技术决策 |
-| **数据层 `docs/ptodo/`** | 唯一事实源、历史日志、快照 | 不被手改；不被页面绕过 CLI 写 |
+| **ptask CLI** | 解析项目根、判定就绪、状态机、文件锁、原子落盘、生成简报 | 不替 Agent 做技术决策 |
+| **数据层 `docs/ptask/`** | 唯一事实源、历史日志、快照 | 不被手改；不被页面绕过 CLI 写 |
 | **Web 看板「待办」** | 只读展示 + 有限写操作（开始/完成/阻塞恢复/释放/指派/归档/编辑描述） | 不提供依赖/前置/资料编辑，不提供删除/导入/清空日志 |
 
 要点：
 
-- **命令是唯一入口**。DSH 不再注册 `ptodo_*` 工具；Agent 通过 shell 调 `ptodo`，页面通过 Host HTTP 调同一套 `service.act()`。
+- **命令是唯一入口**。DSH 不再注册 `ptask_*` 工具；Agent 通过 shell 调 `ptask`，页面通过 Host HTTP 调同一套 `service.act()`。
 - **页面与 CLI 看到的是同一份数据**；页面不做本地缓存，刷新即读盘。
 - **多个 Agent 共用一块看板**；`holder` 是并发控制，不是建议。
 
@@ -81,7 +81,7 @@ flowchart LR
     A6["G3 完成<br/>task done --evidence"]
     A7["G4 收尾<br/>task status"]
   end
-  subgraph CLI["⌨️ ptodo CLI"]
+  subgraph CLI["⌨️ ptask CLI"]
     direction TB
     C1["判定就绪"]
     C2["生成开工简报"]
@@ -91,7 +91,7 @@ flowchart LR
   end
   subgraph DATA["💾 数据 / 🖥️ 页面"]
     direction TB
-    D1["docs/ptodo/*.json<br/>唯一事实源"]
+    D1["docs/ptask/*.json<br/>唯一事实源"]
     D2["history.jsonl / 快照<br/>Web 看板"]
   end
 
@@ -113,14 +113,14 @@ flowchart LR
   C5 --> D1
 ```
 
-![Agent 使用 ptodo 的生命周期泳道图](diagrams/lifecycle-swimlane.png)
+![Agent 使用 ptask 的生命周期泳道图](diagrams/lifecycle-swimlane.png)
 
 怎么读这张图：
 
 - **用户主要负责起点和归档确认**，也可以在看板上做有限的操作（开始/完成/释放/指派）。需求怎么拆、任务怎么领、证据怎么留，由 Agent 按门执行。
 - **CLI 是唯一写入口**。页面上的「开始/完成/释放」也只是调用同一套 action，不会绕过 service 直接改数据层。
 - **Agent 的每一步都要落到 CLI**。`ready` 决定做什么，`start` 认领并拿简报，`done` 才算完成；中间用 `context / block / release` 留痕。
-- **数据层是结果，不是过程**。看板、历史、快照都由 CLI 写；排查时先看 `docs/ptodo/` 和 `ptodo timeline`。
+- **数据层是结果，不是过程**。看板、历史、快照都由 CLI 写；排查时先看 `docs/ptask/` 和 `ptask timeline`。
 - **页面是观察窗**。它不自动轮询，CLI 改完数据后点「刷新」即可。
 
 ## 4. 时序图：一次完整开发
@@ -130,35 +130,35 @@ sequenceDiagram
   autonumber
   participant U as 用户
   participant A as Agent
-  participant P as ptodo CLI
-  participant F as docs/ptodo
+  participant P as ptask CLI
+  participant F as docs/ptask
   participant W as Web 看板
 
   U->>A: 提需求 / 说「继续开发」
-  A->>P: ptodo task ready --limit 3
+  A->>P: ptask task ready --limit 3
   P->>F: 读 todos / milestones / tags
   F-->>P: 任务 + 派生 isReady
   P-->>A: 就绪叶子列表（可能为空）
   alt 列表为空
-    A->>P: ptodo task create --title "..."
+    A->>P: ptask task create --title "..."
     P-->>A: 新任务（负责人=你）
   end
-  A->>P: ptodo task start T-0007
+  A->>P: ptask task start T-0007
   P->>F: 校验 holder/依赖/前置，写 doing
   P-->>A: 开工简报 brief
   Note over A: G0.5 需求三查（仅配置需求注册表的项目）
-  A->>P: ptodo context decision T-0007 "口径..."
+  A->>P: ptask context decision T-0007 "口径..."
   A->>A: 实现 / 测试
-  A->>P: ptodo context progress T-0007 "做到哪/下一步"
-  A->>P: ptodo task done T-0007 --evidence "..."
+  A->>P: ptask context progress T-0007 "做到哪/下一步"
+  A->>P: ptask task done T-0007 --evidence "..."
   P->>F: 写 done/版本/证据，解锁下游
   P-->>A: unlocked + milestone.complete
   opt complete=true
     A->>U: 里程碑已全部完成，是否归档？
     U-->>A: 是 / 否
-    A->>P: ptodo admin archive-batch --milestone M-0001
+    A->>P: ptask admin archive-batch --milestone M-0001
   end
-  A->>P: ptodo task status
+  A->>P: ptask task status
   P-->>A: 计数 + 进行中 + 建议优先
   A-->>U: 结论行 + 证据
   W-->>U: 刷新后看到同一状态
@@ -168,12 +168,12 @@ sequenceDiagram
 
 ### 4.1 会话开始
 
-DSH 的 Host 会注入两段提示：常驻的「唯一入口/六个动作/禁止手改」和每个会话的「计数 + 进行中 + 建议优先」（≤400 字）。装了技能的工具还会加载 `project-todo` 执行协议。因此 Agent 不需要先问用户「待办在哪」。
+DSH 的 Host 会注入两段提示：常驻的「唯一入口/六个动作/禁止手改」和每个会话的「计数 + 进行中 + 建议优先」（≤400 字）。装了技能的工具还会加载 `project-task` 执行协议。因此 Agent 不需要先问用户「待办在哪」。
 
 ### 4.2 G0：先看就绪
 
 ```bash
-ptodo task ready --limit 3
+ptask task ready --limit 3
 ```
 
 输出示例：
@@ -192,12 +192,12 @@ ptodo task ready --limit 3
 4. 所属阶段/里程碑已归档；
 5. 任务不是叶子（父任务永远不 ready）。
 
-用户点名了任务：直接 `ptodo task start <id>`。用户说「继续开发」且无上下文：先 `ready --limit 3`，从第一条开始，不要反问「做哪个」。
+用户点名了任务：直接 `ptask task start <id>`。用户说「继续开发」且无上下文：先 `ready --limit 3`，从第一条开始，不要反问「做哪个」。
 
 ### 4.3 G1：认领并拿简报
 
 ```bash
-ptodo task start T-0007
+ptask task start T-0007
 ```
 
 这一步同时完成：检查就绪 → 写 `doing` + `holder=person` → 返回开工简报。已在本人名下时幂等，只回简报。
@@ -229,16 +229,16 @@ S-0002 实现 / M-0001 Q4 交付 · P1 · 紧急 普通
 没有注册表 / 没有关联 PRD：**跳过三查，不阻塞**，只写回一句：
 
 ```bash
-ptodo context decision T-0007 "无需求资产（<项目名>），按任务描述 DoD 执行"
+ptask context decision T-0007 "无需求资产（<项目名>），按任务描述 DoD 执行"
 ```
 
 有注册表时，把结论写回：
 
 ```bash
-ptodo context decision T-0007 "G0.5 已查：注册表 R3 / CR-0007 / 版本 1.2.3；DoD@R3"
+ptask context decision T-0007 "G0.5 已查：注册表 R3 / CR-0007 / 版本 1.2.3；DoD@R3"
 ```
 
-不能裁决的口径分歧（客户确认函未回执等）→ `ptodo task block T-0007 --reason "等客户确认口径"`，不实现、不改证据。
+不能裁决的口径分歧（客户确认函未回执等）→ `ptask task block T-0007 --reason "等客户确认口径"`，不实现、不改证据。
 
 ### 4.5 G2：边做边写回
 
@@ -256,7 +256,7 @@ ptodo context decision T-0007 "G0.5 已查：注册表 R3 / CR-0007 / 版本 1.2
 ### 4.6 G3：完成
 
 ```bash
-ptodo task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
+ptask task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
 ```
 
 - 只有当前持有者能完成；`--force` 才能越权（不要默认用）。
@@ -271,14 +271,14 @@ ptodo task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
 
 ```text
 已完成 T-0007（版本 v0.1.0）
-里程碑 M-0001 已全部完成；归档前先询问用户：ptodo admin archive-batch --milestone M-0001
+里程碑 M-0001 已全部完成；归档前先询问用户：ptask admin archive-batch --milestone M-0001
 ```
 
 处理规则：
 
 1. **先问用户**「里程碑 M-0001（名称）已全部完成，是否归档？」；
-2. 用户肯定后执行 `ptodo admin archive-batch --milestone M-0001`；
-3. 用户拒绝则写回 `ptodo context loop T-0007 "里程碑 M-0001 待归档，用户暂不归档"`；
+2. 用户肯定后执行 `ptask admin archive-batch --milestone M-0001`；
+3. 用户拒绝则写回 `ptask context loop T-0007 "里程碑 M-0001 待归档，用户暂不归档"`；
 4. `milestone=null` 或 `complete=false` 不要提归档。
 
 `archive-batch` 只归档该里程碑下**已完成**的叶子；未完成的进 `skipped`（NOT_DONE），不会被强制归档。`--include-open` 只是把未完成也纳入候选，仍会跳过。
@@ -286,7 +286,7 @@ ptodo task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
 ### 4.8 G4：收尾
 
 ```bash
-ptodo task status
+ptask task status
 ```
 
 最终答复必须带一行结论：
@@ -307,29 +307,29 @@ ptodo task status
 sequenceDiagram
   autonumber
   participant A as Agent A
-  participant P as ptodo CLI
-  participant F as docs/ptodo
+  participant P as ptask CLI
+  participant F as docs/ptask
   participant B as Agent B
 
-  A->>P: ptodo task start T-0007
+  A->>P: ptask task start T-0007
   P-->>A: 开工简报
-  A->>P: ptodo context progress T-0007 "接口完成 60%"
+  A->>P: ptask context progress T-0007 "接口完成 60%"
   alt 等外部条件
-    A->>P: ptodo task block T-0007 --reason "等接口权限"
+    A->>P: ptask task block T-0007 --reason "等接口权限"
     P->>F: status=blocked；原因进 openLoops
     P-->>A: 已标记阻塞
   else 换人或收工
-    A->>P: ptodo task release T-0007 --note "字段名待确认"
+    A->>P: ptask task release T-0007 --note "字段名待确认"
     P->>F: status=open；进度=「中断于 …」；note 进 openLoops
     P-->>A: handoff（进度/未关闭/下一步）
   end
   Note over A,B: 会话结束，任务留在看板
-  B->>P: ptodo task ready
+  B->>P: ptask task ready
   P-->>B: 若已 release 且就绪，T-0007 出现
-  B->>P: ptodo task start T-0007
+  B->>P: ptask task start T-0007
   P-->>B: 简报含「中断于 …」和未关闭事项
-  B->>P: ptodo task unblock T-0007（若 blocked）
-  B->>P: ptodo task done T-0007 --evidence "..."
+  B->>P: ptask task unblock T-0007（若 blocked）
+  B->>P: ptask task done T-0007 --evidence "..."
 ```
 
 ![阻塞、交接与继续的时序图](diagrams/sequence-handoff.png)
@@ -337,17 +337,17 @@ sequenceDiagram
 ### 5.1 `block`：卡住就写原因
 
 ```bash
-ptodo task block T-0007 --reason "等接口权限"
+ptask task block T-0007 --reason "等接口权限"
 ```
 
 - `open | doing → blocked`；`--reason` 必填；
 - 原因追加到 `context.openLoops`，下一位 `start` 能看到；
-- 解除：`ptodo task unblock T-0007`（有人持有回 `doing`，否则回 `open`）。
+- 解除：`ptask task unblock T-0007`（有人持有回 `doing`，否则回 `open`）。
 
 ### 5.2 `release`：交还而不是消失
 
 ```bash
-ptodo task release T-0007 --note "字段名待确认，下一位先找客户端"
+ptask task release T-0007 --note "字段名待确认，下一位先找客户端"
 ```
 
 - `doing | blocked → open`；
@@ -366,21 +366,21 @@ sequenceDiagram
   autonumber
   participant A as Agent A
   participant B as Agent B
-  participant P as ptodo CLI
-  participant F as docs/ptodo
+  participant P as ptask CLI
+  participant F as docs/ptask
 
-  A->>P: ptodo task ready
-  B->>P: ptodo task ready
+  A->>P: ptask task ready
+  B->>P: ptask task ready
   P->>F: 读看板，计算 isReady
   P-->>A: T-0007 就绪
   P-->>B: T-0007 就绪
-  A->>P: ptodo task start T-0007
+  A->>P: ptask task start T-0007
   P->>F: 加锁，写 doing，holder=A
   P-->>A: 开工简报
-  B->>P: ptodo task start T-0007
+  B->>P: ptask task start T-0007
   P->>F: 加锁，发现 holder=A
   P-->>B: [NOT_READY] 尚未就绪（退出码 10）
-  B->>P: ptodo task start T-0008
+  B->>P: ptask task start T-0008
   P-->>B: 开工简报
   Note over A,B: 不抢、不加 --force；等 release 或换任务
 ```
@@ -462,35 +462,35 @@ stateDiagram-v2
 
 ## 9. 命令速查
 
-完整参数、JSON 字段与示例见 [skill/project-todo/references/cli.md](../skill/project-todo/references/cli.md)。这里只列常用面。
+完整参数、JSON 字段与示例见 [skill/project-task/references/cli.md](../skill/project-task/references/cli.md)。这里只列常用面。
 
 ### 9.1 全局
 
 ```text
-ptodo <命令> [子命令] [参数] [--root DIR] [--by ACTOR] [--config FILE] [--json]
+ptask <命令> [子命令] [参数] [--root DIR] [--by ACTOR] [--config FILE] [--json]
 ```
 
 | 参数 | 说明 |
 |---|---|
-| `--root DIR` | 项目根；默认从 cwd 向上找 `docs/ptodo/todos.json`，再找 `.git`，都没有用 cwd |
-| `--by ACTOR` | 工具身份；优先级 `--by` > `PTODO_ACTOR` > git `user.name` > `DSH_SESSION_ID` > `cli-<用户>` |
-| `--config FILE` | 指定配置文件；默认 `docs/ptodo/config.json`（可缺省） |
+| `--root DIR` | 项目根；默认从 cwd 向上找 `docs/ptask/tasks.json`，再找 `.git`，都没有用 cwd |
+| `--by ACTOR` | 工具身份；优先级 `--by` > `PTASK_ACTOR` > git `user.name` > `DSH_SESSION_ID` > `cli-<用户>` |
+| `--config FILE` | 指定配置文件；默认 `docs/ptask/config.json`（可缺省） |
 | `--json` | stdout 恰好一个 JSON；错误 JSON 走 stderr |
-| `--help` | 分级帮助：`ptodo --help` 全览、`ptodo task --help` 列子命令、`ptodo task update --help` 列参数 |
+| `--help` | 分级帮助：`ptask --help` 全览、`ptask task --help` 列子命令、`ptask task update --help` 列参数 |
 
-`ptodo schema --json` 输出全部命令/子命令/参数/示例的机器可读结构（Agent 自发现用），不需要读源码猜参数。`ptodo --version` 打印包版本。
+`ptask schema --json` 输出全部命令/子命令/参数/示例的机器可读结构（Agent 自发现用），不需要读源码猜参数。`ptask --version` 打印包版本。
 
 列表参数（`--tags`、`--stages`、`--aliases`）支持逗号/顿号/分号分隔，也可重复传参。PowerShell 用户注意：未加引号的逗号会被当成参数分隔，写 `--tags "KB,api"`。
 
 ### 9.2 Agent 六动作
 
 ```bash
-ptodo task ready [--limit N] [--stage S-0002] [--milestone M-0001]
-ptodo task start <id>
-ptodo task done <id> [--evidence "可复核证据"] [--version v] [--force]
-ptodo task release <id> [--note "交接说明"] [--force]
-ptodo task block <id> --reason "为什么卡住"
-ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5]
+ptask task ready [--limit N] [--stage S-0002] [--milestone M-0001]
+ptask task start <id>
+ptask task done <id> [--evidence "可复核证据"] [--version v] [--force]
+ptask task release <id> [--note "交接说明"] [--force]
+ptask task block <id> --reason "为什么卡住"
+ptask task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 1..5]
                   [--tags a,b] [--parent <id>] [--notes "..."] [--blocked-by <id>]...
                   [--claim] [--container]
 ```
@@ -509,17 +509,17 @@ ptodo task create --title "..." [--stage S-0002] [--priority P0..P5] [--urgency 
 ### 9.3 任务管理
 
 ```bash
-ptodo task list [--status open|doing|blocked|done|cancelled|all] [--tag T]
+ptask task list [--status open|doing|blocked|done|cancelled|all] [--tag T]
                 [--stage S] [--milestone M] [--blocked] [--ready] [--archived] [--flat]
-ptodo task get <id> [--no-history]
-ptodo task update <id> [--title t] [--priority P] [--urgency N] [--tags a,b]
+ptask task get <id> [--no-history]
+ptask task update <id> [--title t] [--priority P] [--urgency N] [--tags a,b]
                      [--notes s] [--parent <id>] [--stage S] [--status s]
-ptodo task status
-ptodo task unblock <id>
-ptodo task reopen <id>
-ptodo task dep list <id>
-ptodo task dep add <id> --blocked-by <depId> [--type hard|soft] [--note s]
-ptodo task dep remove <id> --blocked-by <depId>
+ptask task status
+ptask task unblock <id>
+ptask task reopen <id>
+ptask task dep list <id>
+ptask task dep add <id> --blocked-by <depId> [--type hard|soft] [--note s]
+ptask task dep remove <id> --blocked-by <depId>
 ```
 
 - `list` 默认按里程碑/阶段分组；`--flat` 平铺。
@@ -530,12 +530,12 @@ ptodo task dep remove <id> --blocked-by <depId>
 ### 9.4 里程碑、阶段、标签
 
 ```bash
-ptodo milestone create --name "Q4 交付" [--stages 调研,实现] [--description s]
-ptodo milestone list|get|update|delete|dep ...
-ptodo stage create --name "实现" [--milestone M-0001] [--description s]
-ptodo stage list|get|update|reorder|delete|dep ...
-ptodo tag add --name "知识库" [--code KB] [--aliases 别名1,别名2] [--status active|draft|deprecated]
-ptodo tag update|deprecate|list|todos ...
+ptask milestone create --name "Q4 交付" [--stages 调研,实现] [--description s]
+ptask milestone list|get|update|delete|dep ...
+ptask stage create --name "实现" [--milestone M-0001] [--description s]
+ptask stage list|get|update|reorder|delete|dep ...
+ptask tag add --name "知识库" [--code KB] [--aliases 别名1,别名2] [--status active|draft|deprecated]
+ptask tag update|deprecate|list|todos ...
 ```
 
 - `milestone create --stages` 会按顺序建阶段（首个 active，其余 pending）。
@@ -547,36 +547,36 @@ ptodo tag update|deprecate|list|todos ...
 ### 9.5 上下文、资料、前置、因果、Git、时间轴
 
 ```bash
-ptodo context get <id>
-ptodo context decision <id> "决策内容"
-ptodo context progress <id> "当前进度" [--append]
-ptodo context loop <id> "未关闭事项"
-ptodo context loop <id> --close 1
+ptask context get <id>
+ptask context decision <id> "决策内容"
+ptask context progress <id> "当前进度" [--append]
+ptask context loop <id> "未关闭事项"
+ptask context loop <id> --close 1
 
-ptodo res add <id> --title "需求文档" [--type doc] [--url ...] [--note ...]
-ptodo res approve <id> <res-0001> [--note ...]
-ptodo res supersede <id> <res-0001> --by-resource <res-0002>
-ptodo res list <id> [--status draft|approved|superseded]
+ptask res add <id> --title "需求文档" [--type doc] [--url ...] [--note ...]
+ptask res approve <id> <res-0001> [--note ...]
+ptask res supersede <id> <res-0001> --by-resource <res-0002>
+ptask res list <id> [--status draft|approved|superseded]
 
-ptodo pre add <id> --type task_done --target <taskId>
-ptodo pre add <id> --type tag_done --tag <code>
-ptodo pre add <id> --type resource_approved --resource <res-id>
-ptodo pre add <id> --type commit_exists --commit <hash>
-ptodo pre add <id> --type manual_confirm [--optional]
-ptodo pre confirm <id> <pc-0001> [--note s]
-ptodo pre remove <id> <pc-0001>
-ptodo pre list <id>
+ptask pre add <id> --type task_done --target <taskId>
+ptask pre add <id> --type tag_done --tag <code>
+ptask pre add <id> --type resource_approved --resource <res-id>
+ptask pre add <id> --type commit_exists --commit <hash>
+ptask pre add <id> --type manual_confirm [--optional]
+ptask pre confirm <id> <pc-0001> [--note s]
+ptask pre remove <id> <pc-0001>
+ptask pre list <id>
 
-ptodo cause add <id> --type task|feedback|decision|resource|external --ref <引用> [--note s]
-ptodo cause remove <id> --type ... --ref ...
-ptodo cause list <id>
-ptodo cause chain <id> [--depth 3]
+ptask cause add <id> --type task|feedback|decision|resource|external --ref <引用> [--note s]
+ptask cause remove <id> --type ... --ref ...
+ptask cause list <id>
+ptask cause chain <id> [--depth 3]
 
-ptodo git link [--dir DIR]
-ptodo git hook install [--dir DIR] [--force]
-ptodo git hook uninstall [--dir DIR] [--force]
+ptask git link [--dir DIR]
+ptask git hook install [--dir DIR] [--force]
+ptask git hook uninstall [--dir DIR] [--force]
 
-ptodo timeline [--scope project|tag|task] [--tag T] [--task id] [--q 关键词]
+ptask timeline [--scope project|tag|task] [--tag T] [--task id] [--q 关键词]
                [--type task|dependency|org|tag|context|resource|precondition|cause|import]
                [--limit 20]
 ```
@@ -592,44 +592,44 @@ ptodo timeline [--scope project|tag|task] [--tag T] [--task id] [--q 关键词]
 ### 9.6 诊断、初始化、迁移、技能
 
 ```bash
-ptodo whoami
-ptodo doctor
-ptodo init [--template simple|standard]
-ptodo migrate [--dry-run] [--keep-legacy] [--force]
-ptodo skill install|status|remove [--targets all|project|agents|dsh|zcode|workbuddy|claude|codex]
+ptask whoami
+ptask doctor
+ptask init [--template simple|standard]
+ptask migrate [--dry-run] [--keep-legacy] [--force]
+ptask skill install|status|remove [--targets all|project|agents|dsh|zcode|workbuddy|claude|codex]
                                 [--copy] [--force] [--home DIR]
 ```
 
 - `whoami`：root、actor 来源、person、gitName、数据路径、revision。
 - `doctor`：包/Node/看板/组织/标签/git/actor/依赖环/context/资料/技能；只提醒，不自动改。
 - `init`：建空看板 + 默认组织；`standard` 另建 `tags.json` 和 `config.json`；已有数据不覆盖。
-- `migrate`：旧 `.dsh` 布局 → `docs/ptodo`，或 v2 看板 → v3；先备份，可 `--dry-run`。
+- `migrate`：旧 `.dsh` 布局 → `docs/ptask`，或 v2 看板 → v3；先备份，可 `--dry-run`。
 
 ### 9.7 页面/脚本专用 `admin`
 
 不要教给 Agent 的常规流程；页面和脚本使用。
 
 ```bash
-ptodo admin reopen|unblock|archive|unarchive|delete <id>
-ptodo admin archive-batch --milestone M-0001 [--include-open]
-ptodo admin archive-batch --stage S-0002
-ptodo admin archive-batch --ids T-0007,T-0008
-ptodo admin claim-batch [--tag T] [--limit N]
-ptodo admin release-batch [--tag T]
-ptodo admin check
-ptodo admin timeline [--scope ...]
-ptodo admin timeline-clear --confirm
-ptodo admin import [--source <path>] [--dry-run]
-ptodo admin import-file <file> [--format md|xlsx|json] [--dry-run] [--create-only]
-ptodo admin export [--format md|xlsx|json|html] [--scope active|archive|all]
+ptask admin reopen|unblock|archive|unarchive|delete <id>
+ptask admin archive-batch --milestone M-0001 [--include-open]
+ptask admin archive-batch --stage S-0002
+ptask admin archive-batch --ids T-0007,T-0008
+ptask admin claim-batch [--tag T] [--limit N]
+ptask admin release-batch [--tag T]
+ptask admin check
+ptask admin timeline [--scope ...]
+ptask admin timeline-clear --confirm
+ptask admin import [--source <path>] [--dry-run]
+ptask admin import-file <file> [--format md|xlsx|json] [--dry-run] [--create-only]
+ptask admin export [--format md|xlsx|json|html] [--scope active|archive|all]
                    [--template report|<path>] [--title "..."]
-ptodo admin templates
-ptodo admin people
+ptask admin templates
+ptask admin people
 ```
 
-**HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选与搜索 / 口径说明，含打印样式）。内置模板 `report`，`ptodo admin templates` 列出路径；`--template <name|path>` 可换成自己的 `.html`。模板只需放 `{{PTODO_DATA}}`（安全 JSON）与 `{{PTODO_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`，完整数据契约写在模板文件头部注释里。HTTP 面板 `?format=html` 也可用（还可带 `&title=...`），**只接受内置模板名**，不接受任意路径。
+**HTML 报告**：`admin export --format html --scope all` 生成单文件、无 CDN、离线可开的汇报页（KPI / 里程碑全景 / 状态与优先级分布 / 阻塞专项 / 明细筛选与搜索 / 口径说明，含打印样式）。内置模板 `report`，`ptask admin templates` 列出路径；`--template <name|path>` 可换成自己的 `.html`。模板只需放 `{{PTASK_DATA}}`（安全 JSON）与 `{{PTASK_TITLE/PROJECT/GENERATED_AT/SCOPE/TEMPLATE/TASK_COUNT}}`，完整数据契约写在模板文件头部注释里。HTTP 面板 `?format=html` 也可用（还可带 `&title=...`），**只接受内置模板名**，不接受任意路径。
 
-**Web 看板里导出**：点右上角「导出」，菜单里有「导出 HTML 汇报页」与「导出 HTML 汇报页（含归档）」，点完直接下载 `todos-<时间戳>.html`，双击即可离线打开。面板固定使用内置 `report` 模板；要换模板或改标题，用 CLI 的 `--template <name|path>` / `--title`。
+**Web 看板里导出**：点右上角「导出」，菜单里有「导出 HTML 汇报页」与「导出 HTML 汇报页（含归档）」，点完直接下载 `tasks-<时间戳>.html`，双击即可离线打开。面板固定使用内置 `report` 模板；要换模板或改标题，用 CLI 的 `--template <name|path>` / `--title`。
 
 **JSON 通道（脚本/Agent 首选）**：`admin export --format json --scope all` 导出完整任务记录（`dependsOn` 为 id 数组，`dependsOnDetail` 带类型/备注）。`admin import-file <file> --dry-run` 先预览，去掉 `--dry-run` 写入；按 id **幂等合并**（存在则只更新该行给出的字段、`context.decisions` 追加，不存在则新建且原 id 存 `legacyId`）。每行返回 `created/updated/unchanged/failed` 与原因，有失败行时退出码为 1。跨项目复制用 `--create-only`，避免同 id 覆盖掉本项目里同号的另一条任务。依赖指向不存在的 id 会单独列出，不静默丢弃。
 
@@ -684,7 +684,7 @@ ptodo admin people
 ```text
 已完成 T-0007（版本 v0.1.0）；解锁 T-0008
 被解锁：T-0008
-里程碑 M-0001 已全部完成；归档前先询问用户：ptodo admin archive-batch --milestone M-0001
+里程碑 M-0001 已全部完成；归档前先询问用户：ptask admin archive-batch --milestone M-0001
 ```
 
 `--json` 额外有 `version / evidence / unlocked / milestone`。`milestone.complete=true` 才提归档。
@@ -720,32 +720,32 @@ ptodo admin people
 
 ### 11.1 项目根怎么定
 
-1. 从 cwd 向上最多 9 层，**先整条链找 `docs/ptodo/todos.json`**，命中即该目录；
+1. 从 cwd 向上最多 9 层，**先整条链找 `docs/ptask/tasks.json`**，命中即该目录；
 2. 都没有，再找 `.git`，命中即该目录；
 3. 都没有 → 用 cwd 本身，首次写入时创建数据目录。
 
-CLI 可用 `--root` 覆盖，`PTODO_ROOT` 次之。**显式指定 `--root`/`PTODO_ROOT` 时，若目标目录没有 `docs/ptodo/todos.json`，写操作会直接报 `NO_PROJECT`（7）而不是静默新建第二套库**——防止路径打错。`init`/`migrate`/`doctor` 不受此限制。Web 侧由 Host 用会话工作目录解析，浏览器不传路径。
+CLI 可用 `--root` 覆盖，`PTASK_ROOT` 次之。**显式指定 `--root`/`PTASK_ROOT` 时，若目标目录没有 `docs/ptask/tasks.json`，写操作会直接报 `NO_PROJECT`（7）而不是静默新建第二套库**——防止路径打错。`init`/`migrate`/`doctor` 不受此限制。Web 侧由 Host 用会话工作目录解析，浏览器不传路径。
 
 ### 11.2 文件
 
 | 文件 | 版本 | 用途 |
 |---|---|---|
-| `docs/ptodo/todos.json` | v3 | 活跃看板（唯一事实源） |
-| `docs/ptodo/milestones.json` | v1 | 里程碑与阶段 |
-| `docs/ptodo/tags.json` | v1 | 标签注册表 |
-| `docs/ptodo/archive.json` | v2 | 已归档任务 |
-| `docs/ptodo/todos.history.jsonl` | — | 只追加操作日志 |
-| `docs/ptodo/config.json` | — | 可选配置 |
+| `docs/ptask/tasks.json` | v3 | 活跃看板（唯一事实源） |
+| `docs/ptask/milestones.json` | v1 | 里程碑与阶段 |
+| `docs/ptask/tags.json` | v1 | 标签注册表 |
+| `docs/ptask/archive.json` | v2 | 已归档任务 |
+| `docs/ptask/history.jsonl` | — | 只追加操作日志 |
+| `docs/ptask/config.json` | — | 可选配置 |
 | `.dsh/TODO.md`、`.dsh/ARCHIVE.md` | — | 只写 Markdown 快照（不读） |
 
 ### 11.3 配置示例
 
 ```yaml
-store:      { path: docs/ptodo/todos.json }
-milestones: { path: docs/ptodo/milestones.json }
-tags:       { path: docs/ptodo/tags.json }
-archive:    { afterDays: 3, path: docs/ptodo/archive.json }
-history:    { enabled: true, path: docs/ptodo/todos.history.jsonl }
+store:      { path: docs/ptask/tasks.json }
+milestones: { path: docs/ptask/milestones.json }
+tags:       { path: docs/ptask/tags.json }
+archive:    { afterDays: 3, path: docs/ptask/archive.json }
+history:    { enabled: true, path: docs/ptask/history.jsonl }
 markdown:   { enabled: true, path: .dsh/TODO.md, archivePath: .dsh/ARCHIVE.md, doneLimit: 20 }
 version:    { auto: true, require: true, gitDir: "" }
 ui:         { enabled: true, defaultTab: auto }
@@ -760,12 +760,12 @@ batch:      { claimLimit: 3 }
 ### 11.4 初始化与迁移
 
 ```bash
-ptodo init                        # 空看板 + 默认里程碑/阶段
-ptodo init --template standard     # 另建 tags/config
+ptask init                        # 空看板 + 默认里程碑/阶段
+ptask init --template standard     # 另建 tags/config
 
-ptodo migrate --dry-run            # 预览任务数、标签、备份位置
-ptodo migrate                      # v2→v3；备份到 docs/ptodo/.backup/v2-<时间>/
-ptodo migrate --keep-legacy        # 旧 .dsh 布局：保留旧 JSON
+ptask migrate --dry-run            # 预览任务数、标签、备份位置
+ptask migrate                      # v2→v3；备份到 docs/ptask/.backup/v2-<时间>/
+ptask migrate --keep-legacy        # 旧 .dsh 布局：保留旧 JSON
 ```
 
 - 不跑 `migrate` 时，v3 首次写入也会先备份 v2 文件。
@@ -797,28 +797,28 @@ ptodo migrate --keep-legacy        # 旧 .dsh 布局：保留旧 JSON
 
 可以：开始、完成（弹窗填版本+证据）、阻塞恢复、释放（可带说明）、指派负责人、归档/批量归档、编辑标题/优先级/紧急度/标签/备注。
 
-不可以：编辑依赖/前置/资料/因果，删除任务、取消归档、导入、批量认领/释放、清空日志。这些只走 `ptodo admin`，避免页面绕过状态机。
+不可以：编辑依赖/前置/资料/因果，删除任务、取消归档、导入、批量认领/释放、清空日志。这些只走 `ptask admin`，避免页面绕过状态机。
 
 ### 12.3 与 CLI 的关系
 
-- 同一个项目、同一份 `todos.json`；页面动作也走 `service.act()`。
+- 同一个项目、同一份 `tasks.json`；页面动作也走 `service.act()`。
 - 页面不自动轮询；CLI 或其他会话改动后点「刷新」。
 - 页面写请求需要回环 + 同源/客户端标识鉴权，只在本机可用。
 
 ## 13. 跨工具技能
 
-技能源码在 `skill/project-todo/`，安装后各工具用同一份协议和同一个数据根。
+技能源码在 `skill/project-task/`，安装后各工具用同一份协议和同一个数据根。
 
 ```bash
-ptodo skill install --targets all
-ptodo skill install --targets project,codex
-ptodo skill status
-ptodo skill remove --targets all
+ptask skill install --targets all
+ptask skill install --targets project,codex
+ptask skill status
+ptask skill remove --targets all
 ```
 
 | target | 路径 |
 |---|---|
-| project | 项目 `.agents/skills/project-todo` |
+| project | 项目 `.agents/skills/project-task` |
 | agents | `~/.agents/skills` |
 | dsh | `~/.dsh/skills` |
 | zcode | `~/.zcode/skills` |
@@ -850,11 +850,11 @@ DSH 另有 Host 注入的常驻提示和会话摘要，即使 Agent 没加载技
 **Q6：里程碑全完成必须归档吗？**
 不必须。`done` 返回 `milestone.complete=true` 时**先问用户**；用户拒绝就写 `context loop` 记住，不归档。未确认不得归档。
 
-**Q7：能直接改 `docs/ptodo/*.json` 吗？**
-不能。会绕过 `revision`、锁、历史、派生字段和快照，导致并发覆盖。所有变更走 `ptodo`；导入用 `admin import-file`，迁移用 `migrate`。
+**Q7：能直接改 `docs/ptask/*.json` 吗？**
+不能。会绕过 `revision`、锁、历史、派生字段和快照，导致并发覆盖。所有变更走 `ptask`；导入用 `admin import-file`，迁移用 `migrate`。
 
 **Q8：能删任务吗？**
-页面不提供；CLI 用 `ptodo admin delete <id> [--cascade] [--purge]`。常规流程用取消/归档，不删除。
+页面不提供；CLI 用 `ptask admin delete <id> [--cascade] [--purge]`。常规流程用取消/归档，不删除。
 
 **Q9：多个 Agent 同时做会怎样？**
 `holder` 保证同一时刻只有一个人持有；后到者收到 `NOT_READY`。可以并行做不同任务，但不要同时改同一批文件。交接用 `release --note`。
@@ -872,25 +872,25 @@ DSH 另有 Host 注入的常驻提示和会话摘要，即使 Agent 没加载技
 能。除了 `done` 必须带 `--version`，其余功能不受影响；`doctor` 会提示「无 git」和「版本文档缺失」。
 
 **Q14：能接入 Jira/飞书吗？**
-当前不内置。数据是公开 JSON，可用 `admin export` 导出 md/xlsx，或自行读 `todos.json` 做同步；不要反向手写 JSON。
+当前不内置。数据是公开 JSON，可用 `admin export` 导出 md/xlsx，或自行读 `tasks.json` 做同步；不要反向手写 JSON。
 
 ## 15. 排障
 
 ### 15.1 先跑 `doctor`
 
 ```text
-ptodo 2.0.2 · E:\java\fuyao-ai
-✅ package  dsh-project-todo@2.0.2
+ptask 2.0.2 · E:\java\fuyao-ai
+✅ package  dsh-project-task@2.0.2
 ✅ node     22.19.0
 ✅ root     E:\java\fuyao-ai
-✅ board    ...\docs\ptodo\todos.json（revision 96，46 条）
+✅ board    ...\docs\ptask\tasks.json（revision 96，46 条）
 ✅ org      ...\milestones.json（M 1 / S 1）
 ✅ tags     ...\tags.json（9 个，draft 9）
 ✅ archive  ...\archive.json
-✅ history  ...\todos.history.jsonl
+✅ history  ...\history.jsonl
 ✅ snapshot ...\.dsh\TODO.md
 ⚠ git      当前目录无 git，完成时需 --version
-⚠ actor    optimisticGeek（git） — 建议把 PTODO_ACTOR 设为 <agent>:<名称>
+⚠ actor    optimisticGeek（git） — 建议把 PTASK_ACTOR 设为 <agent>:<名称>
 ⚠ context  目标缺失率 100%
 ✅ deps     无任务依赖成环
 ✅ skills   project:linked agents:linked dsh:linked ...
@@ -902,7 +902,7 @@ ptodo 2.0.2 · E:\java\fuyao-ai
 | root | 项目根解析 | `--root` 或 `cd` |
 | board/org/tags | 数据文件与版本 | 损坏则从备份恢复；缺失可 `init` |
 | git | 版本来源 | 无 git 就每次 `done --version` |
-| actor | 身份解析 | 设 `PTODO_ACTOR=<工具>:<名字>` |
+| actor | 身份解析 | 设 `PTASK_ACTOR=<工具>:<名字>` |
 | version | 版本文档缺失提醒 | 按提示补文档；只提醒不阻断 |
 | deps | 依赖环 | 删边重加 |
 | context | 目标缺失率 | 只提醒；当前版本 goal 只读展示，缺失不阻断 |
@@ -913,24 +913,24 @@ ptodo 2.0.2 · E:\java\fuyao-ai
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
-| `ptodo` 找不到 | 未 link / PATH 不含 npm 全局 bin | `npm link` 或 `npm i -g .`；确认全局 bin 在 PATH（`npm config get prefix`） |
+| `ptask` 找不到 | 未 link / PATH 不含 npm 全局 bin | `npm link` 或 `npm i -g .`；确认全局 bin 在 PATH（`npm config get prefix`） |
 | `[NO_PROJECT]` | 不在项目内且无 `--root` | `cd` 到项目根或传 `--root` |
-| `[PARSE_ERROR]` | JSON 损坏/版本不符 | 从 `docs/ptodo/.backup/` 恢复；不要手改 |
+| `[PARSE_ERROR]` | JSON 损坏/版本不符 | 从 `docs/ptask/.backup/` 恢复；不要手改 |
 | `[DEPENDENCY_CYCLE]` | 依赖成环 | `task dep remove` 删边后重加 |
 | `[TAG_NOT_FOUND]` | `tag.strict=true` 且标签未注册 | `tag add` 或关闭 strict |
 | 中文标签被拆 | PowerShell 逗号分隔 | `--tags "KB,api"` |
 | 技能没生效 | 未安装/工具未重启 | `skill status` → `skill install` → 重启工具 |
-| 页面 404 且响应为空 | Host 半边没注册接口：`ui.enabled=false` / 插件行不在该 profile / 页面跑在别的实例 | 重启整个 DSH；页面控制台 `fetch('/api/dsh-project-todo/health').then(r=>r.json())` 看 `services` |
+| 页面 404 且响应为空 | Host 半边没注册接口：`ui.enabled=false` / 插件行不在该 profile / 页面跑在别的实例 | 重启整个 DSH；页面控制台 `fetch('/api/dsh-project-task/health').then(r=>r.json())` 看 `services` |
 | 页面提示「未知接口」/`not found` | Host 与 Client 版本不一致 | 统一版本后重启；对比 `health` 的 `version` |
-| 锁一直冲突 | 遗留 `.lock`（超 10 秒视为陈旧） | 确认无进程写后删除 `docs/ptodo/todos.json.lock` |
-| `whoami` 的 person 不对 | 无 git `user.name`，回落到 actor 去前缀 | `git config user.name` 或设 `PTODO_ACTOR` |
+| 锁一直冲突 | 遗留 `.lock`（超 10 秒视为陈旧） | 确认无进程写后删除 `docs/ptask/tasks.json.lock` |
+| `whoami` 的 person 不对 | 无 git `user.name`，回落到 actor 去前缀 | `git config user.name` 或设 `PTASK_ACTOR` |
 
 ### 15.3 数据恢复
 
-- 每次变更写快照；`migrate` 与 v2 首次写入都会备份到 `docs/ptodo/.backup/`。
-- 历史日志 `todos.history.jsonl` 只追加，可用 `ptodo timeline` 追溯；`admin timeline-clear --confirm` 只清日志，不动任务/归档/revision。
-- 损坏 JSON 时 ptodo 拒绝写入并保留原文件；先备份现场，再从最近备份恢复，最后 `doctor`。
-- 不要用编辑器批量重写 `todos.json`；会丢 `revision` 并破坏锁语义。
+- 每次变更写快照；`migrate` 与 v2 首次写入都会备份到 `docs/ptask/.backup/`。
+- 历史日志 `history.jsonl` 只追加，可用 `ptask timeline` 追溯；`admin timeline-clear --confirm` 只清日志，不动任务/归档/revision。
+- 损坏 JSON 时 ptask 拒绝写入并保留原文件；先备份现场，再从最近备份恢复，最后 `doctor`。
+- 不要用编辑器批量重写 `tasks.json`；会丢 `revision` 并破坏锁语义。
 
 ### 15.4 Windows 注意事项
 
@@ -943,7 +943,7 @@ ptodo 2.0.2 · E:\java\fuyao-ai
 
 | 术语 | 含义 |
 |---|---|
-| 看板 | `docs/ptodo/todos.json` 中的活跃任务集合 |
+| 看板 | `docs/ptask/tasks.json` 中的活跃任务集合 |
 | 里程碑 `M-xxxx` | 交付节奏分组，挂阶段 |
 | 阶段 `S-xxxx` | 批次/模块分组，挂任务 |
 | 任务 `T-xxxx` | 可执行叶子；ID 内核分配、不复用 |
@@ -951,7 +951,7 @@ ptodo 2.0.2 · E:\java\fuyao-ai
 | 就绪 `isReady` | 叶子 + open + 无 holder + 硬依赖完成 + 必填前置满足 + 组织未归档 |
 | holder | 当前持有者（person），并发控制 |
 | person | 完成人/负责人，git `user.name` |
-| actor | 工具身份，`--by`/`PTODO_ACTOR`，建议 `工具:名字` |
+| actor | 工具身份，`--by`/`PTASK_ACTOR`，建议 `工具:名字` |
 | 开工简报 | `start` 返回的阶段/目标/上游/资料/loop/下一步投影 |
 | 硬/软依赖 | 硬依赖阻塞就绪；软依赖只提示 |
 | 前置条件 | 开工门槛（任务/标签/资料/提交/人工确认） |

@@ -9,7 +9,7 @@
 ```
 
 - 任务通过 `stageCode` 归属阶段；阶段通过 `milestoneCode` 归属里程碑。任务不直接挂里程碑。
-- `default` 里程碑（「默认」）与 `default` 阶段（「未分类」）是 **inbox**：文件缺失时读取即合成、`ptodo init` 时写入，**永远不可删除**；默认阶段不能移动、必须保持 `active`。
+- `default` 里程碑（「默认」）与 `default` 阶段（「未分类」）是 **inbox**：文件缺失时读取即合成、`ptask init` 时写入，**永远不可删除**；默认阶段不能移动、必须保持 `active`。
 - 新建任务默认 `stageCode=default`；`task create --stage S-0002` 可指定，阶段不存在 → `NOT_FOUND`。
 - 里程碑状态：`active|done|archived`；阶段状态：`pending|active|done|skipped`（默认阶段恒 `active`）。
 - `milestone create --stages a,b` 自动建阶段：首个 `active`，其余 `pending`；不给 `--stages` 则建一个「未分类」。
@@ -87,7 +87,7 @@ done | cancelled --reopen--> open
 ## 4. 开工简报（task start）
 
 ```bash
-ptodo task start T-0007
+ptask task start T-0007
 ```
 
 `start` 一次完成「检查就绪 → 认领 → 组装简报」，不需要再 `task get`。简报字段：
@@ -114,7 +114,7 @@ ptodo task start T-0007
 ## 5. 释放与交接（task release）
 
 ```bash
-ptodo task release T-0007 --note "等客户确认，下一步跑 probe_citation"
+ptask task release T-0007 --note "等客户确认，下一步跑 probe_citation"
 ```
 
 - 状态 `doing|blocked → open`，holder/claimedAt 清空，记录 `releasedBy`。
@@ -141,14 +141,14 @@ ptodo task release T-0007 --note "等客户确认，下一步跑 probe_citation"
 
 - `context.decisions` 上限 `context.maxDecisions`（默认 50）；`openLoops` 上限 `context.maxOpenLoops`（默认 20）。
 - 超限时最旧条目被替换为一条 `{by:"system", folded:true, text:"[已折叠 N 条更早决策/未关闭事项，见时间轴]"}`，只保留 1 条摘要 + 最新 `max-1` 条。
-- 被折叠的原文仍保留在 `todos.history.jsonl` 对应 `before/after` 快照里，可用 `timeline --scope task` 追溯。
+- 被折叠的原文仍保留在 `history.jsonl` 对应 `before/after` 快照里，可用 `timeline --scope task` 追溯。
 
 ## 9. 父子、排序与并发
 
 - 父任务 = 容器：有任意子任务即不可 claim/release/done/block；不能挂到自己的后代下；深度 ≤ 5；禁止环。
 - 父任务状态由子任务自底向上派生：全 cancelled → cancelled；非 cancelled 全 done → done（`doneAt` 取最晚）；任一 doing → doing；其余 open。进度按非 cancelled 子任务计算，只在读取时派生。
 - Agent 排序：`priority`（P0 最先）→ `urgency`（5 最急）→ `createdAt`（最早）→ id。
-- 并发：同一项目共用 `.lock`（`todos.json.lock`），进程内队列 + 跨进程锁；锁等待 2 秒，超过 10 秒的锁视为陈旧可清理；冲突返回 `CONFLICT`。同一任务只允许一个 holder。
+- 并发：同一项目共用 `.lock`（`tasks.json.lock`），进程内队列 + 跨进程锁；锁等待 2 秒，超过 10 秒的锁视为陈旧可清理；冲突返回 `CONFLICT`。同一任务只允许一个 holder。
 
 ## 10. 需求门在协议中的位置
 

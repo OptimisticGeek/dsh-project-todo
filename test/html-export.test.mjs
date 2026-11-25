@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { API_CHANNEL, registerConnectionRoutes } from '../lib/http.js'
 import { normalizeConfig } from '../lib/config.js'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 const CLIENT = fileURLToPath(new URL('../client.js', import.meta.url))
 
 function run(root, args) {
@@ -16,7 +16,7 @@ function run(root, args) {
 }
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-html-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-html-'))
   try {
     assert.equal(run(root, ['init']).status, 0)
     await runTest(root)
@@ -42,7 +42,7 @@ function exportHtml(root, extra = []) {
 }
 
 function parseData(text) {
-  const match = /<script id="ptodo-data" type="application\/json">([\s\S]*?)<\/script>/.exec(text)
+  const match = /<script id="ptask-data" type="application\/json">([\s\S]*?)<\/script>/.exec(text)
   assert.ok(match, 'template must inject the data script')
   return JSON.parse(match[1])
 }
@@ -65,7 +65,7 @@ test('HTML export is a self-contained offline report with a stable data contract
     assert.equal(data.blocked[0].reason, '等外部条件')
     assert.equal(data.tasks.length, 2)
     assert.equal(data.tasks[0].statusLabel, '已完成')
-    assert.doesNotMatch(text, /\{\{PTODO_[A-Z_]+\}\}/, 'no unresolved tokens')
+    assert.doesNotMatch(text, /\{\{ptask_[A-Z_]+\}\}/, 'no unresolved tokens')
     assert.doesNotMatch(text, /<script>alert\(1\)<\/script>/, 'user text must not become a script tag')
     assert.doesNotMatch(text, /(?:src|href)="https?:\/\//, 'no external resources')
   })
@@ -74,9 +74,9 @@ test('HTML export is a self-contained offline report with a stable data contract
 test('custom template path replaces tokens and receives the same data', async () => {
   await withRoot(async (root) => {
     await fixture(root)
-    const custom = `<!doctype html><html><head><meta charset="utf-8"><title>{{PTODO_TITLE}}</title></head>` +
-      `<body><h1>{{PTODO_PROJECT}} / {{PTODO_TASK_COUNT}} / {{PTODO_TEMPLATE}} / {{PTODO_SCOPE}}</h1>` +
-      `<script id="ptodo-data" type="application/json">{{PTODO_DATA}}</script></body></html>`
+    const custom = `<!doctype html><html><head><meta charset="utf-8"><title>{{ptask_TITLE}}</title></head>` +
+      `<body><h1>{{ptask_PROJECT}} / {{ptask_TASK_COUNT}} / {{ptask_TEMPLATE}} / {{ptask_SCOPE}}</h1>` +
+      `<script id="ptask-data" type="application/json">{{ptask_DATA}}</script></body></html>`
     const file = path.join(root, 'mine.html')
     await writeFile(file, custom, 'utf8')
 
@@ -99,7 +99,7 @@ test('missing template and missing data token fail loudly', async () => {
     await writeFile(bad, '<html><body>no data here</body></html>', 'utf8')
     const noToken = run(root, ['admin', 'export', '--format', 'html', '--template', 'bad.html'])
     assert.notEqual(noToken.status, 0)
-    assert.match(noToken.stderr, /PTODO_DATA/)
+    assert.match(noToken.stderr, /ptask_DATA/)
   })
 })
 
@@ -133,8 +133,8 @@ function mountExportRoute(root) {
       },
     },
   }
-  registerConnectionRoutes(ctx, () => normalizeConfig({}), '/dsh-project-todo', 'tok')
-  return routes.get(`${API_CHANNEL}/dsh-project-todo/export`)
+  registerConnectionRoutes(ctx, () => normalizeConfig({}), '/dsh-project-task', 'tok')
+  return routes.get(`${API_CHANNEL}/dsh-project-task/export`)
 }
 
 test('Web 面板导出菜单提供 HTML 汇报页（活跃 / 含归档）', async () => {
@@ -151,14 +151,14 @@ test('面板 /export?format=html 返回单文件离线报告，并支持 title',
     const route = mountExportRoute(root)
     assert.ok(route, '导出路由未注册')
     const response = await route.fetch(
-      new Request('http://localhost/api/dsh-project-todo/export?sessionId=session-x&format=html&scope=all&title=%E6%B1%87%E6%8A%A5%E9%A1%B5'),
+      new Request('http://localhost/api/dsh-project-task/export?sessionId=session-x&format=html&scope=all&title=%E6%B1%87%E6%8A%A5%E9%A1%B5'),
     )
     assert.equal(response.status, 200)
     assert.match(response.headers.get('content-type'), /text\/html/)
     assert.match(response.headers.get('content-disposition'), /\.html/)
     const html = await response.text()
-    assert.match(html, /<script id="ptodo-data" type="application\/json">/)
-    assert.doesNotMatch(html, /\{\{PTODO_[A-Z_]+\}\}/)
+    assert.match(html, /<script id="ptask-data" type="application\/json">/)
+    assert.doesNotMatch(html, /\{\{ptask_[A-Z_]+\}\}/)
     assert.match(html, /汇报页/)
     assert.equal(parseData(html).kpi.total, 2)
   })
@@ -169,11 +169,11 @@ test('面板只接受内置模板名，任意路径不会落到内置模板之�
     await fixture(root)
     const route = mountExportRoute(root)
     const response = await route.fetch(
-      new Request('http://localhost/api/dsh-project-todo/export?sessionId=session-x&format=html&template=..%2F..%2Fetc%2Fpasswd'),
+      new Request('http://localhost/api/dsh-project-task/export?sessionId=session-x&format=html&template=..%2F..%2Fetc%2Fpasswd'),
     )
     assert.equal(response.status, 200)
     const html = await response.text()
     // An unknown name is ignored and the built-in report is used.
-    assert.match(html, /<script id="ptodo-data" type="application\/json">/)
+    assert.match(html, /<script id="ptask-data" type="application\/json">/)
   })
 })

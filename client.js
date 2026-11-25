@@ -1,5 +1,5 @@
 /**
- * Browser half of `dsh-project-todo`.
+ * Browser half of `dsh-project-task`.
  *
  * v3 Web view: six fixed tabs (all/ready/doing/blocked/done/archived) whose
  * counts follow the active tag/milestone/stage/search filters, a compact
@@ -12,22 +12,22 @@
  * React.createElement only (no JSX), no dependencies, one inline stylesheet.
  */
 window.__ModuleLoader__.load({
-  id: 'dsh-project-todo',
+  id: 'dsh-project-task',
   factory(require) {
     const React = require('react')
     const h = React.createElement
     const { useState, useEffect, useCallback, useRef } = React
 
-    const BASE = '/api/dsh-project-todo'
-    const TOKEN = (typeof window !== 'undefined' && window.__DSH_PROJECT_TODO_TOKEN__) || ''
-    const HOLDER_KEY = 'dsh-project-todo-holder'
+    const BASE = '/api/dsh-project-task'
+    const TOKEN = (typeof window !== 'undefined' && window.__DSH_PROJECT_TASK_TOKEN__) || ''
+    const HOLDER_KEY = 'dsh-project-task-holder'
 
     /** Explain a 404 from the carrier: the route is missing, not the data. */
     function hostHalfHint() {
       const zh = typeof navigator !== 'undefined' && /^zh/i.test(navigator.language || '')
       return zh
-        ? 'Host 半边未加载：/api/dsh-project-todo 路由未注册（HTTP 404）。请重启 DSH，并确认插件行在 profile 的 dsh.profile.bundles 中、ui.enabled 未被关闭。'
-        : 'Host half not loaded: the /api/dsh-project-todo route is not registered (HTTP 404). Restart DSH, then check the plugin row in the profile bundles and that ui.enabled is not disabled.'
+        ? 'Host 半边未加载：/api/dsh-project-task 路由未注册（HTTP 404）。请重启 DSH，并确认插件行在 profile 的 dsh.profile.bundles 中、ui.enabled 未被关闭。'
+        : 'Host half not loaded: the /api/dsh-project-task route is not registered (HTTP 404). Restart DSH, then check the plugin row in the profile bundles and that ui.enabled is not disabled.'
     }
     const PRIORITIES = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5']
     const URGENCIES = [5, 4, 3, 2, 1]
@@ -67,14 +67,14 @@ window.__ModuleLoader__.load({
     }
     const TABS = ['all', 'ready', 'doing', 'blocked', 'done', 'archived']
     /** How the active list is laid out: auto falls back to flat without real hierarchy. */
-    const VIEW_KEY = 'dsh-project-todo-view'
+    const VIEW_KEY = 'dsh-project-task-view'
     const VIEW_MODES = ['auto', 'flat', 'grouped']
 
     const DICT = {
       zh: {
         nav: '待办', title: '项目待办', loading: '读取项目待办 …', refresh: '刷新', check: '校验',
-      skillNav: '技能', skillTitle: '把 project-todo 技能装给 Agent 工具',
-      skillBanner: '首次使用：把 project-todo 技能链接给已检测到的 Agent 工具，它们就能按 G0–G4 用 ptodo 干活。',
+      skillNav: '技能', skillTitle: '把 project-task 技能装给 Agent 工具',
+      skillBanner: '首次使用：把 project-task 技能链接给已检测到的 Agent 工具，它们就能按 G0–G4 用 ptask 干活。',
       skillInstallDetected: '一键安装到已检测工具', skillLater: '稍后', skillDone: '技能安装完成', skillFailed: '部分目标失败',
       skillLinked: '已链接', skillCopy: '已复制', skillMissing: '未安装', skillDrift: '内容不一致', skillForeign: '已存在其他内容',
       skillDetected: '已检测到', skillNotDetected: '未检测到',
@@ -151,8 +151,8 @@ window.__ModuleLoader__.load({
       },
       en: {
         nav: 'Todo', title: 'Project todo', loading: 'Loading project todo …', refresh: 'Refresh', check: 'Check',
-      skillNav: 'Skills', skillTitle: 'Install the project-todo skill for your agents',
-      skillBanner: 'First run: link the project-todo skill into the detected agent tools so they can run ptodo with the G0–G4 protocol.',
+      skillNav: 'Skills', skillTitle: 'Install the project-task skill for your agents',
+      skillBanner: 'First run: link the project-task skill into the detected agent tools so they can run ptask with the G0–G4 protocol.',
       skillInstallDetected: 'Install into detected tools', skillLater: 'Later', skillDone: 'Skill installed', skillFailed: 'Some targets failed',
       skillLinked: 'linked', skillCopy: 'copied', skillMissing: 'not installed', skillDrift: 'drifted', skillForeign: 'occupied',
       skillDetected: 'detected', skillNotDetected: 'not detected',
@@ -264,8 +264,8 @@ window.__ModuleLoader__.load({
 
     async function call(subpath, init) {
       const headers = Object.assign({}, init && init.headers)
-      headers['x-dsh-project-todo-client'] = '1'
-      if (TOKEN) headers['x-dsh-project-todo-token'] = TOKEN
+      headers['x-dsh-project-task-client'] = '1'
+      if (TOKEN) headers['x-dsh-project-task-token'] = TOKEN
       if (init && init.body) headers['content-type'] = 'application/json'
       const response = await window.fetch(BASE + subpath, Object.assign({}, init, { headers }))
       let payload = null
@@ -369,8 +369,8 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = [
-      '.dsh-project-todo{box-sizing:border-box;height:100%;min-height:0;overflow:auto;padding:20px 24px 48px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.5}',
-      '.dsh-project-todo *{box-sizing:border-box}',
+      '.dsh-project-task{box-sizing:border-box;height:100%;min-height:0;overflow:auto;padding:20px 24px 48px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.5}',
+      '.dsh-project-task *{box-sizing:border-box}',
       '.dpt-inner{max-width:1080px;margin:0 auto}',
       '.dpt-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:10px}',
       '.dpt-title{margin:0;font-size:18px;font-weight:650;letter-spacing:-0.01em}',
@@ -645,7 +645,7 @@ window.__ModuleLoader__.load({
           const [skillMsg, setSkillMsg] = useState('')
           const [skillDismissed, setSkillDismissed] = useState(() => {
             try {
-              return window.localStorage.getItem('dsh-project-todo-skills-dismissed') === '1'
+              return window.localStorage.getItem('dsh-project-task-skills-dismissed') === '1'
             } catch {
               return false
             }
@@ -758,7 +758,7 @@ window.__ModuleLoader__.load({
           const dismissSkillBanner = () => {
             setSkillDismissed(true)
             try {
-              window.localStorage.setItem('dsh-project-todo-skills-dismissed', '1')
+              window.localStorage.setItem('dsh-project-task-skills-dismissed', '1')
             } catch {
               /* ignore */
             }
@@ -1214,7 +1214,7 @@ window.__ModuleLoader__.load({
           const downloadExport = async (format, scope) => {
             try {
               const response = await window.fetch(`${BASE}/export?sessionId=${encodeURIComponent(sessionId || '')}&format=${format}&scope=${scope}`, {
-                headers: Object.assign({ 'x-dsh-project-todo-client': '1' }, TOKEN ? { 'x-dsh-project-todo-token': TOKEN } : {}),
+                headers: Object.assign({ 'x-dsh-project-task-client': '1' }, TOKEN ? { 'x-dsh-project-task-token': TOKEN } : {}),
               })
               const contentType = response.headers.get('content-type') || ''
               if (!response.ok || contentType.includes('application/json')) {
@@ -1232,7 +1232,7 @@ window.__ModuleLoader__.load({
               const blob = await response.blob()
               const disposition = response.headers.get('content-disposition') || ''
               const match = /filename="([^"]+)"/.exec(disposition)
-              const filename = match ? decodeURIComponent(match[1]) : `todos-${scope}.${format}`
+              const filename = match ? decodeURIComponent(match[1]) : `tasks-${scope}.${format}`
               const url = URL.createObjectURL(blob)
               const anchor = document.createElement('a')
               anchor.href = url
@@ -2175,7 +2175,7 @@ window.__ModuleLoader__.load({
 
           return h(
             'div',
-            { className: 'dsh-project-todo' },
+            { className: 'dsh-project-task' },
             h(StyleTag),
             h(
               'div',

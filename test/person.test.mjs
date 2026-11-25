@@ -19,7 +19,7 @@ const ACTOR = 'codex:alice'
 const PERSON = 'alice'
 
 async function withRoot(run) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-person-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-person-'))
   try {
     await run(root)
   } finally {

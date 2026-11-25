@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "project": "dsh-project-todo",
+  "project": "dsh-project-task",
   "nextId": 114,
   "revision": 171,
   "updatedAt": "2026-11-06T02:13:16.754Z",
@@ -9,13 +9,13 @@
       "id": "T-0041",
       "legacyId": null,
       "parentId": null,
-      "title": "项目待办 CLI 化：ptodo 全局命令 + 跨工具 Skills + 数据迁入 docs/ptodo",
+      "title": "项目待办 CLI 化：ptask 全局命令 + 跨工具 Skills + 数据迁入 docs/ptask",
       "status": "done",
       "priority": "P0",
       "urgency": 4,
       "holder": "optimisticGeek",
       "size": null,
-      "notes": "移除 DSH 20 个 ptodo_* 工具，插件包暴露 bin ptodo；数据迁 docs/ptodo/*.json；技能统一提示词；无 audit；版本 1.0.0；支持“继续开发”零启动批量认领。",
+      "notes": "移除 DSH 20 个 ptask_* 工具，插件包暴露 bin ptask；数据迁 docs/ptask/*.json；技能统一提示词；无 audit；版本 1.0.0；支持“继续开发”零启动批量认领。",
       "tags": [
         "TODO-SYSTEM",
         "INFRA"
@@ -28,7 +28,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-04T03:11:17.655Z",
       "doneVersion": "1.0.0",
-      "doneEvidence": "ptodo 1.0.0 全局可用；数据迁 docs/ptodo（33 任务/revision 37）；DSH 工具面清零；技能安装 6 处；47 项测试通过",
+      "doneEvidence": "ptask 1.0.0 全局可用；数据迁 docs/ptask（33 任务/revision 37）；DSH 工具面清零；技能安装 6 处；47 项测试通过",
       "archivedBy": null,
       "stageCode": "default",
       "context": {
@@ -52,13 +52,13 @@
       "id": "T-0043",
       "legacyId": null,
       "parentId": null,
-      "title": "ptodo v2 升级：三层组织/依赖/开工简报/UI",
+      "title": "ptask v2 升级：三层组织/依赖/开工简报/UI",
       "status": "done",
       "priority": "P1",
       "urgency": 3,
       "holder": "optimisticGeek",
       "size": null,
-      "notes": "按用户批准的 ptodo 完整开发计划执行：schema v3、actor、里程碑/阶段、标签库、依赖、ready/start/done/release/block/create、前置/因果/资料、UI 分组。",
+      "notes": "按用户批准的 ptask 完整开发计划执行：schema v3、actor、里程碑/阶段、标签库、依赖、ready/start/done/release/block/create、前置/因果/资料、UI 分组。",
       "tags": [
         "TODO-SYSTEM"
       ],
@@ -70,12 +70,12 @@
       "archiveExempt": false,
       "doneAt": "2026-11-04T07:20:03.997Z",
       "doneVersion": "2.0.0",
-      "doneEvidence": "node --test 88/88 通过；client.js node --check + 模块加载/槽位注册通过；live migrate v2→v3：35 任务、9 draft 标签、备份 docs/ptodo/.backup/v2-2026-11-04T07-19-50-196Z；doctor 通过；新 CLI ready/start/done/release/block/create 与里程碑/阶段/标签/上下文/前置/资料/因果实测通过",
+      "doneEvidence": "node --test 88/88 通过；client.js node --check + 模块加载/槽位注册通过；live migrate v2→v3：35 任务、9 draft 标签、备份 docs/ptask/.backup/v2-2026-11-04T07-19-50-196Z；doctor 通过；新 CLI ready/start/done/release/block/create 与里程碑/阶段/标签/上下文/前置/资料/因果实测通过",
       "archivedBy": null,
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": "完成于 2026-11-04T07:20:03.996Z：node --test 88/88 通过；client.js node --check + 模块加载/槽位注册通过；live migrate v2→v3：35 任务、9 draft 标签、备份 docs/ptodo/.backup/v2-2026-11-04T07-19-50-196Z；doctor 通过；新 CLI ready/start/done/release/block/create 与里程碑/阶段/标签/上下文/前置/资料/因果实测通过",
+        "progress": "完成于 2026-11-04T07:20:03.996Z：node --test 88/88 通过；client.js node --check + 模块加载/槽位注册通过；live migrate v2→v3：35 任务、9 draft 标签、备份 docs/ptask/.backup/v2-2026-11-04T07-19-50-196Z；doctor 通过；新 CLI ready/start/done/release/block/create 与里程碑/阶段/标签/上下文/前置/资料/因果实测通过",
         "decisions": [],
         "openLoops": []
       },
@@ -94,7 +94,7 @@
       "id": "T-0044",
       "legacyId": null,
       "parentId": null,
-      "title": "ptodo Web UI：紧凑表格/只读详情/指派负责人",
+      "title": "ptask Web UI：紧凑表格/只读详情/指派负责人",
       "status": "done",
       "priority": "P2",
       "urgency": 3,
@@ -136,7 +136,7 @@
       "id": "T-0045",
       "legacyId": null,
       "parentId": null,
-      "title": "ptodo Web UI：任务列表平铺/分组切换与层级可读性优化",
+      "title": "ptask Web UI：任务列表平铺/分组切换与层级可读性优化",
       "status": "done",
       "priority": "P1",
       "urgency": 3,
@@ -152,7 +152,7 @@
         "progress": "client.js 完成；client.test.mjs 改为两条用例（默认组织平铺 / 有层级分组）；SPEC §12 已更新；待全量回归与页面刷新确认。",
         "decisions": [
           {
-            "text": "视图三档 auto/flat/grouped：auto 仅在存在非默认里程碑或阶段时分组，单一默认组织平铺；选择持久化到 localStorage(dsh-project-todo-view)。分组层级用品牌色左竖条+编码徽标+进度条标识里程碑、阶段缩进30px+折叠、任务行44px缩进+竖线短横连接；分组视图隐藏冗余的『里程碑·阶段』列；平铺与分组共用行操作。",
+            "text": "视图三档 auto/flat/grouped：auto 仅在存在非默认里程碑或阶段时分组，单一默认组织平铺；选择持久化到 localStorage(dsh-project-task-view)。分组层级用品牌色左竖条+编码徽标+进度条标识里程碑、阶段缩进30px+折叠、任务行44px缩进+竖线短横连接；分组视图隐藏冗余的『里程碑·阶段』列；平铺与分组共用行操作。",
             "by": "optimisticGeek",
             "at": "2026-11-04T08:05:11.970Z"
           }
@@ -184,7 +184,7 @@
       "id": "T-0046",
       "legacyId": null,
       "parentId": null,
-      "title": "技能跨工具可移植性：WorkBuddy 等工具能正确使用 ptodo",
+      "title": "技能跨工具可移植性：WorkBuddy 等工具能正确使用 ptask",
       "status": "done",
       "priority": "P2",
       "urgency": 3,
@@ -200,7 +200,7 @@
         "progress": "已改 SKILL.md、references/tools.md、references/requirements.md、test/skill.test.mjs；待 done",
         "decisions": [
           {
-            "text": "跨工具方案：SKILL.md 增「跨工具执行」+ G0.5 无需求资产降级；actor 统一 <工具>:<名字>（实测 wb- 无冒号被 whoami 告警）；ptodo 不在 PATH 时 node bin/ptodo.mjs 可用；WorkBuddy 缓存已收录技能",
+            "text": "跨工具方案：SKILL.md 增「跨工具执行」+ G0.5 无需求资产降级；actor 统一 <工具>:<名字>（实测 wb- 无冒号被 whoami 告警）；ptask 不在 PATH 时 node bin/ptask.mjs 可用；WorkBuddy 缓存已收录技能",
             "by": "dsh:skill-portability",
             "at": "2026-11-04T08:05:20.771Z"
           }
@@ -224,7 +224,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-04T08:05:26.341Z",
       "doneVersion": "2.0.0",
-      "doneEvidence": "node --test test/skill.test.mjs 5/5 pass；ptodo skill status 7/7 linked（workbuddy junction 可读，SKILL.md 哈希与源一致）；WorkBuddy .skill-list-cache.json 收录 project-todo(disableModelInvocation:false)；PATH 裁剪下 node bin/ptodo.mjs whoami/skill status/task ready 退出 0；NOT_FOUND=3、done 缺 --version=5 实测",
+      "doneEvidence": "node --test test/skill.test.mjs 5/5 pass；ptask skill status 7/7 linked（workbuddy junction 可读，SKILL.md 哈希与源一致）；WorkBuddy .skill-list-cache.json 收录 project-task(disableModelInvocation:false)；PATH 裁剪下 node bin/ptask.mjs whoami/skill status/task ready 退出 0；NOT_FOUND=3、done 缺 --version=5 实测",
       "revision": 9,
       "archivedBy": null
     },
@@ -320,7 +320,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-04T08:18:59.830Z",
       "doneVersion": "2.0.1-ui.1",
-      "doneEvidence": "node --test 110/110（client 4/4 含默认与我相关、done 归档入口）；临时项目冒烟：create holder=person、done doneBy=person、milestone.complete=true、archive-batch moved=1；ptodo git link --dir utp 后 admin people 含 git 作者 LiuJia/workbuddy；package 升 2.0.1。页面需重启 dsh web 后刷新（Host 新路由 /people、archive_batch 才会加载）。",
+      "doneEvidence": "node --test 110/110（client 4/4 含默认与我相关、done 归档入口）；临时项目冒烟：create holder=person、done doneBy=person、milestone.complete=true、archive-batch moved=1；ptask git link --dir utp 后 admin people 含 git 作者 LiuJia/workbuddy；package 升 2.0.1。页面需重启 dsh web 后刷新（Host 新路由 /people、archive_batch 才会加载）。",
       "revision": 5,
       "archivedBy": null
     },
@@ -556,13 +556,13 @@
       "id": "T-0054",
       "legacyId": null,
       "parentId": null,
-      "title": "ptodo 插件文档：Agent 生命周期流程图 + README/帮助文档重写",
+      "title": "ptask 插件文档：Agent 生命周期流程图 + README/帮助文档重写",
       "status": "done",
       "priority": "P1",
       "urgency": 3,
       "holder": "optimisticGeek",
       "size": null,
-      "notes": "用泳道图/时序图讲清 agent 工具使用 ptodo 的完整生命周期；重写 README.md 并新增帮助文档（安装、命令、FAQ、排障）。",
+      "notes": "用泳道图/时序图讲清 agent 工具使用 ptask 的完整生命周期；重写 README.md 并新增帮助文档（安装、命令、FAQ、排障）。",
       "tags": [
         "TODO-SYSTEM"
       ],
@@ -609,7 +609,7 @@
       "id": "T-0055",
       "legacyId": null,
       "parentId": null,
-      "title": "dsh-project-todo 开源仓库：关联 GitHub 并推送 main",
+      "title": "dsh-project-task 开源仓库：关联 GitHub 并推送 main",
       "status": "done",
       "priority": "P2",
       "urgency": 3,
@@ -622,7 +622,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": "完成于 2026-11-04T08:55:32.007Z：origin=github.com:OptimisticGeek/dsh-project-todo（url.insteadOf 走 SSH，ssh -T 认证 OptimisticGeek）；本地 git init -b main + 首提交 b8b1cff（97 文件，.gitignore 排除 __pycache__/node_modules）；merge --allow-unrelated-histories 带入 GitHub 的 Apache-2.0 LICENSE（50160c9）；push -u origin main 成功，远端 refs/heads/main 与本地一致；README 增 clone 安装与许可、package.json 补 license/repository/homepage/bugs 后 793b70c 再次 push；npm test 117/117 通过；git status 干净",
+        "progress": "完成于 2026-11-04T08:55:32.007Z：origin=github.com:OptimisticGeek/dsh-project-task（url.insteadOf 走 SSH，ssh -T 认证 OptimisticGeek）；本地 git init -b main + 首提交 b8b1cff（97 文件，.gitignore 排除 __pycache__/node_modules）；merge --allow-unrelated-histories 带入 GitHub 的 Apache-2.0 LICENSE（50160c9）；push -u origin main 成功，远端 refs/heads/main 与本地一致；README 增 clone 安装与许可、package.json 补 license/repository/homepage/bugs 后 793b70c 再次 push；npm test 117/117 通过；git status 干净",
         "decisions": [],
         "openLoops": []
       },
@@ -643,7 +643,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-04T08:55:45.903Z",
       "doneVersion": "793b70c",
-      "doneEvidence": "origin=github.com:OptimisticGeek/dsh-project-todo（url.insteadOf 走 SSH，ssh -T 认证 OptimisticGeek）；本地 git init -b main + 首提交 b8b1cff（97 文件，.gitignore 排除 __pycache__/node_modules）；merge --allow-unrelated-histories 带入 GitHub 的 Apache-2.0 LICENSE（50160c9）；push -u origin main 成功，远端 refs/heads/main=793b70c 与本地一致；README 增 clone 安装与许可、package.json 补 license/repository/homepage/bugs；npm test 117/117 通过；git status 干净",
+      "doneEvidence": "origin=github.com:OptimisticGeek/dsh-project-task（url.insteadOf 走 SSH，ssh -T 认证 OptimisticGeek）；本地 git init -b main + 首提交 b8b1cff（97 文件，.gitignore 排除 __pycache__/node_modules）；merge --allow-unrelated-histories 带入 GitHub 的 Apache-2.0 LICENSE（50160c9）；push -u origin main 成功，远端 refs/heads/main=793b70c 与本地一致；README 增 clone 安装与许可、package.json 补 license/repository/homepage/bugs；npm test 117/117 通过；git status 干净",
       "revision": 6,
       "archivedBy": null
     },
@@ -664,7 +664,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": "完成于 2026-11-04T09:07:53.256Z：旧目录 E:\\java\\fuyao-ai\\dsh-plugins 已不存在；新版 E:\\dsh-plugins\\dsh-project-todo 含 99 个非 .git 文件 + 完整 .git（git status 干净、HEAD 4aa1623、origin/main 同步）；删除旧目录前对 90 个子目录文件逐个 SHA256 比对一致，9 个根文件（client.js/package.json/README/SPEC/LICENSE 等）此前已位于新目录；npm test 117/117、node --check index.js/client.js 通过；DSH desktop profile：package.json 改 link:E:/dsh-plugins/dsh-project-todo、node_modules/@local junction 与 pnpm-lock 同步重建；全局 npm junction 重建（ptodo 2.0.2 可用）；7 处技能 junction 全部重建 linked（project→E:\\java\\fuyao-ai\\.agents）；技能文档本机路径更新并 push 4aa1623。待重启 DSH 让 desktop profile 从新路径加载插件",
+        "progress": "完成于 2026-11-04T09:07:53.256Z：旧目录 E:\\java\\fuyao-ai\\dsh-plugins 已不存在；新版 E:\\dsh-plugins\\dsh-project-task 含 99 个非 .git 文件 + 完整 .git（git status 干净、HEAD 4aa1623、origin/main 同步）；删除旧目录前对 90 个子目录文件逐个 SHA256 比对一致，9 个根文件（client.js/package.json/README/SPEC/LICENSE 等）此前已位于新目录；npm test 117/117、node --check index.js/client.js 通过；DSH desktop profile：package.json 改 link:E:/dsh-plugins/dsh-project-task、node_modules/@local junction 与 pnpm-lock 同步重建；全局 npm junction 重建（ptask 2.0.2 可用）；7 处技能 junction 全部重建 linked（project→E:\\java\\fuyao-ai\\.agents）；技能文档本机路径更新并 push 4aa1623。待重启 DSH 让 desktop profile 从新路径加载插件",
         "decisions": [],
         "openLoops": []
       },
@@ -685,7 +685,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-04T09:07:53.257Z",
       "doneVersion": "4aa1623",
-      "doneEvidence": "旧目录 E:\\java\\fuyao-ai\\dsh-plugins 已不存在；新版 E:\\dsh-plugins\\dsh-project-todo 含 99 个非 .git 文件 + 完整 .git（git status 干净、HEAD 4aa1623、origin/main 同步）；删除旧目录前对 90 个子目录文件逐个 SHA256 比对一致，9 个根文件（client.js/package.json/README/SPEC/LICENSE 等）此前已位于新目录；npm test 117/117、node --check index.js/client.js 通过；DSH desktop profile：package.json 改 link:E:/dsh-plugins/dsh-project-todo、node_modules/@local junction 与 pnpm-lock 同步重建；全局 npm junction 重建（ptodo 2.0.2 可用）；7 处技能 junction 全部重建 linked（project→E:\\java\\fuyao-ai\\.agents）；技能文档本机路径更新并 push 4aa1623。待重启 DSH 让 desktop profile 从新路径加载插件",
+      "doneEvidence": "旧目录 E:\\java\\fuyao-ai\\dsh-plugins 已不存在；新版 E:\\dsh-plugins\\dsh-project-task 含 99 个非 .git 文件 + 完整 .git（git status 干净、HEAD 4aa1623、origin/main 同步）；删除旧目录前对 90 个子目录文件逐个 SHA256 比对一致，9 个根文件（client.js/package.json/README/SPEC/LICENSE 等）此前已位于新目录；npm test 117/117、node --check index.js/client.js 通过；DSH desktop profile：package.json 改 link:E:/dsh-plugins/dsh-project-task、node_modules/@local junction 与 pnpm-lock 同步重建；全局 npm junction 重建（ptask 2.0.2 可用）；7 处技能 junction 全部重建 linked（project→E:\\java\\fuyao-ai\\.agents）；技能文档本机路径更新并 push 4aa1623。待重启 DSH 让 desktop profile 从新路径加载插件",
       "revision": 3,
       "archivedBy": null
     },
@@ -741,7 +741,7 @@
       "id": "T-0058",
       "legacyId": null,
       "parentId": null,
-      "title": "插件开发待办迁移：把 TODO-SYSTEM 任务移到 E:\\dsh-plugins\\dsh-project-todo 独立看板",
+      "title": "插件开发待办迁移：把 TODO-SYSTEM 任务移到 E:\\dsh-plugins\\dsh-project-task 独立看板",
       "status": "done",
       "priority": "P0",
       "urgency": 3,
@@ -754,10 +754,10 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": "完成于 2026-11-04T09:25:41.789Z：17 个插件开发任务（T-0041,T-0043..T-0058）连同 context/证据迁入本仓 docs/ptodo；77 条相关 history 同步；工作区已 purge 这 17 条，剩 33 条产品任务（31 open + T-0010 doing + T-0042 done）；插件看板 revision 119、nextId 100",
+        "progress": "完成于 2026-11-04T09:25:41.789Z：17 个插件开发任务（T-0041,T-0043..T-0058）连同 context/证据迁入本仓 docs/ptask；77 条相关 history 同步；工作区已 purge 这 17 条，剩 33 条产品任务（31 open + T-0010 doing + T-0042 done）；插件看板 revision 119、nextId 100",
         "decisions": [
           {
-            "text": "无需求资产（内部工具维护），按任务描述 DoD 执行：插件源码与开发待办都迁到 E:\\dsh-plugins\\dsh-project-todo，工作区只保留产品交付任务。",
+            "text": "无需求资产（内部工具维护），按任务描述 DoD 执行：插件源码与开发待办都迁到 E:\\dsh-plugins\\dsh-project-task，工作区只保留产品交付任务。",
             "by": "optimisticGeek",
             "at": "2026-11-04T09:24:30.786Z"
           }
@@ -787,7 +787,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-04T09:25:41.789Z",
       "doneVersion": "2.0.3",
-      "doneEvidence": "17 个插件开发任务（T-0041,T-0043..T-0058）连同 context/证据迁入本仓 docs/ptodo；77 条相关 history 同步；工作区已 purge 这 17 条，剩 33 条产品任务（31 open + T-0010 doing + T-0042 done）；插件看板 revision 119、nextId 100",
+      "doneEvidence": "17 个插件开发任务（T-0041,T-0043..T-0058）连同 context/证据迁入本仓 docs/ptask；77 条相关 history 同步；工作区已 purge 这 17 条，剩 33 条产品任务（31 open + T-0010 doing + T-0042 done）；插件看板 revision 119、nextId 100",
       "revision": 5,
       "archivedBy": null
     },
@@ -1041,7 +1041,7 @@
         "progress": "完成于 2026-11-05T05:37:36.543Z：node --test 134/134 通过；新增 test/http-host-half.test.mjs 5 例（health 报告 webServer/agents/workingDirectory 缺失、无 agents 时 state 返回可读 NO_PROJECT、未知子路径 404 JSON、非本机 403），test/plugin.test.mjs 覆盖只注入 webServer 即注册路由、ui.enabled=false 告警；node --check client.js/index.js/lib/http.js 通过",
         "decisions": [
           {
-            "text": "无需求资产（dsh-project-todo），按任务描述 DoD 执行：路由注册降级 + 告警 + 404 提示 + 排障文档",
+            "text": "无需求资产（dsh-project-task），按任务描述 DoD 执行：路由注册降级 + 告警 + 404 提示 + 排障文档",
             "by": "optimisticGeek",
             "at": "2026-11-05T05:37:32.360Z"
           }
@@ -1173,7 +1173,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": "完成于 2026-11-05T06:04:32.842Z：node --test 136/136；ptodo doctor version ✅（回填 13 份历史版本文档）与 archive ✅（未归档不再告警）；npm registry dsh-project-todo 返回 404（未占用）；profile 目录 import('dsh-project-todo') 解析成功；tag v3.0.0 已推送（8cc567c）",
+        "progress": "完成于 2026-11-05T06:04:32.842Z：node --test 136/136；ptask doctor version ✅（回填 13 份历史版本文档）与 archive ✅（未归档不再告警）；npm registry dsh-project-task 返回 404（未占用）；profile 目录 import('dsh-project-task') 解析成功；tag v3.0.0 已推送（8cc567c）",
         "decisions": [],
         "openLoops": []
       },
@@ -1194,7 +1194,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-05T06:04:32.842Z",
       "doneVersion": "3.0.0",
-      "doneEvidence": "node --test 136/136；ptodo doctor version ✅（回填 13 份历史版本文档）与 archive ✅（未归档不再告警）；npm registry dsh-project-todo 返回 404（未占用）；profile 目录 import('dsh-project-todo') 解析成功；tag v3.0.0 已推送（8cc567c）",
+      "doneEvidence": "node --test 136/136；ptask doctor version ✅（回填 13 份历史版本文档）与 archive ✅（未归档不再告警）；npm registry dsh-project-task 返回 404（未占用）；profile 目录 import('dsh-project-task') 解析成功；tag v3.0.0 已推送（8cc567c）",
       "revision": 3,
       "archivedBy": null
     },
@@ -1301,7 +1301,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": "完成于 2026-11-05T06:58:55.470Z：node --test 149/149；新增 lib/skills.js 共享核心（8 目标、junction/复制、firstRun），CLI 改用同一核心并新增 trae；GET/POST /api/dsh-project-todo/skills 端到端用例通过（临时 HOME，安装后 linked 且 SKILL.md 存在）；client.js 新增首次安装横幅与技能面板；tag v3.1.0 已推送",
+        "progress": "完成于 2026-11-05T06:58:55.470Z：node --test 149/149；新增 lib/skills.js 共享核心（8 目标、junction/复制、firstRun），CLI 改用同一核心并新增 trae；GET/POST /api/dsh-project-task/skills 端到端用例通过（临时 HOME，安装后 linked 且 SKILL.md 存在）；client.js 新增首次安装横幅与技能面板；tag v3.1.0 已推送",
         "decisions": [],
         "openLoops": []
       },
@@ -1322,7 +1322,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-05T06:58:55.470Z",
       "doneVersion": "3.1.0",
-      "doneEvidence": "node --test 149/149；新增 lib/skills.js 共享核心（8 目标、junction/复制、firstRun），CLI 改用同一核心并新增 trae；GET/POST /api/dsh-project-todo/skills 端到端用例通过（临时 HOME，安装后 linked 且 SKILL.md 存在）；client.js 新增首次安装横幅与技能面板；tag v3.1.0 已推送",
+      "doneEvidence": "node --test 149/149；新增 lib/skills.js 共享核心（8 目标、junction/复制、firstRun），CLI 改用同一核心并新增 trae；GET/POST /api/dsh-project-task/skills 端到端用例通过（临时 HOME，安装后 linked 且 SKILL.md 存在）；client.js 新增首次安装横幅与技能面板；tag v3.1.0 已推送",
       "revision": 3,
       "archivedBy": null
     },
@@ -1344,7 +1344,7 @@
       "stageCode": "default",
       "context": {
         "goal": null,
-        "progress": "完成于 2026-11-05T07:06:08.807Z：node --test 149/149；git ls-files -s bin/ptodo.mjs = 100755；.gitattributes 全 LF；CI 矩阵 ubuntu/macos/windows × Node 20/22 (node --test)；skills 目录哈希排序改码点比较；docs/INSTALL.md 增加跨平台章节；tag v3.1.1 已推送",
+        "progress": "完成于 2026-11-05T07:06:08.807Z：node --test 149/149；git ls-files -s bin/ptask.mjs = 100755；.gitattributes 全 LF；CI 矩阵 ubuntu/macos/windows × Node 20/22 (node --test)；skills 目录哈希排序改码点比较；docs/INSTALL.md 增加跨平台章节；tag v3.1.1 已推送",
         "decisions": [],
         "openLoops": []
       },
@@ -1365,7 +1365,7 @@
       "archiveExempt": false,
       "doneAt": "2026-11-05T07:06:08.807Z",
       "doneVersion": "3.1.1",
-      "doneEvidence": "node --test 149/149；git ls-files -s bin/ptodo.mjs = 100755；.gitattributes 全 LF；CI 矩阵 ubuntu/macos/windows × Node 20/22 (node --test)；skills 目录哈希排序改码点比较；docs/INSTALL.md 增加跨平台章节；tag v3.1.1 已推送",
+      "doneEvidence": "node --test 149/149；git ls-files -s bin/ptask.mjs = 100755；.gitattributes 全 LF；CI 矩阵 ubuntu/macos/windows × Node 20/22 (node --test)；skills 目录哈希排序改码点比较；docs/INSTALL.md 增加跨平台章节；tag v3.1.1 已推送",
       "revision": 3,
       "archivedBy": null
     },

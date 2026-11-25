@@ -15,30 +15,30 @@
 ## 1. 定位与边界
 
 - **项目级**：数据属于项目，不是全局任务池。项目 = 会话工作目录解析出的项目根；同一项目的多个会话共享同一份待办。
-- **agent 的工作目标**：待办是 agent 的默认目标来源；`ptodo` 是唯一命令入口，技能与提示词保证读得懂、改得对。
+- **agent 的工作目标**：待办是 agent 的默认目标来源；`ptask` 是唯一命令入口，技能与提示词保证读得懂、改得对。
 - **三层组织**：里程碑管交付节奏，阶段管批次/模块，任务管可执行叶子；任务通过 `stageCode` 归属阶段。
 - **不是**：DSH 内置 `todo_write` 的替代（那是会话内计划清单）；也不是 Jira 式协作系统（无评论/附件/多人指派）。
 
 ## 2. 交付形态
 
-- 包：`dsh-project-todo`（目录 `dsh-plugins/dsh-project-todo`），bin 为全局命令 `ptodo`。
+- 包：`dsh-project-task`（目录 `dsh-plugins/dsh-project-task`），bin 为全局命令 `ptask`。
 - Host 半边：项目解析、JSON store、org/tag store、Markdown 快照、CLI、HTTP（供 Web UI）。
 - Client 半边：`conversation.view` 标签页「待办」；**不注册** `sidebar.panellist` / `main`。
-- **不再注册任何 model-facing `ptodo_*` 工具**；CLI 与页面共用 `service.act()` 与 `getState/getTask/getTimeline`。
+- **不再注册任何 model-facing `ptask_*` 工具**；CLI 与页面共用 `service.act()` 与 `getState/getTask/getTimeline`。
 
 ## 3. 项目解析
 
 输入是会话或 CLI 的 cwd，输出项目根：
 
-1. 从起点向上最多 9 层，**先整条链找 `docs/ptodo/todos.json`**，命中即该目录；
+1. 从起点向上最多 9 层，**先整条链找 `docs/ptask/tasks.json`**，命中即该目录；
 2. 都没有，再整条链找 `.git`，命中即该目录；
 3. 都没有 → 用 cwd 本身，首次写入时创建数据目录。
 
-CLI 可用 `--root DIR` 覆盖；`PTODO_ROOT` 次之。UI 侧由 Host 用 `workingDirectory.get(session)` 解析，浏览器不传路径；解析失败 → `NO_PROJECT`。
+CLI 可用 `--root DIR` 覆盖；`PTASK_ROOT` 次之。UI 侧由 Host 用 `workingDirectory.get(session)` 解析，浏览器不传路径；解析失败 → `NO_PROJECT`。
 
 ## 4. 数据模型
 
-### 4.1 `docs/ptodo/todos.json`（v3）
+### 4.1 `docs/ptask/tasks.json`（v3）
 
 ```jsonc
 {
@@ -87,7 +87,7 @@ CLI 可用 `--root DIR` 覆盖；`PTODO_ROOT` 次之。UI 侧由 Host 用 `worki
 }
 ```
 
-### 4.2 `docs/ptodo/milestones.json`（v1）
+### 4.2 `docs/ptask/milestones.json`（v1）
 
 ```jsonc
 {
@@ -110,9 +110,9 @@ CLI 可用 `--root DIR` 覆盖；`PTODO_ROOT` 次之。UI 侧由 Host 用 `worki
 ```
 
 - `default` 里程碑「默认」、`default` 阶段「未分类」始终存在且不可删除；默认阶段固定挂默认里程碑、状态恒 `active`。
-- 文件缺失时**读取即合成**（不写盘）；`ptodo init` 写入；`ptodo migrate` 也会创建。
+- 文件缺失时**读取即合成**（不写盘）；`ptask init` 写入；`ptask migrate` 也会创建。
 
-### 4.3 `docs/ptodo/tags.json`（v1）
+### 4.3 `docs/ptask/tags.json`（v1）
 
 ```jsonc
 {
@@ -129,13 +129,13 @@ CLI 可用 `--root DIR` 覆盖；`PTODO_ROOT` 次之。UI 侧由 Host 用 `worki
 - 未知标签默认自动登记为 `draft`；`tag.strict=true` 时抛 `TAG_NOT_FOUND`。
 - `usageCount` 由活跃+归档任务派生，不落库。
 
-### 4.4 `docs/ptodo/archive.json`（v2）
+### 4.4 `docs/ptask/archive.json`（v2）
 
 ```jsonc
 { "version": 2, "project": "...", "revision": 5, "updatedAt": "...", "tasks": [ /* 同任务结构 + archivedAt/archivedBy */ ] }
 ```
 
-### 4.5 `docs/ptodo/todos.history.jsonl`
+### 4.5 `docs/ptask/history.jsonl`
 
 每行一条 JSON，只追加；看板/组织/标签共用：
 
@@ -236,12 +236,12 @@ done | cancelled --reopen--> open
 
 | 命令 | 行为 |
 |---|---|
-| `ptodo task ready [--limit N] [--stage S] [--milestone M]` | 只列就绪叶子 |
-| `ptodo task start <id>` | 认领 + 开工简报；不就绪 `NOT_READY` |
-| `ptodo task done <id> [--evidence] [--version] [--force]` | 完成；自动证据/版本；解锁下游 |
-| `ptodo task release <id> [--note] [--force]` | 释放 + 交接 |
-| `ptodo task block <id> --reason` | 阻塞并把原因写入 openLoops |
-| `ptodo task create --title ... [--stage] [--priority P0..P5] [--urgency 1..5] [--tags a,b] [--parent] [--blocked-by] [--notes]` | 新建；编码自动分配 |
+| `ptask task ready [--limit N] [--stage S] [--milestone M]` | 只列就绪叶子 |
+| `ptask task start <id>` | 认领 + 开工简报；不就绪 `NOT_READY` |
+| `ptask task done <id> [--evidence] [--version] [--force]` | 完成；自动证据/版本；解锁下游 |
+| `ptask task release <id> [--note] [--force]` | 释放 + 交接 |
+| `ptask task block <id> --reason` | 阻塞并把原因写入 openLoops |
+| `ptask task create --title ... [--stage] [--priority P0..P5] [--urgency 1..5] [--tags a,b] [--parent] [--blocked-by] [--notes]` | 新建；编码自动分配 |
 
 ### 8.2 管理命令
 
@@ -259,17 +259,17 @@ timeline  [--scope project|tag|task] [--type task|dependency|org|tag|context|res
 whoami | doctor | init [--template simple|standard] | migrate | skill install|status|remove
 ```
 
-页面/脚本动作：`ptodo admin reopen|unblock|archive|archive-batch|unarchive|delete|claim-batch|release-batch|check|timeline|timeline-clear|import|import-file|export|people`（不进技能主流程提示词）。
+页面/脚本动作：`ptask admin reopen|unblock|archive|archive-batch|unarchive|delete|claim-batch|release-batch|check|timeline|timeline-clear|import|import-file|export|people`（不进技能主流程提示词）。
 
-**命令自发现**：`lib/cli/schema.mjs` 是命令/参数/示例的唯一注册表，`--help` 分三级输出（总览 / 域 / 子命令），`ptodo schema --json` 返回全部 action 与参数。新增命令必须同时更新注册表。
+**命令自发现**：`lib/cli/schema.mjs` 是命令/参数/示例的唯一注册表，`--help` 分三级输出（总览 / 域 / 子命令），`ptask schema --json` 返回全部 action 与参数。新增命令必须同时更新注册表。
 
 **JSON 通道**：`admin export --format json` 输出完整任务记录（`dependsOn` 为 id 数组，`dependsOnDetail` 带 type/note）；`admin import-file <file> [--dry-run] [--create-only]` 按 id 幂等合并——已存在只更新该行给出的字段、`context.decisions` 追加，不存在则新建并把原 id 写进 `legacyId`。导入逐行返回 `created/updated/unchanged/failed` 与原因，依赖找不到单独列出；含失败行时退出码 1。`--create-only` 不做 id 匹配，用于跨项目复制。
 
-**HTML 导出**：`admin export --format html` 由 `lib/html-report.js` 产出数据模型，`templates/report.html` 负责版式（单文件、无 CDN、离线可开）。模板用 `{{PTODO_*}}` 占位符，缺 `{{PTODO_DATA}}` 报 `PARSE_ERROR`；`--template` 支持内置名或本地路径，`admin templates` 列内置模板。CLI 与 HTTP 共用 `exportData(state, scope, format, config, options)`；HTTP 只接受内置模板名以防路径穿越。
+**HTML 导出**：`admin export --format html` 由 `lib/html-report.js` 产出数据模型，`templates/report.html` 负责版式（单文件、无 CDN、离线可开）。模板用 `{{PTASK_*}}` 占位符，缺 `{{PTASK_DATA}}` 报 `PARSE_ERROR`；`--template` 支持内置名或本地路径，`admin templates` 列内置模板。CLI 与 HTTP 共用 `exportData(state, scope, format, config, options)`；HTTP 只接受内置模板名以防路径穿越。
 
 **五项能力补完**：`role: container` 可显式声明（派生容器在 `decorateTask` 里给出有效 role，JSON 导出携带）；`task sync-parents [--dry-run]` 收口子任务已全完成或已归档的父任务并聚合版本/证据；`task done --backfill --version` 跳过 doing 校验、时间轴记 `backfill`；`task suggest` 只读给一条建议 + 排序理由（顶层 `next` 的 JSON/文本也带 `reason`）；清除 open 任务残留 holder 记 `holder_fix`，`category=admin`，默认时间轴隐藏，`--all` / `--type admin` 可查看。
 
-**显式 root 守卫**：`--root`/`PTODO_ROOT` 指向没有 `docs/ptodo/todos.json` 的目录时，写操作报 `NO_PROJECT`(7) 而非静默新建第二套库；`init/migrate/doctor` 例外。`person` 在目标项目是 git 工作树时取该仓库的 `user.name`。
+**显式 root 守卫**：`--root`/`PTASK_ROOT` 指向没有 `docs/ptask/tasks.json` 的目录时，写操作报 `NO_PROJECT`(7) 而非静默新建第二套库；`init/migrate/doctor` 例外。`person` 在目标项目是 git 工作树时取该仓库的 `user.name`。
 
 ### 8.3 兼容别名（隐藏，不教给 agent）
 
@@ -296,23 +296,23 @@ whoami | doctor | init [--template simple|standard] | migrate | skill install|st
 
 ## 9. Actor
 
-解析优先级：`--by` > `PTODO_ACTOR` > git `user.name` > `DSH_SESSION_ID` > `cli-<用户名>`。
+解析优先级：`--by` > `PTASK_ACTOR` > git `user.name` > `DSH_SESSION_ID` > `cli-<用户名>`。
 
-- 每次解析同时给出 `person`：优先 git `user.name`（本地仓 → 全局），没有 git 时取 `--by/PTODO_ACTOR` 去掉一个 `<工具>:` 前缀，再回落到 actor。
+- 每次解析同时给出 `person`：优先 git `user.name`（本地仓 → 全局），没有 git 时取 `--by/PTASK_ACTOR` 去掉一个 `<工具>:` 前缀，再回落到 actor。
 - **人字段存 `person`**：`holder`、`createdBy/claimedBy/doneBy/releasedBy`、`archivedBy`、`context.*.by` 的“人”语义；历史日志的 `by` 仍记 actor（保留工具区分）。
 - 新建任务默认负责人：**默认不指派**——`create` 是登记，不是认领，`holder=null`，任务直接进入 `ready`；需要"建了就归自己"时显式 `--claim`（或 `--holder <person>`）。UI 传当前操作人；service 不自动加 holder。
 - agent 建议格式 `<agent>:<name>`（`codex:zhangsan`）；`whoami` 显示 `actor/person/source/gitName/hasPrefix`。
 - git 名从 `.git/config`（worktree 用 `commondir`）或 `~/.gitconfig` 读取，不 spawn 子进程。
 - `actor.requirePrefix` 只提示，不阻断。
 
-## 10. 配置（`docs/ptodo/config.json`，可缺省）
+## 10. 配置（`docs/ptask/config.json`，可缺省）
 
 ```yaml
-store:      { path: docs/ptodo/todos.json }
-milestones: { path: docs/ptodo/milestones.json }
-tags:       { path: docs/ptodo/tags.json }
-archive:    { afterDays: 3, path: docs/ptodo/archive.json }
-history:    { enabled: true, path: docs/ptodo/todos.history.jsonl }
+store:      { path: docs/ptask/tasks.json }
+milestones: { path: docs/ptask/milestones.json }
+tags:       { path: docs/ptask/tags.json }
+archive:    { afterDays: 3, path: docs/ptask/archive.json }
+history:    { enabled: true, path: docs/ptask/history.jsonl }
 markdown:   { enabled: true, path: .dsh/TODO.md, archivePath: .dsh/ARCHIVE.md, doneLimit: 20 }
 version:    { auto: true, require: true, gitDir: "" }
 ui:         { enabled: true, defaultTab: auto }   # auto|all|ready|doing|blocked|done|archived
@@ -331,27 +331,27 @@ batch:      { claimLimit: 3 }
 - 完成版本：显式 `--version` → `version.gitDir` → 会话 cwd → 项目根；先纯文件读 HEAD（`.git` 目录/文件、`commondir`、loose refs、`packed-refs`），取不到再尝试 `git rev-parse --short HEAD`。
 - `version.require=true` 且取不到 → 拒绝完成；否则版本可空。
 - 自动证据：`git log --grep=<taskId>` 前 3 条摘要；`done --evidence` 优先。
-- `git link` 写 `config.version.gitDir`（`--dir` 默认当前 shell 目录，不是 `--root`）；`git hook install` 安装 `prepare-commit-msg`，在 `PTODO_TASK` 存在时追加 `Refs: T-xxxx`。
-- 所有 git 调用 best-effort：非仓库/沙箱拒绝子进程时降级为「无数据」，不阻断 ptodo。
+- `git link` 写 `config.version.gitDir`（`--dir` 默认当前 shell 目录，不是 `--root`）；`git hook install` 安装 `prepare-commit-msg`，在 `PTASK_TASK` 存在时追加 `Refs: T-xxxx`。
+- 所有 git 调用 best-effort：非仓库/沙箱拒绝子进程时降级为「无数据」，不阻断 ptask。
 
 ## 12. UI 契约
 
 - 注册 `conversation.view`，`id="todo"`，label 走 locale（zh 待办 / en Todo）。
 - 页面按契约消费 Host API，挂在 DSH 共享 `/api` Fetch 通道（`ctx.connection.fetch`，Web 载体与桌面 `dsh-app://` 壳载体都分发）；旧 `webServer` 前缀路由保留兼容：
-  - `GET /api/dsh-project-todo/health` → `{ version, services:{ webServer, agents, workingDirectory }, hint }`，用于区分「接口没注册」与「会话服务缺失」；
-  - `GET /api/dsh-project-todo/state?sessionId=…` → 任务（含派生字段）、里程碑/阶段、标签、counts、actor（含 person）；
-  - `GET /api/dsh-project-todo/people?sessionId=…` → `{ person, people:[{ name, source, active, done, related }] }`
+  - `GET /api/dsh-project-task/health` → `{ version, services:{ webServer, agents, workingDirectory }, hint }`，用于区分「接口没注册」与「会话服务缺失」；
+  - `GET /api/dsh-project-task/state?sessionId=…` → 任务（含派生字段）、里程碑/阶段、标签、counts、actor（含 person）；
+  - `GET /api/dsh-project-task/people?sessionId=…` → `{ person, people:[{ name, source, active, done, related }] }`
     （**仅 git 历史作者**；当前 person 也必须是 git 作者；任务里的工具名/session id 不再作为人员）；
-  - `GET /api/dsh-project-todo/task?id=…&sessionId=…` → 任务 + 父/子 + 历史 + 前置 + 被依赖 + 资料 + 相关提交；
-  - `GET /api/dsh-project-todo/timeline?sessionId=…&scope=…&tag=…&taskId=…&q=…&type=…&limit=20`；
-  - `GET /api/dsh-project-todo/version?sessionId=…` → 完成版本预取；
-  - `GET /api/dsh-project-todo/export?…`、`POST /api/dsh-project-todo/import`（base64）；
-  - `POST /api/dsh-project-todo/action`（body 含 `sessionId` 与 action）。
-- 写请求鉴权：共享通道由载体做浏览器会话认证；旧 `webServer` 路由额外要求回环 + 四选一（`x-dsh-project-todo-token`、同源 Origin、`sec-fetch-site: same-origin`、`x-dsh-project-todo-client: 1`）。
+  - `GET /api/dsh-project-task/task?id=…&sessionId=…` → 任务 + 父/子 + 历史 + 前置 + 被依赖 + 资料 + 相关提交；
+  - `GET /api/dsh-project-task/timeline?sessionId=…&scope=…&tag=…&taskId=…&q=…&type=…&limit=20`；
+  - `GET /api/dsh-project-task/version?sessionId=…` → 完成版本预取；
+  - `GET /api/dsh-project-task/export?…`、`POST /api/dsh-project-task/import`（base64）；
+  - `POST /api/dsh-project-task/action`（body 含 `sessionId` 与 action）。
+- 写请求鉴权：共享通道由载体做浏览器会话认证；旧 `webServer` 路由额外要求回环 + 四选一（`x-dsh-project-task-token`、同源 Origin、`sec-fetch-site: same-origin`、`x-dsh-project-task-client: 1`）。
 - **布局**：紧凑表格（`dpt-table`，min-width 940，窄屏横向滚动；外层 1080px），不再使用大卡片流。
   列：状态 / ID / 任务标题（父子缩进、依赖 ⛓ N、前置 ⏳ N、版本、标签）/ 优先级 / 紧急度 /
   里程碑·阶段（只显示 name，`title=code`；**分组视图下隐藏该列**）/ 负责人 / 更新时间 / 操作。
-- **视图切换**：工具栏「视图」下拉三档，写入 localStorage（`dsh-project-todo-view`）：
+- **视图切换**：工具栏「视图」下拉三档，写入 localStorage（`dsh-project-task-view`）：
   - `auto`（默认）：看板只有 `default` 里程碑与阶段时**平铺**，存在其他里程碑或非默认阶段时**按里程碑分组**；
     当前实际结果通过 `title` 提示。单一默认组织不渲染任何组头。
   - `flat`：强制平铺（无里程碑/阶段组头，父子仍以缩进+折叠展示）。
@@ -381,7 +381,7 @@ batch:      { claimLimit: 3 }
   - 指派负责人：行内/详情「指派」从人员列表选择（**只接受 git 作者**；手填非 git 名会被服务端 `INVALID` 拒绝），调用 `claim`（`by=人员, holder=人员, force=true`），done/cancelled/父任务禁用；
   - 归档：已完成任务行内「归档」（`archive`）与「批量归档」（`archive_batch`，当前筛选内的全部已完成，需确认）；
   - 任务描述：标题/优先级/紧急度/标签/备注（`update`）；状态下拉只列合法迁移。
-- **不提供的写入口**：删除任务、取消归档、导入、批量认领/释放、清空日志（这些只走 `ptodo admin`）。
+- **不提供的写入口**：删除任务、取消归档、导入、批量认领/释放、清空日志（这些只走 `ptask admin`）。
 - **人员过滤**：工具栏「人员」下拉，默认「与我相关」（person 命中 holder/createdBy/doneBy），
   支持勾选多人与「全部人员」；计数/Tab 跟随该过滤。人员来源 = **仅 git 历史作者**（`GET /people`）；
   **人员身份大小写不敏感**：`optimisticGeek` / `OptimisticGeek` 合并为同一人（显示名优先当前操作人，
@@ -408,8 +408,8 @@ batch:      { claimLimit: 3 }
 
 ## 13. 迁移
 
-- **v2 → v3（当前）**：`ptodo migrate --dry-run` 预览；`ptodo migrate` 原地升级并备份到 `docs/ptodo/.backup/v2-<时间>/`；重建默认里程碑/阶段、把标签登记为 `draft`。不跑 migrate 时，首次写入也会自动备份 v2 文件。
-- **旧 `.dsh` 布局 → `docs/ptodo/`**：`ptodo migrate` 保留任务/ID/revision/nextId，旧 history 丢弃，成功后删旧 JSON（`--keep-legacy` 保留）；目标已存在且不同 → `CONFLICT`，`--force` 先备份再覆盖。
+- **v2 → v3（当前）**：`ptask migrate --dry-run` 预览；`ptask migrate` 原地升级并备份到 `docs/ptask/.backup/v2-<时间>/`；重建默认里程碑/阶段、把标签登记为 `draft`。不跑 migrate 时，首次写入也会自动备份 v2 文件。
+- **旧 `.dsh` 布局 → `docs/ptask/`**：`ptask migrate` 保留任务/ID/revision/nextId，旧 history 丢弃，成功后删旧 JSON（`--keep-legacy` 保留）；目标已存在且不同 → `CONFLICT`，`--force` 先备份再覆盖。
 - 不做旧布局回退；`doctor` 提示待迁移。
 
 ## 14. 快照与历史
@@ -420,7 +420,7 @@ batch:      { claimLimit: 3 }
 
 ## 15. 技能与提示
 
-- `skill/project-todo/` 是跨工具技能；`ptodo skill install` 安装到 7 个目标（project/agents/dsh/zcode/workbuddy/claude/codex）。
+- `skill/project-task/` 是跨工具技能；`ptask skill install` 安装到 7 个目标（project/agents/dsh/zcode/workbuddy/claude/codex）。
 - `index.js` 注入两段提示：常驻 systemPrompt（唯一入口、六个动作、禁止手改）与会话摘要（计数 + 进行中 + 就绪优先，≤400 字）。
 - 不做工具调用拦截、不做 audit；强制依赖技能 G0–G4 与 `--evidence` 可见性。
 

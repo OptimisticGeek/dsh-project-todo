@@ -162,7 +162,7 @@ function walk(node, visit) {
 }
 
 async function withRoot(run) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-client-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-client-'))
   try {
     await run(root)
   } finally {
@@ -187,7 +187,7 @@ test('client renders tabs and a flat list when only the default org exists', asy
       text: (text) => texts.push(text),
     })
     const count = (name) => classes.filter((value) => value.split(/\s+/).includes(name)).length
-    assert.equal(tree.props.className, 'dsh-project-todo')
+    assert.equal(tree.props.className, 'dsh-project-task')
     assert.equal(count('dpt-tab'), 6)
     assert.equal(count('dpt-table--flat'), 1)
     assert.equal(count('dpt-table--grouped'), 0)

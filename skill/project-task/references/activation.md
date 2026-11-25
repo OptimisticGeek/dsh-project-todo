@@ -11,7 +11,7 @@
 
 | 层 | 判定者 | 输入 | 断掉的典型表现 | 怎么查 |
 |---|---|---|---|---|
-| L1 注册 | 宿主扫描器 | `SKILL.md` 是否存在、frontmatter 能否解析 | 技能列表里根本没有 `project-todo` | `ptodo skill status` 看目标是 `linked`；WorkBuddy 看 `.skill-list-cache.json` 的 `results[]` 有没有 `name: project-todo` |
+| L1 注册 | 宿主扫描器 | `SKILL.md` 是否存在、frontmatter 能否解析 | 技能列表里根本没有 `project-task` | `ptask skill status` 看目标是 `linked`；WorkBuddy 看 `.skill-list-cache.json` 的 `results[]` 有没有 `name: project-task` |
 | L2 选择 | 模型 | `name` + `description`（**只有这两个**） | 技能在列表里，但该用的回合没用 | 看 description 是否有区分度、是否有负例 |
 | L3 执行 | 模型 | `SKILL.md` 正文 + `references/` | 用了技能，但只走一半（漏 `done`、漏归档询问） | 看正文有没有「进场判定 + 单一主线 + 可核对产物」 |
 
@@ -20,16 +20,16 @@
 
 ## 2. 历史故障复盘（v2.0.3 → v2.1.0）
 
-**现象**：用户问「现在有什么任务可以开发的」，模型直接跑了几条 `ptodo` 命令，没有调用技能；用户追问「你为什么不使用技能」，模型才调用。
+**现象**：用户问「现在有什么任务可以开发的」，模型直接跑了几条 `ptask` 命令，没有调用技能；用户追问「你为什么不使用技能」，模型才调用。
 
 **定位**：不是安装，不是权限，是三处设计缺陷叠加。
 
 | # | 缺陷 | 证据 | 后果 |
 |---|---|---|---|
-| 1 | description 写成 CLI 速查表 | 旧描述 611 字符 / 917 字节，40% 是 `ptodo xxx` 命令串；同机 69 个技能描述中位数 212 字符，它排第 3 长 | L2：命令串对其他技能零区分度，只稀释真正的触发语义；模型扫一眼判定「这是个命令手册，我已经会跑命令了」 |
+| 1 | description 写成 CLI 速查表 | 旧描述 611 字符 / 917 字节，40% 是 `ptask xxx` 命令串；同机 69 个技能描述中位数 212 字符，它排第 3 长 | L2：命令串对其他技能零区分度，只稀释真正的触发语义；模型扫一眼判定「这是个命令手册，我已经会跑命令了」 |
 | 2 | 全称量词声明 | 「Use at the start, during, and end of **ANY** development task」 | L2：一个声称覆盖「所有开发任务」的技能，与所有具体技能竞争，模型倾向选更具体的那个，本技能被判定为「可选」 |
-| 3 | 触发策略写在代码里，不写在技能里 | `index.js` 的 `POLICY_TEXT` 无条件注入「任何开发任务开工先 `ptodo task ready`」 | DSH 里看不出问题（系统提示强制）；WorkBuddy / ZCode / Claude / Codex 没有注入，**只剩 611 字的 description 承担全部触发责任** |
-| 4 | 正文没有「进场前」章节 | 旧正文第 6 行就是「铁律」+ `ptodo task ready` | L3：模型打开技能看到的是「已经开工之后怎么做」，无法确认自己该不该走完整流程，倾向于只跑一条命令了事 |
+| 3 | 触发策略写在代码里，不写在技能里 | `index.js` 的 `POLICY_TEXT` 无条件注入「任何开发任务开工先 `ptask task ready`」 | DSH 里看不出问题（系统提示强制）；WorkBuddy / ZCode / Claude / Codex 没有注入，**只剩 611 字的 description 承担全部触发责任** |
+| 4 | 正文没有「进场前」章节 | 旧正文第 6 行就是「铁律」+ `ptask task ready` | L3：模型打开技能看到的是「已经开工之后怎么做」，无法确认自己该不该走完整流程，倾向于只跑一条命令了事 |
 | 5 | 边界缺失，问题外溢 | 旧文档只有末句「纯只读问答可跳过认领」 | L3：模型分不清「查一下有没有任务」和「领一个任务开工」，要么全走（啰嗦）要么全不走（漏登记） |
 
 对应的修复：`SKILL.md` 新增「何时使用 / 何时不要使用 / 与近邻技能的边界 / 能力边界 / 调用约定」五节前置，description 从「命令清单」改写成「场景 + 反例」，并把触发策略的**唯一事实源**留在技能里（`POLICY_TEXT` 保留，作为 DSH 的加速通道，不再是独占通道）。
@@ -55,11 +55,11 @@ description: "开发任务的开工、认领、写回与收尾登记。当用户
 | 规则 | 判据 | 违反后果 |
 |---|---|---|
 | 长度 ≤ 400 字符 | `node -e` 量（见 §6） | 超过同侪中位数 2 倍后，边际信息量为 0，只增加噪声 |
-| 不写具体命令 | `grep -c 'ptodo '` 应为 0（允许「用 ptodo 登记」这类自然语言提及） | 描述退化成速查表，与正文重复，且不产生区分度 |
+| 不写具体命令 | `grep -c 'ptask '` 应为 0（允许「用 ptask 登记」这类自然语言提及） | 描述退化成速查表，与正文重复，且不产生区分度 |
 | 必带负例 | 必须出现「不适用」或「不要用」 | 模型无法排除误触发，会为了保险起见全部跳过 |
 | 不写全称量词 | 禁止「ANY / 所有 / 任何开发任务」独立出现 | 与所有技能竞争，被更具体的技能挤掉 |
 | 单行 | YAML 里 description 不能折行 | 折行会被部分宿主截断成首行，负例丢失 |
-| 与 `name` 语义一致 | `name: project-todo` ↔ 描述里出现「任务/待办」 | 模型靠 name + description 联合判断 |
+| 与 `name` 语义一致 | `name: project-task` ↔ 描述里出现「任务/待办」 | 模型靠 name + description 联合判断 |
 
 ## 4. 触发判定：正例、负例、近邻诱饵
 
@@ -81,7 +81,7 @@ description: "开发任务的开工、认领、写回与收尾登记。当用户
 
 | # | 用户输入 | 期望 | 理由 |
 |---|---|---|---|
-| N1 | `ptodo` 这个命令怎么用 | 不调用；直接答或指向 `references/cli.md` | 解释概念，不产生文件变更 |
+| N1 | `ptask` 这个命令怎么用 | 不调用；直接答或指向 `references/cli.md` | 解释概念，不产生文件变更 |
 | N2 | 这个函数是干什么的 | 不调用 | 纯代码问答 |
 | N3 | 帮我看看 node 版本 | 不调用 | 与仓库无关的临时命令 |
 | N4 | 今天几号 | 不调用 | 无关 |
@@ -128,11 +128,11 @@ description: "开发任务的开工、认领、写回与收尾登记。当用户
 # 1) 解析 frontmatter 并量长度（宿主只看这层）
 node -e "
 const fs=require('fs');
-const t=fs.readFileSync('skill/project-todo/SKILL.md','utf8');
+const t=fs.readFileSync('skill/project-task/SKILL.md','utf8');
 const m=t.match(/^---\n([\s\S]*?)\n---/);
 const d=m[1].match(/^description: \"(.*)\"$/m);
 console.log('desc chars:', d[1].length);
-console.log('cmd refs  :', (d[1].match(/ptodo [a-z]/g)||[]).length);
+console.log('cmd refs  :', (d[1].match(/ptask [a-z]/g)||[]).length);
 console.log('negation  :', /不适用/.test(d[1]));
 "
 
@@ -148,7 +148,7 @@ node --test "test/skill.test.mjs"
 |---|---|---|
 | WorkBuddy | 目录是 junction，改源码即改技能；但技能列表有缓存 → **重启应用或新开会话** | 新建会话里问「有什么任务可以开发」，应答走 G0 而不是裸跑命令 |
 | DSH | 系统提示注入 + 技能扫描，开新会话即可 | 同上 |
-| ZCode / Claude Code / Codex | 开新会话；`copy` 模式需 `ptodo skill install --targets <工具>` 重装 | `ptodo skill status` 目标行必须是 `linked` |
+| ZCode / Claude Code / Codex | 开新会话；`copy` 模式需 `ptask skill install --targets <工具>` 重装 | `ptask skill status` 目标行必须是 `linked` |
 
 **不要**用「让用户在消息里点名技能」当常规解法——那只验证了 L1，掩盖了 L2。
 
@@ -159,21 +159,21 @@ node --test "test/skill.test.mjs"
 **实测过程（原文摘要）**：
 
 ```
-1. 动作：ls 插件仓根 → ls .dsh / skill / docs / docs/ptodo → 读 docs/ptodo/TODO.md
-        → node -e "require('./docs/ptodo/todos.json')" 统计 status 分布
-2. 技能：否 —— 「我这轮可用的技能清单里……没有 project-todo」
-3. 依据：「工具清单里没有该技能 = 不可调用」；看到 TODO.md 写着数据源是 todos.json，就直接读 JSON 作答
+1. 动作：ls 插件仓根 → ls .dsh / skill / docs / docs/ptask → 读 docs/ptask/TODO.md
+        → node -e "require('./docs/ptask/tasks.json')" 统计 status 分布
+2. 技能：否 —— 「我这轮可用的技能清单里……没有 project-task」
+3. 依据：「工具清单里没有该技能 = 不可调用」；看到 TODO.md 写着数据源是 tasks.json，就直接读 JSON 作答
 ```
 
 **结论一（对技能的影响）**：没有技能时，agent **必然**绕过 G0–G4，直接读存储层。这正是铁律 1 禁止的行为，而铁律 1 只写在技能里——闭环断在技能外。
 所以修复不能只在 `SKILL.md`：**快照文件本身必须带入口提示**。
-已落地：`lib/markdown.js` 在 `docs/ptodo/TODO.md` 头部生成「工作入口：agent 请加载技能 `project-todo`（或执行 `ptodo task ready`）……不要以读 JSON 代替认领」，并由 `test/markdown.test.mjs` 守护。
+已落地：`lib/markdown.js` 在 `docs/ptask/TODO.md` 头部生成「工作入口：agent 请加载技能 `project-task`（或执行 `ptask task ready`）……不要以读 JSON 代替认领」，并由 `test/markdown.test.mjs` 守护。
 
 **结论二（对可见性的影响）**：该子 agent 能看到的技能全部来自 plugin/builtin，用户级 `~/.workbuddy/skills` 一个都没有；同一时刻主会话里用户级技能也只展示了 2 个（其余 18 个标注为 omitted）。即**用户级技能可能整体或部分不进模型可见清单**，这与 description 写得好不好无关。
 这种情况下能做的只有三件事，按成本排序：
 
 1. 减少已启用技能数量，让本技能落进可见预算内；
-2. 装到项目级 `ptodo skill install --targets project`（`<项目根>/.agents/skills/project-todo`），随工作区加载；
-3. 在项目规则文件（`AGENT.md` / `CLAUDE.md` / 规则注入）里点名「开发任务先加载 project-todo 技能」——**这是兜底，不是常规路径**。
+2. 装到项目级 `ptask skill install --targets project`（`<项目根>/.agents/skills/project-task`），随工作区加载；
+3. 在项目规则文件（`AGENT.md` / `CLAUDE.md` / 规则注入）里点名「开发任务先加载 project-task 技能」——**这是兜底，不是常规路径**。
 
 > 判定口径：先确认「模型可见清单里到底有没有它」。有 → L2 描述问题；没有 → L1 可见性问题，改描述无用。

@@ -26,18 +26,18 @@ test('active markdown header routes agents to the skill instead of the raw JSON'
   const board = emptyBoard('demo')
   createTask(board, { title: '随便一条', priority: 'P2', urgency: 3 })
   const text = renderMarkdown(board, CONFIG)
-  // 实测发现：没有技能的 agent 会读这个文件、然后直接读 todos.json，绕过 G0-G4。
+  // 实测发现：没有技能的 agent 会读这个文件、然后直接读 tasks.json，绕过 G0-G4。
   // 头部必须给出唯一入口，并明确禁止「以读 JSON 代替认领」。
   assert.match(text, /工作入口/)
-  assert.match(text, /project-todo/)
-  assert.match(text, /ptodo task ready/)
+  assert.match(text, /project-task/)
+  assert.match(text, /ptask task ready/)
   assert.match(text, /不要直接编辑/)
   assert.match(text, /以读 JSON 代替认领/)
-  // 归档路径必须取配置，不能写死旧路径（本仓已从 .dsh 迁到 docs/ptodo）。
+  // 归档路径必须取配置，不能写死旧路径（本仓已从 .dsh 迁到 docs/ptask）。
   const custom = renderMarkdown(board, {
-    markdown: { enabled: true, path: 'docs/ptodo/TODO.md', archivePath: 'docs/ptodo/ARCHIVE.md', doneLimit: 20 },
+    markdown: { enabled: true, path: 'docs/ptask/TODO.md', archivePath: 'docs/ptask/ARCHIVE.md', doneLimit: 20 },
   })
-  assert.match(custom, /docs\/ptodo\/ARCHIVE\.md/)
+  assert.match(custom, /docs\/ptask\/ARCHIVE\.md/)
   assert.doesNotMatch(custom, /\.dsh\/ARCHIVE\.md/)
 })
 

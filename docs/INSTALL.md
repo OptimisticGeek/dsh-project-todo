@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 桌面应用（`dsh-app://` 壳窗口） | ✅ | ✅ | 走共享 `/api` Fetch 通道 |
 | `dsh web`（命令行启动 + 浏览器） | ✅ | ✅ | 走共享 `/api`；也兼容旧的 `webServer` 前缀路由 |
-| 纯终端 profile（`tui` / `headless` / `acp`） | ❌ | ✅ | 没有 Web 载体，看板不出现；用 `ptodo` CLI 与技能 |
+| 纯终端 profile（`tui` / `headless` / `acp`） | ❌ | ✅ | 没有 Web 载体，看板不出现；用 `ptask` CLI 与技能 |
 
 依赖的 DSH 能力（Host）：
 
@@ -23,10 +23,10 @@
 
 ```bash
 # GitHub（推荐；DSH 会自动把 dsh.bundle 声明登记进 profile bundles）
-dsh plugin --profile <profile> add github:OptimisticGeek/dsh-project-todo
+dsh plugin --profile <profile> add github:OptimisticGeek/dsh-project-task
 
 # 本地源码（开发期）
-dsh plugin --profile <profile> add /absolute/path/to/dsh-project-todo
+dsh plugin --profile <profile> add /absolute/path/to/dsh-project-task
 ```
 
 不要手工编辑 `dsh.profile.bundles`：`dsh plugin add` 会在 pnpm 安装后按**真实包名**自动登记；
@@ -37,10 +37,10 @@ dsh plugin --profile <profile> add /absolute/path/to/dsh-project-todo
 ### 2.2 CLI
 
 ```bash
-git clone https://github.com/OptimisticGeek/dsh-project-todo.git
-cd dsh-project-todo
+git clone https://github.com/OptimisticGeek/dsh-project-task.git
+cd dsh-project-task
 npm link          # 或 npm i -g .
-ptodo doctor
+ptask doctor
 ```
 
 ### 2.3 跨工具技能（可选）
@@ -50,21 +50,21 @@ ptodo doctor
 
 ```bash
 # 等价的 CLI
-ptodo skill install --targets all
-ptodo skill status
-ptodo skill remove --targets all
+ptask skill install --targets all
+ptask skill status
+ptask skill remove --targets all
 ```
 
 | 目标 | 目录 |
 |---|---|
-| project | `<项目>/.agents/skills/project-todo` |
-| claude | `~/.claude/skills/project-todo` |
-| codex | `~/.codex/skills/project-todo` |
-| workbuddy | `~/.workbuddy/skills/project-todo` |
-| zcode | `~/.zcode/skills/project-todo` |
-| trae | `~/.trae/skills/project-todo`（部分版本需在 Settings → Rule & Skills 手动导入） |
-| dsh | `~/.dsh/skills/project-todo` |
-| agents | `~/.agents/skills/project-todo` |
+| project | `<项目>/.agents/skills/project-task` |
+| claude | `~/.claude/skills/project-task` |
+| codex | `~/.codex/skills/project-task` |
+| workbuddy | `~/.workbuddy/skills/project-task` |
+| zcode | `~/.zcode/skills/project-task` |
+| trae | `~/.trae/skills/project-task`（部分版本需在 Settings → Rule & Skills 手动导入） |
+| dsh | `~/.dsh/skills/project-task` |
+| agents | `~/.agents/skills/project-task` |
 
 Windows 优先目录 junction，失败回退复制；「内容不一致（drifted）」表示目标目录里是旧副本，重新安装即可。
 
@@ -73,7 +73,7 @@ Windows 优先目录 junction，失败回退复制；「内容不一致（drifte
 页面控制台（推荐，带浏览器会话）：
 
 ```js
-fetch('/api/dsh-project-todo/health').then(r => r.json()).then(console.log)
+fetch('/api/dsh-project-task/health').then(r => r.json()).then(console.log)
 ```
 
 | 字段 | 含义 |
@@ -84,13 +84,13 @@ fetch('/api/dsh-project-todo/health').then(r => r.json()).then(console.log)
 | `services.webServer` | 仅浏览器 Web 载体为 true |
 | `hint` | 非空时就是当前环境的可读原因 |
 
-也可以 `curl http://127.0.0.1:<port>/api/dsh-project-todo/health`，但浏览器的 `/api` 通道需要会话 cookie，
+也可以 `curl http://127.0.0.1:<port>/api/dsh-project-task/health`，但浏览器的 `/api` 通道需要会话 cookie，
 命令行大概率返回 **401**——这不是故障，用页面控制台跑即可。
 
 ## 4. 升级
 
 ```bash
-dsh plugin --profile <profile> add github:OptimisticGeek/dsh-project-todo@latest
+dsh plugin --profile <profile> add github:OptimisticGeek/dsh-project-task@latest
 # 或本地目录：重新 git pull 后完全重启 DSH
 ```
 
@@ -100,10 +100,10 @@ dsh plugin --profile <profile> add github:OptimisticGeek/dsh-project-todo@latest
 ## 5. 卸载
 
 ```bash
-dsh plugin --profile <profile> remove dsh-project-todo
+dsh plugin --profile <profile> remove dsh-project-task
 ```
 
-数据仍在项目的 `docs/ptodo/`，不会被删除。
+数据仍在项目的 `docs/ptask/`，不会被删除。
 
 ## 6. 排障：症状 → 原因 → 处理
 
@@ -114,7 +114,7 @@ dsh plugin --profile <profile> remove dsh-project-todo
 | `NO_PROJECT: workingDirectory 服务不可用` | 3.0.0 及以前对 `workingDirectory` 硬依赖 | 升级到 ≥3.0.1（已回退会话头 `cwd`） |
 | 401 | 浏览器 `/api` 通道未带会话 cookie（命令行 curl 的常见情况） | 在页面控制台自检，不要用 curl 判断 |
 | `not found` / `未知接口` | Host 与 Client 版本不一致（旧 Host 新 Client） | 统一升级后完全重启 |
-| 空表格但无报错 | 新项目还没有任务 | 正常；`ptodo task create` 或 `task ready` |
+| 空表格但无报错 | 新项目还没有任务 | 正常；`ptask task create` 或 `task ready` |
 | 中文乱码 | PowerShell/终端编码 | Windows：`chcp 65001`；macOS/Linux 终端默认 UTF-8 |
 | macOS 上 `env: node\r: No such file or directory` | 检出文件是 CRLF，shebang 带了 `\r` | 仓库已用 `.gitattributes` 统一 LF：重新 clone 或 `git add --renormalize . && git checkout` |
 
@@ -125,7 +125,7 @@ dsh plugin --profile <profile> remove dsh-project-todo
 | 技能链接 | 目录 junction | `symlink`；失败回退复制（与 Windows 同一回退） |
 | 用户目录 | `%USERPROFILE%` | `$HOME`；代码统一用 `os.homedir()`，不写死盘符 |
 | 行尾 | 仓库统一 LF（`.gitattributes`），Windows 检出也不破坏 shebang | 同上 |
-| `ptodo` 命令 | npm 生成 `.cmd`/`.ps1` shim | npm 生成可执行 shim；直接执行需 `chmod +x bin/ptodo.mjs`（git 已记录 100755） |
+| `ptask` 命令 | npm 生成 `.cmd`/`.ps1` shim | npm 生成可执行 shim；直接执行需 `chmod +x bin/ptask.mjs`（git 已记录 100755） |
 | 大小写 | 不敏感 | macOS 默认不敏感、Linux 敏感；人员合并按大小写不敏感处理，跨平台一致 |
 | 文件锁 | `open(..., 'wx')` + 超时清理 | 相同实现 |
 
@@ -139,7 +139,7 @@ Node 20/22 上跑 `node --test`，平台相关的破坏（symlink、路径大小
 | `package.json.dsh.bundle.patch` | `@deepseek-ai/dsh-package-manifest` | `cordis.patch.yml` 插入 Loader 条目，条目名 = 包名 |
 | `package.json.dsh.client` | 同上 | `platform: web` + 客户端模块 id = 包名 |
 | 客户端 bundle 按**已加载的 Loader 条目**组装 | `@deepseek-ai/dsh-client-modules` | Host 半边的 `apply` 必须成功，否则标签页不会出现 |
-| 共享 `/api` Fetch 路由 | `@deepseek-ai/dsh-client-connection` | `ctx.connection.fetch.register({ path: '/api/dsh-project-todo/*' })` |
+| 共享 `/api` Fetch 路由 | `@deepseek-ai/dsh-client-connection` | `ctx.connection.fetch.register({ path: '/api/dsh-project-task/*' })` |
 | 可选 Host 服务按请求获取 | Cordis | `agents` / `workingDirectory` 都在请求时 `ctx.get`，缺失时给可读错误或回退 |
 
 > 结论：DSH 的插件契约没有「能力协商」——包只能在运行时发现自己缺什么。因此本插件把所有

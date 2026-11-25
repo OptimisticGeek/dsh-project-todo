@@ -6,7 +6,7 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function run(root, args) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], { encoding: 'utf8', windowsHide: true })
@@ -18,7 +18,7 @@ function json(root, args) {
 }
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-cap-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-cap-'))
   try {
     assert.equal(run(root, ['init']).status, 0)
     await runTest(root)
@@ -80,7 +80,7 @@ test('task sync-parents closes a stale parent with aggregated version and eviden
     assert.equal(run(root, ['admin', 'archive', 'T-0002']).status, 0)
 
     // Simulate a legacy board where the parent was left open.
-    const file = path.join(root, 'docs', 'ptodo', 'todos.json')
+    const file = path.join(root, 'docs', 'ptask', 'tasks.json')
     const board = JSON.parse(await readFile(file, 'utf8'))
     const parent = board.tasks.find((task) => task.id === 'T-0001')
     Object.assign(parent, { status: 'open', doneAt: null, doneVersion: null, doneEvidence: null })

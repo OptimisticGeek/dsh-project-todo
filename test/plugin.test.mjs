@@ -74,10 +74,10 @@ test('the portable route is mounted on /api as soon as connection exists', () =>
   apply(ctx, {})
   for (const factory of effects) factory()
   assert.equal(webRoutes.length, 1)
-  assert.deepEqual({ kind: webRoutes[0].kind, path: webRoutes[0].path }, { kind: 'prefix', path: '/dsh-project-todo' })
+  assert.deepEqual({ kind: webRoutes[0].kind, path: webRoutes[0].path }, { kind: 'prefix', path: '/dsh-project-task' })
   assert.equal(fetchRoutes.length, 10)
-  assert.ok(fetchRoutes.every((route) => route.path.startsWith('/api/dsh-project-todo/')))
-  assert.ok(fetchRoutes.some((route) => route.path === '/api/dsh-project-todo/state'))
+  assert.ok(fetchRoutes.every((route) => route.path.startsWith('/api/dsh-project-task/')))
+  assert.ok(fetchRoutes.some((route) => route.path === '/api/dsh-project-task/state'))
 })
 
 test('ui.enabled=false warns and mounts no Web route', () => {
@@ -88,25 +88,25 @@ test('ui.enabled=false warns and mounts no Web route', () => {
   assert.ok(warnings.some((message) => message.includes('ui.enabled=false')))
 })
 
-test('plugin no longer registers model-facing ptodo_* tools', () => {
+test('plugin no longer registers model-facing ptask_* tools', () => {
   assert.equal(existsSync(new URL('../lib/tools.js', import.meta.url)), false)
   const entry = readFileSync(new URL('../index.js', import.meta.url), 'utf8')
   assert.doesNotMatch(entry, /buildTools/)
   assert.doesNotMatch(entry, /ctx\.inject\(\['tools'/)
-  assert.match(entry, /ptodo status/)
-  assert.match(entry, /ptodo continue/)
+  assert.match(entry, /ptask status/)
+  assert.match(entry, /ptask continue/)
 })
 
-test('package exposes one global ptodo bin and ships the skill', () => {
+test('package exposes one global ptask bin and ships the skill', () => {
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
   assert.match(pkg.version, /^\d+\.\d+\.\d+$/)
-  assert.deepEqual(pkg.bin, { ptodo: './bin/ptodo.mjs' })
-  assert.ok(existsSync(new URL('../bin/ptodo.mjs', import.meta.url)))
+  assert.deepEqual(pkg.bin, { ptask: './bin/ptask.mjs' })
+  assert.ok(existsSync(new URL('../bin/ptask.mjs', import.meta.url)))
   // Installation gate: the plugin manager reads engines.dsh, and the install
   // guide must stay discoverable from the README.
   assert.match(pkg.engines.dsh, /^>=0\./)
   assert.ok(existsSync(new URL('../docs/INSTALL.md', import.meta.url)))
   assert.match(readFileSync(new URL('../README.md', import.meta.url), 'utf8'), /dsh plugin --profile .* add/)
-  assert.ok(existsSync(new URL('../skill/project-todo/SKILL.md', import.meta.url)))
+  assert.ok(existsSync(new URL('../skill/project-task/SKILL.md', import.meta.url)))
   assert.ok(ROOT)
 })

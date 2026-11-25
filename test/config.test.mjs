@@ -8,7 +8,7 @@ import { resolveProjectRootFromCwd } from '../lib/project.js'
 import { shortHashFromGitDir } from '../lib/version.js'
 
 async function withRoot(run) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-config-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-config-'))
   try {
     await run(root)
   } finally {
@@ -16,16 +16,16 @@ async function withRoot(run) {
   }
 }
 
-test('defaults point at docs/ptodo and keep snapshots in .dsh', () => {
+test('defaults point at docs/ptask and keep snapshots in .dsh', () => {
   const config = normalizeConfig({})
-  assert.equal(config.store.path, 'docs/ptodo/todos.json')
-  assert.equal(config.archive.path, 'docs/ptodo/archive.json')
-  assert.equal(config.history.path, 'docs/ptodo/todos.history.jsonl')
+  assert.equal(config.store.path, 'docs/ptask/tasks.json')
+  assert.equal(config.archive.path, 'docs/ptask/archive.json')
+  assert.equal(config.history.path, 'docs/ptask/history.jsonl')
   assert.equal(config.markdown.path, '.dsh/TODO.md')
   assert.equal(config.markdown.archivePath, '.dsh/ARCHIVE.md')
   assert.equal(config.version.docDir, '')
   const paths = pathsOf('E:/demo', config)
-  assert.match(paths.store, /docs[\\/]ptodo[\\/]todos\.json$/)
+  assert.match(paths.store, /docs[\\/]ptask[\\/]tasks\.json$/)
 })
 
 test('version.docDir is kept as a project-relative string', async () => {
@@ -33,9 +33,9 @@ test('version.docDir is kept as a project-relative string', async () => {
     assert.equal(normalizeConfig({ version: { docDir: 'release/notes' } }).version.docDir, 'release/notes')
     assert.equal(normalizeConfig({ version: { docDir: '  release/notes  ' } }).version.docDir, 'release/notes')
     assert.equal(normalizeConfig({ version: { docDir: 42 } }).version.docDir, '')
-    await mkdir(path.join(root, 'docs', 'ptodo'), { recursive: true })
+    await mkdir(path.join(root, 'docs', 'ptask'), { recursive: true })
     await writeFile(
-      path.join(root, 'docs', 'ptodo', 'config.json'),
+      path.join(root, 'docs', 'ptask', 'config.json'),
       JSON.stringify({ version: { docDir: 'utp/docs/version' } }),
       'utf8',
     )
@@ -44,25 +44,25 @@ test('version.docDir is kept as a project-relative string', async () => {
   })
 })
 
-test('configFor merges docs/ptodo/config.json under defaults', async () => {
+test('configFor merges docs/ptask/config.json under defaults', async () => {
   await withRoot(async (root) => {
-    await mkdir(path.join(root, 'docs', 'ptodo'), { recursive: true })
+    await mkdir(path.join(root, 'docs', 'ptask'), { recursive: true })
     await writeFile(
-      path.join(root, 'docs', 'ptodo', 'config.json'),
+      path.join(root, 'docs', 'ptask', 'config.json'),
       JSON.stringify({ archive: { afterDays: 0 }, batch: { claimLimit: 5 } }),
       'utf8',
     )
     const config = configFor(root, {})
     assert.equal(config.archive.afterDays, 0)
     assert.equal(config.batch.claimLimit, 5)
-    assert.equal(config.store.path, 'docs/ptodo/todos.json')
+    assert.equal(config.store.path, 'docs/ptask/tasks.json')
   })
 })
 
 test('root resolution prefers a board over a nested git repository', async () => {
   await withRoot(async (root) => {
-    await mkdir(path.join(root, 'docs', 'ptodo'), { recursive: true })
-    await writeFile(path.join(root, 'docs', 'ptodo', 'todos.json'), '{}', 'utf8')
+    await mkdir(path.join(root, 'docs', 'ptask'), { recursive: true })
+    await writeFile(path.join(root, 'docs', 'ptask', 'tasks.json'), '{}', 'utf8')
     const nested = path.join(root, 'utp', 'src')
     await mkdir(nested, { recursive: true })
     await mkdir(path.join(root, 'utp', '.git'), { recursive: true })

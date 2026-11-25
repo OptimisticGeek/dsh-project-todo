@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import os from 'node:os'
 import path from 'node:path'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function run(root, args, env) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], {
@@ -18,7 +18,7 @@ function run(root, args, env) {
 }
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-cli-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-cli-'))
   try {
     await runTest(root)
   } finally {
@@ -26,17 +26,17 @@ async function withRoot(runTest) {
   }
 }
 
-test('init creates docs/ptodo/todos.json and whoami reports it', async () => {
+test('init creates docs/ptask/tasks.json and whoami reports it', async () => {
   await withRoot(async (root) => {
     const init = run(root, ['init'])
     assert.equal(init.status, 0, init.stderr)
-    const board = JSON.parse(await readFile(path.join(root, 'docs', 'ptodo', 'todos.json'), 'utf8'))
+    const board = JSON.parse(await readFile(path.join(root, 'docs', 'ptask', 'tasks.json'), 'utf8'))
     assert.equal(board.tasks.length, 0)
     const who = run(root, ['whoami', '--json'])
     assert.equal(who.status, 0, who.stderr)
     const data = JSON.parse(who.stdout)
     assert.equal(data.root, root)
-    assert.match(data.paths.store, /docs[\\/]ptodo[\\/]todos\.json$/)
+    assert.match(data.paths.store, /docs[\\/]ptask[\\/]tasks\.json$/)
   })
 })
 
@@ -69,7 +69,7 @@ test('conflict and invalid usage map to stable exit codes', async () => {
   await withRoot(async (root) => {
     // Two different humans: without a git identity the person falls back to
     // the stripped `--by`, so an empty HOME makes the two names distinct.
-    const home = await mkdtemp(path.join(os.tmpdir(), 'ptodo-cli-home-'))
+    const home = await mkdtemp(path.join(os.tmpdir(), 'ptask-cli-home-'))
     const env = { USERPROFILE: home, HOME: home }
     try {
       assert.equal(run(root, ['init']).status, 0)
@@ -108,7 +108,7 @@ test('root resolution finds the workspace board from a nested repository', async
   })
 })
 
-test('migrate moves .dsh data to docs/ptodo and deletes the old JSON', async () => {
+test('migrate moves .dsh data to docs/ptask and deletes the old JSON', async () => {
   await withRoot(async (root) => {
     await mkdir(path.join(root, '.dsh'), { recursive: true })
     const board = {
@@ -152,12 +152,12 @@ test('migrate moves .dsh data to docs/ptodo and deletes the old JSON', async () 
 
     const migrated = run(root, ['migrate'])
     assert.equal(migrated.status, 0, migrated.stderr)
-    assert.ok(existsSync(path.join(root, 'docs', 'ptodo', 'todos.json')))
+    assert.ok(existsSync(path.join(root, 'docs', 'ptask', 'tasks.json')))
     assert.equal(existsSync(path.join(root, '.dsh', 'todos.json')), false)
-    const saved = JSON.parse(await readFile(path.join(root, 'docs', 'ptodo', 'todos.json'), 'utf8'))
+    const saved = JSON.parse(await readFile(path.join(root, 'docs', 'ptask', 'tasks.json'), 'utf8'))
     assert.equal(saved.revision, 7)
     assert.equal(saved.tasks[0].title, '旧任务')
     assert.equal(saved.tasks[0].holder, 'old')
-    assert.equal(await readFile(path.join(root, 'docs', 'ptodo', 'todos.history.jsonl'), 'utf8'), '')
+    assert.equal(await readFile(path.join(root, 'docs', 'ptask', 'history.jsonl'), 'utf8'), '')
   })
 })

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import os from 'node:os'
 import path from 'node:path'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function run(root, args) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], { encoding: 'utf8', windowsHide: true })
@@ -23,7 +23,7 @@ function done(root, version) {
 }
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-doctor-version-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-doctor-version-'))
   try {
     await runTest(root)
   } finally {
@@ -72,9 +72,9 @@ test('doctor recommends an existing utp/docs/version and honours version.docDir'
     assert.equal(defaults.status, 0, defaults.stderr)
     assert.match(defaults.stdout, /建议在 .*utp[\\/]docs[\\/]version 创建 3\.0\.0\.md/)
 
-    await mkdir(path.join(root, 'docs', 'ptodo'), { recursive: true })
+    await mkdir(path.join(root, 'docs', 'ptask'), { recursive: true })
     await writeFile(
-      path.join(root, 'docs', 'ptodo', 'config.json'),
+      path.join(root, 'docs', 'ptask', 'config.json'),
       JSON.stringify({ version: { docDir: 'release-notes' } }),
       'utf8',
     )

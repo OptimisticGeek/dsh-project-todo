@@ -1,5 +1,5 @@
-# Host half: project-scoped todo store (docs/ptodo), prompt context, Web API and
-# the global `ptodo` CLI bin. Client half: the per-session "待办" view.
+# Host half: project-scoped task store (docs/ptask), prompt context, Web API and
+# the global `ptask` CLI bin. Client half: the per-session "任务" view.
 - insert:
-    - id: project-todo
-      name: 'dsh-project-todo'
+    - id: dsh-project-task
+      name: 'dsh-project-task'

@@ -1,24 +1,24 @@
 <!doctype html>
 <!--
-  ptodo 内置 HTML 模板 · report
+  ptask 内置 HTML 模板 · report
   ============================================================================
   这是一份普通 HTML 文件，复制出去改即可，不需要构建步骤、不依赖 CDN。
-  导出时 ptodo 会把下面的 {{PTODO_*}} 占位符替换成实际值：
+  导出时 ptask 会把下面的 {{ptask_*}} 占位符替换成实际值：
 
-    {{PTODO_TITLE}}        报告标题（HTML 转义）
-    {{PTODO_PROJECT}}      项目名（HTML 转义）
-    {{PTODO_GENERATED_AT}} 生成时间 ISO 字符串（HTML 转义）
-    {{PTODO_SCOPE}}        数据范围中文名（HTML 转义）
-    {{PTODO_TEMPLATE}}     当前模板名（HTML 转义）
-    {{PTODO_TASK_COUNT}}   任务条数（数字）
-    {{PTODO_DATA}}         ★ 数据本体：可直接 JSON.parse 的安全 JSON
+    {{ptask_TITLE}}        报告标题（HTML 转义）
+    {{ptask_PROJECT}}      项目名（HTML 转义）
+    {{ptask_GENERATED_AT}} 生成时间 ISO 字符串（HTML 转义）
+    {{ptask_SCOPE}}        数据范围中文名（HTML 转义）
+    {{ptask_TEMPLATE}}     当前模板名（HTML 转义）
+    {{ptask_TASK_COUNT}}   任务条数（数字）
+    {{ptask_DATA}}         ★ 数据本体：可直接 JSON.parse 的安全 JSON
 
   使用方式：
-    ptodo admin export --format html --scope all
-    ptodo admin export --format html --template ./my-report.html
-    ptodo admin templates             # 列出内置模板的绝对路径
+    ptask admin export --format html --scope all
+    ptask admin export --format html --template ./my-report.html
+    ptask admin templates             # 列出内置模板的绝对路径
 
-  数据契约（JSON.parse(script#ptodo-data.textContent)）：
+  数据契约（JSON.parse(script#ptask-data.textContent)）：
     meta      {project,title,generatedAt,scope,scopeLabel,revision,template,taskCount}
     kpi       {total,done,doing,open,blocked,cancelled,rate}
     statuses  [{key,label,count}]
@@ -43,7 +43,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{PTODO_TITLE}} · {{PTODO_PROJECT}}</title>
+<title>{{ptask_TITLE}} · {{ptask_PROJECT}}</title>
 <style>
   :root{
     --bg:#f5f7fb; --surface:#ffffff; --surface-2:#f9fafc; --line:#e4e9f2;
@@ -173,8 +173,8 @@
 </head>
 <body>
 <div class="topbar"><div class="inner">
-  <span class="logo">ptodo · 项目任务报告</span>
-  <span class="meta-chip">{{PTODO_PROJECT}} · {{PTODO_SCOPE}} · {{PTODO_TASK_COUNT}} 项</span>
+  <span class="logo">ptask · 项目任务报告</span>
+  <span class="meta-chip">{{ptask_PROJECT}} · {{ptask_SCOPE}} · {{ptask_TASK_COUNT}} 项</span>
   <span class="spacer"></span>
   <nav>
     <a href="#overview">概览</a><a href="#milestones">里程碑</a><a href="#distribution">分布</a>
@@ -185,8 +185,8 @@
 <div class="wrap">
   <div class="hero" id="overview">
     <div class="eyebrow">PROJECT STATUS REPORT</div>
-    <h1>{{PTODO_TITLE}}</h1>
-    <p class="lead">本报告由项目任务看板自动生成，逐项登记当前范围内全部任务的交付状态。数据取自 <b>docs/ptodo/todos.json</b>，生成时间 {{PTODO_GENERATED_AT}}，模板 {{PTODO_TEMPLATE}}。</p>
+    <h1>{{ptask_TITLE}}</h1>
+    <p class="lead">本报告由项目任务看板自动生成，逐项登记当前范围内全部任务的交付状态。数据取自 <b>docs/ptask/tasks.json</b>，生成时间 {{ptask_GENERATED_AT}}，模板 {{ptask_TEMPLATE}}。</p>
     <div class="kpis" id="kpis"></div>
   </div>
 
@@ -226,7 +226,7 @@
   <section id="notes">
     <div class="callout">
       <h3>统计口径与说明</h3>
-      <p>1. 数据来源为项目任务看板，范围 <b>{{PTODO_SCOPE}}</b>，生成时版本 revision <span id="revision"></span>。</p>
+      <p>1. 数据来源为项目任务看板，范围 <b>{{ptask_SCOPE}}</b>，生成时版本 revision <span id="revision"></span>。</p>
       <p>2. 「完成率」= 已完成 / 在册任务；已取消任务计在总数内但不计入完成数。父任务作为容器由子任务汇总，不重复计数。</p>
       <p>3. 状态取自看板持久化状态；有效状态（含上游阻塞）仅在明细里体现，不改变统计分布。</p>
       <p>4. 本页为单文件离线报告，无外部资源、无脚本注入；可直接打印或另存为 PDF。</p>
@@ -234,16 +234,16 @@
   </section>
 
   <footer>
-    <span>ptodo · 模板 {{PTODO_TEMPLATE}} · 生成于 {{PTODO_GENERATED_AT}}</span>
-    <span>{{PTODO_PROJECT}} · {{PTODO_SCOPE}} · 共 {{PTODO_TASK_COUNT}} 项</span>
+    <span>ptask · 模板 {{ptask_TEMPLATE}} · 生成于 {{ptask_GENERATED_AT}}</span>
+    <span>{{ptask_PROJECT}} · {{ptask_SCOPE}} · 共 {{ptask_TASK_COUNT}} 项</span>
   </footer>
 </div>
 
-<script id="ptodo-data" type="application/json">{{PTODO_DATA}}</script>
+<script id="ptask-data" type="application/json">{{ptask_DATA}}</script>
 <script>
 (function () {
   'use strict';
-  var D = JSON.parse(document.getElementById('ptodo-data').textContent);
+  var D = JSON.parse(document.getElementById('ptask-data').textContent);
 
   function el(tag, cls, text) {
     var node = document.createElement(tag);

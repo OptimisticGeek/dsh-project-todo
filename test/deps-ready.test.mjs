@@ -14,7 +14,7 @@ const CONFIG = normalizeConfig({
 })
 
 async function withRoot(run) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-deps-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-deps-'))
   try {
     await run(root)
   } finally {

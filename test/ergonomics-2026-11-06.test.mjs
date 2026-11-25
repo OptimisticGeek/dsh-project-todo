@@ -6,7 +6,7 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function run(root, args) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], { encoding: 'utf8', windowsHide: true })
@@ -18,7 +18,7 @@ function json(root, args) {
 }
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-erg-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-erg-'))
   try {
     assert.equal(run(root, ['init']).status, 0)
     await runTest(root)

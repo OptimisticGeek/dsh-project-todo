@@ -6,7 +6,7 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function cli(root, args, options = {}) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], {
@@ -17,7 +17,7 @@ function cli(root, args, options = {}) {
 }
 
 async function withRoot(options, runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-root-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-root-'))
   try {
     await runTest(root, options)
   } finally {
@@ -36,7 +36,7 @@ test('explicit --root without a store fails instead of creating a new board', as
     assert.equal(result.status, 7)
     assert.match(result.stderr, /NO_PROJECT/)
     assert.match(result.stderr, /路径写错请修正 --root/)
-    assert.equal(await directoryExists(root), false, 'no stray docs/ptodo was written')
+    assert.equal(await directoryExists(root), false, 'no stray docs/ptask was written')
   })
 })
 

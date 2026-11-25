@@ -12,7 +12,7 @@ import { emptyBoard, normalizeBoard, validateBoard } from '../lib/model.js'
 const CONFIG = normalizeConfig({})
 
 async function withRoot(run) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-v3-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-v3-'))
   try {
     await run(root)
   } finally {
@@ -47,9 +47,9 @@ function v2Task() {
 
 test('reading a v2 board normalizes it to v3 in memory', async () => {
   await withRoot(async (root) => {
-    await mkdir(path.join(root, 'docs', 'ptodo'), { recursive: true })
+    await mkdir(path.join(root, 'docs', 'ptask'), { recursive: true })
     const v2 = { version: 2, project: 'demo', nextId: 2, revision: 7, updatedAt: '2026-01-01T00:00:00.000Z', tasks: [v2Task()] }
-    await writeFile(path.join(root, 'docs', 'ptodo', 'todos.json'), JSON.stringify(v2), 'utf8')
+    await writeFile(path.join(root, 'docs', 'ptask', 'tasks.json'), JSON.stringify(v2), 'utf8')
     const store = new TodoStore(root, CONFIG)
     const board = await store.read()
     assert.equal(board.version, 3)
@@ -68,7 +68,7 @@ test('initOrg writes the default milestone and stage', async () => {
     assert.equal(org.milestones[0].code, 'default')
     assert.equal(org.stages[0].code, 'default')
     assert.equal(org.stages[0].milestoneCode, 'default')
-    const saved = JSON.parse(await readFile(path.join(root, 'docs', 'ptodo', 'milestones.json'), 'utf8'))
+    const saved = JSON.parse(await readFile(path.join(root, 'docs', 'ptask', 'milestones.json'), 'utf8'))
     assert.equal(saved.milestones[0].name, '默认')
     assert.equal(saved.stages[0].status, 'active')
   })
@@ -86,9 +86,9 @@ test('createTask defaults the stage and validateBoard can enforce stage existenc
 
 test('first v3 write backs up a v2 file', async () => {
   await withRoot(async (root) => {
-    await mkdir(path.join(root, 'docs', 'ptodo'), { recursive: true })
+    await mkdir(path.join(root, 'docs', 'ptask'), { recursive: true })
     const v2 = { version: 2, project: 'demo', nextId: 2, revision: 2, updatedAt: '2026-01-01T00:00:00.000Z', tasks: [v2Task()] }
-    const file = path.join(root, 'docs', 'ptodo', 'todos.json')
+    const file = path.join(root, 'docs', 'ptask', 'tasks.json')
     await writeFile(file, JSON.stringify(v2), 'utf8')
     const store = new TodoStore(root, CONFIG)
     await store.mutate('update', 'tester', (board) => {
@@ -97,7 +97,7 @@ test('first v3 write backs up a v2 file', async () => {
     })
     const saved = JSON.parse(await readFile(file, 'utf8'))
     assert.equal(saved.version, 3)
-    const backupDir = path.join(root, 'docs', 'ptodo', '.backup')
+    const backupDir = path.join(root, 'docs', 'ptask', '.backup')
     assert.ok(existsSync(backupDir))
   })
 })
@@ -108,7 +108,7 @@ test('org store synthesizes defaults without writing when the file is missing', 
     const org = await store.read()
     assert.equal(org.milestones.length, 1)
     assert.equal(org.stages.length, 1)
-    assert.equal(existsSync(path.join(root, 'docs', 'ptodo', 'milestones.json')), false)
+    assert.equal(existsSync(path.join(root, 'docs', 'ptask', 'milestones.json')), false)
   })
 })
 

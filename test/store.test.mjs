@@ -7,7 +7,7 @@ import { TodoStore } from '../lib/store.js'
 import { claimTask, completeTask, createTask } from '../lib/model.js'
 
 const CONFIG = {
-  store: { path: '.dsh/todos.json' },
+  store: { path: '.dsh/tasks.json' },
   archive: { path: '.dsh/archive.json', afterDays: 3 },
   markdown: { enabled: true, path: '.dsh/TODO.md', archivePath: '.dsh/ARCHIVE.md', doneLimit: 20 },
   import: { source: '开发计划/todo/TODO.md' },
@@ -109,7 +109,7 @@ test('invalid JSON refuses to write', async () => {
     const store = new TodoStore(root, CONFIG)
     const { mkdir, writeFile } = await import('node:fs/promises')
     await mkdir(path.join(root, '.dsh'), { recursive: true })
-    await writeFile(path.join(root, '.dsh', 'todos.json'), '{ broken', 'utf8')
+    await writeFile(path.join(root, '.dsh', 'tasks.json'), '{ broken', 'utf8')
     await assert.rejects(
       store.mutate('create', 'x', (board) => {
         createTask(board, { title: 'x' })
@@ -117,7 +117,7 @@ test('invalid JSON refuses to write', async () => {
       }),
       /PARSE_ERROR|合法 JSON/,
     )
-    const text = await readFile(path.join(root, '.dsh', 'todos.json'), 'utf8')
+    const text = await readFile(path.join(root, '.dsh', 'tasks.json'), 'utf8')
     assert.equal(text, '{ broken')
   })
 })

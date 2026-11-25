@@ -6,7 +6,7 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const BIN = fileURLToPath(new URL('../bin/ptodo.mjs', import.meta.url))
+const BIN = fileURLToPath(new URL('../bin/ptask.mjs', import.meta.url))
 
 function run(root, args) {
   return spawnSync(process.execPath, [BIN, '--root', root, ...args], { encoding: 'utf8', windowsHide: true })
@@ -20,7 +20,7 @@ function json(root, args) {
 async function withRoots(count, runTest) {
   const roots = []
   try {
-    for (let i = 0; i < count; i += 1) roots.push(await mkdtemp(path.join(os.tmpdir(), 'ptodo-json-')))
+    for (let i = 0; i < count; i += 1) roots.push(await mkdtemp(path.join(os.tmpdir(), 'ptask-json-')))
     await runTest(...roots)
   } finally {
     for (const root of roots) await rm(root, { recursive: true, force: true })
@@ -76,7 +76,7 @@ test('help is per-action and schema exposes the full command surface', async () 
 test('JSON export/import round-trips structure and is idempotent', async () => {
   await withRoots(2, async (source, target) => {
     const payload = await fixture(source)
-    assert.equal(payload.kind, 'ptodo.tasks')
+    assert.equal(payload.kind, 'ptask.tasks')
     assert.equal(payload.count, 3)
     assert.deepEqual(payload.tasks[2].dependsOn, ['T-0002'])
 

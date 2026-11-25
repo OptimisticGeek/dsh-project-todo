@@ -6,7 +6,7 @@ import path from 'node:path'
 import { resolveProjectRoot, sessionCwdOf } from '../lib/project.js'
 
 async function withRoot(runTest) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-project-fallback-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-project-fallback-'))
   try {
     await runTest(root)
   } finally {
@@ -38,7 +38,7 @@ test('the workingDirectory service wins over the Session header', async () => {
 test('a board above the session directory wins over the git root', async () => {
   await withRoot(async (root) => {
     const project = path.join(root, 'project')
-    await mkdir(path.join(project, 'docs', 'ptodo'), { recursive: true })
+    await mkdir(path.join(project, 'docs', 'ptask'), { recursive: true })
     await mkdir(path.join(project, '.git'))
     const nested = path.join(project, 'packages', 'app')
     await mkdir(nested, { recursive: true })

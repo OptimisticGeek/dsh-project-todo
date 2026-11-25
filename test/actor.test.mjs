@@ -6,8 +6,8 @@ import path from 'node:path'
 import { resolveActor, gitUserName, stripToolPrefix } from '../lib/actor.js'
 
 async function withRoot(run) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'ptodo-actor-'))
-  const home = await mkdtemp(path.join(os.tmpdir(), 'ptodo-home-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'ptask-actor-'))
+  const home = await mkdtemp(path.join(os.tmpdir(), 'ptask-home-'))
   try {
     await run(root, home)
   } finally {
@@ -24,7 +24,7 @@ test('explicit --by wins over env and git, but person still prefers git user.nam
   await withRoot(async (root, home) => {
     await mkdir(path.join(root, '.git'))
     await writeFile(path.join(root, '.git', 'config'), '[user]\n\tname = Alice\n', 'utf8')
-    const info = resolveActor({ by: 'codex:alice', root, cwd: root, home, env: fakeEnv({ PTODO_ACTOR: 'env:alice' }) })
+    const info = resolveActor({ by: 'codex:alice', root, cwd: root, home, env: fakeEnv({ ptask_ACTOR: 'env:alice' }) })
     assert.equal(info.actor, 'codex:alice')
     assert.equal(info.source, 'flag')
     assert.equal(info.hasPrefix, true)
@@ -33,11 +33,11 @@ test('explicit --by wins over env and git, but person still prefers git user.nam
   })
 })
 
-test('PTODO_ACTOR wins over git user.name for actor; git still wins for person', async () => {
+test('ptask_ACTOR wins over git user.name for actor; git still wins for person', async () => {
   await withRoot(async (root, home) => {
     await mkdir(path.join(root, '.git'))
     await writeFile(path.join(root, '.git', 'config'), '[user]\n\tname = Alice\n', 'utf8')
-    const info = resolveActor({ root, cwd: root, home, env: fakeEnv({ PTODO_ACTOR: 'workbuddy:alice' }) })
+    const info = resolveActor({ root, cwd: root, home, env: fakeEnv({ ptask_ACTOR: 'workbuddy:alice' }) })
     assert.equal(info.actor, 'workbuddy:alice')
     assert.equal(info.source, 'env')
     assert.equal(info.person, 'Alice')
@@ -49,7 +49,7 @@ test('person strips one <tool>: prefix when no git user.name exists', async () =
     const flag = resolveActor({ by: 'codex:alice', root, cwd: root, home, env: fakeEnv() })
     assert.equal(flag.person, 'alice')
     assert.equal(flag.personSource, 'flag')
-    const env = resolveActor({ root, cwd: root, home, env: fakeEnv({ PTODO_ACTOR: 'dsh:skill-portability' }) })
+    const env = resolveActor({ root, cwd: root, home, env: fakeEnv({ ptask_ACTOR: 'dsh:skill-portability' }) })
     assert.equal(env.actor, 'dsh:skill-portability')
     assert.equal(env.person, 'skill-portability')
     assert.equal(env.personSource, 'env')
