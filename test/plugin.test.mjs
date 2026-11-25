@@ -43,8 +43,8 @@ test('the Web half needs the shared connection channel and, optionally, webServe
   assert.ok(!injections.some((services) => services.includes('workingDirectory')))
   assert.ok(!injections.some((services) => services.includes('tools')))
 
-  // connection routes + legacy route + token + system prompt + root dispose
-  assert.equal(effects.length, 5)
+  // connection routes + legacy route + token + root dispose
+  assert.equal(effects.length, 4)
   for (const factory of effects) assert.equal(typeof factory(), 'function')
   // No carrier here, so every registration warns instead of throwing.
   assert.ok(warnings.some((message) => message.includes('/api')))
@@ -88,18 +88,19 @@ test('ui.enabled=false warns and mounts no Web route', () => {
   assert.ok(warnings.some((message) => message.includes('ui.enabled=false')))
 })
 
-test('plugin no longer registers model-facing ptask_* tools', () => {
+test('plugin no longer registers model-facing tools or a global policy section', () => {
   assert.equal(existsSync(new URL('../lib/tools.js', import.meta.url)), false)
   const entry = readFileSync(new URL('../index.js', import.meta.url), 'utf8')
   assert.doesNotMatch(entry, /buildTools/)
   assert.doesNotMatch(entry, /ctx\.inject\(\['tools'/)
-  assert.match(entry, /ptask status/)
-  assert.match(entry, /ptask continue/)
+  assert.doesNotMatch(entry, /POLICY_TEXT/)
+  assert.doesNotMatch(entry, /systemPrompt\.section/)
 })
 
 test('package exposes one global ptask bin and ships the skill', () => {
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
   assert.match(pkg.version, /^\d+\.\d+\.\d+$/)
+  assert.equal(pkg.name, 'dsh-project-task')
   assert.deepEqual(pkg.bin, { ptask: './bin/ptask.mjs' })
   assert.ok(existsSync(new URL('../bin/ptask.mjs', import.meta.url)))
   // Installation gate: the plugin manager reads engines.dsh, and the install

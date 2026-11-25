@@ -108,6 +108,13 @@ test('SKILL.md is a compact task-board protocol with progressive query levels', 
   assert.doesNotMatch(skill, /\.dsh\/TODO\.md/)
 })
 
+test('index.js no longer injects a global policy or a snapshot header', async () => {
+  const index = await readFile(path.join(SKILL_SOURCE, '..', '..', 'index.js'), 'utf8')
+  assert.doesNotMatch(index, /POLICY_TEXT/)
+  assert.doesNotMatch(index, /systemPrompt\.section/)
+  assert.match(index, /isSubagent/)
+  assert.match(index, /renderSummary/)
+})
 
 test('references are resolvable and point at the new CLI', async () => {
   const skill = await readSkill()
