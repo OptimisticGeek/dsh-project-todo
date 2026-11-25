@@ -1,6 +1,6 @@
-# dsh-project-task · 项目待办
+# dsh-project-task · 任务
 
-> 一个项目一份待办：人在 Web 看板上看，Agent 用终端 `ptask` 认领、写回、交接。
+> 一个项目一份任务：人在 Web 看板上看，Agent 用终端 `ptask` 认领、写回、交接。
 > 数据只有一份（`docs/ptask/`），CLI、页面和跨工具技能共用同一套状态机与文件锁。
 
 ```text
@@ -19,7 +19,7 @@ Agent 写代码很快，但「做到哪、为什么这么选、下一步是什�
 - 「完成了」只是口头结论，没有版本、没有可复核的证据；
 - 用户想知道项目还有什么没做，只能翻会话或问 Agent。
 
-`dsh-project-task` 把待办从聊天记录搬到项目文件，并给 Agent 一套固定动作：
+`dsh-project-task` 把任务从聊天记录搬到项目文件，并给 Agent 一套固定动作：
 
 - **唯一事实源**：`docs/ptask/tasks.json`；禁止手改，统一走 `ptask`。
 - **Agent 六个动作**：`ready / start / done / release / block / create`，覆盖找活、认领、完成、交接、阻塞、建任务。
@@ -34,20 +34,20 @@ Agent 写代码很快，但「做到哪、为什么这么选、下一步是什�
 要求 Node.js >= 20。
 
 ```bash
-cd dsh-plugins/dsh-project-task
+cd dsh-plugins/dsh-project-todo
 npm link                 # 开发期链接安装；或 npm i -g .
 ptask doctor             # 自检：包/Node/根目录/看板/git/actor/技能
 ptask init               # 首次：建空看板（已有数据会提示已存在）
 ptask skill install --targets all   # 可选：装到 7 个 Agent 工具
 ```
 
-建一条任务并直接开工（`create` 默认把负责人设成你，所以它不会出现在 `ready` 列表里，直接 `start` 即可）：
+建一条任务再认领（`create` 默认不占负责人，会直接进 `ready`）：
 
 ```bash
-ptask task create --title "导出接口支持流式" --priority P1 --tags "KB,api"
-ptask task start T-0001
-ptask context decision T-0001 "选流式，避免大文件内存峰值"
-ptask task done T-0001 --evidence "接口测试 12/12 通过" --version v0.1.0
+ptask create --title "导出接口支持流式" --priority P1 --tags "KB,api"
+ptask start T-0001
+ptask note decision T-0001 "选流式，避免大文件内存峰值"
+ptask done T-0001 --evidence "接口测试 12/12 通过" --version v0.1.0
 ```
 
 > 非 git 目录必须带 `--version`，否则 `done` 以 `[INVALID]`（退出码 5）拒绝——这是刻意的，防止谎言式完成。
@@ -61,7 +61,7 @@ flowchart LR
   R["ready<br/>找就绪任务"] --> S["start<br/>认领 + 开工简报"]
   S --> V["G0.5<br/>需求/口径校验"]
   V --> D["开发<br/>改文件 / 跑测试"]
-  D --> W["写回<br/>context / loop"]
+  D --> W["写回<br/>note / loop"]
   W --> X{"这一步"}
   X -->|完成| DN["done<br/>--evidence"]
   X -->|卡住| BL["block<br/>--reason"]
@@ -80,12 +80,12 @@ flowchart LR
 
 | 门 | 时机 | 命令 | 要拿到什么 |
 |---|---|---|---|
-| G0 开工 | 任何要改文件/跑构建的回合开始 | `ptask task ready --limit 3` | 就绪叶子；空则建任务或换一条 |
-| G1 认领 | 改文件之前 | `ptask task start <id>` | 开工简报；顺带完成认领 |
-| G0.5 校验 | 认领后、动手前（仅配置了需求注册表的项目） | `ptask context decision <id> "..."` | 口径/CR/版本实测结论写回 |
-| G2 进行中 | 每完成一个子步骤、卡住、换人 | `context progress / loop`、`block`、`release` | 状态与原因落库，下一位可接 |
-| G3 完成 | 证据可复核之后 | `ptask task done <id> --evidence "..."` | 版本/证据/解锁下游；非默认里程碑完成时问归档 |
-| G4 收尾 | 给用户结论之前 | `ptask task status` | 计数 + 结论行，不再靠记忆 |
+| G0 开工 | 任何要改文件/跑构建的回合开始 | `ptask ready --limit 3` | 就绪叶子；空则建任务或换一条 |
+| G1 认领 | 改文件之前 | `ptask start <id>` | 开工简报；顺带完成认领 |
+| G0.5 校验 | 认领后、动手前（仅配置了需求注册表的项目） | `ptask note decision <id> "..."` | 口径/CR/版本实测结论写回 |
+| G2 进行中 | 每完成一个子步骤、卡住、换人 | `ptask note progress / loop`、`block`、`release` | 状态与原因落库，下一位可接 |
+| G3 完成 | 证据可复核之后 | `ptask done <id> --evidence "..."` | 版本/证据/解锁下游；非默认里程碑完成时问归档 |
+| G4 收尾 | 给用户结论之前 | `ptask status` | 计数 + 结论行，不再靠记忆 |
 
 > 纯只读问答、以及不改代码/文档的运维动作，可以跳过认领和 G0.5；其余开发任务必须按门走。
 
@@ -102,16 +102,28 @@ flowchart LR
 | Actor vs person | actor 是工具身份（`--by` 或 `PTASK_ACTOR`，建议 `工具:名字`）；person 是完成人/负责人，取 git `user.name`。 |
 | 父任务 | 容器，不可认领/完成/阻塞；状态由子任务自底向上汇总。 |
 
+## 查询分级（先小后大）
+
+| 级别 | 命令 | 内容 | 何时 |
+|---|---|---|---|
+| 摘要 | `ptask status` | 计数 + 前 2 条待开工 | 开场、随时看总量 |
+| 列表 | `ptask list` / `ptask ready` | ID、状态、优先级、标题、阶段、持有 | 找活、筛选；默认 20 / 3 条 |
+| 单任务摘要 | `ptask show <id>` | 目标、进度、2 条决策、未关闭计数、阻塞、下一步 | 问「T-123 是什么/做到哪」 |
+| 上下文关系 | `ptask show <id> --context` | 父/子、上下游、阶段、前置、资料、因果 | 问「为什么卡/依赖谁/有哪些子任务」 |
+| 完整详情 | `ptask show <id> --full` | 全备注、全决策、全循环、资料、证据、近 10 历史 | 交接、验收、用户明确要完整背景 |
+
+默认不要 `--full`，不要读 `tasks.json` 或 `history.jsonl`；`--json` 也遵守所选视图。
+
 ## Agent 六个动作
 
 | 命令 | 什么时候用 | 关键行为 |
 |---|---|---|
-| `ptask task ready [--limit N]` | 回合开始、不知道做什么 | 只列就绪叶子；已指派给你的不在里面 |
-| `ptask task start <id>` | 改文件前 | 检查就绪 + 认领 + 返回开工简报；本人任务幂等 |
-| `ptask task done <id> --evidence "..."` | 验证通过后 | 仅持有者；自动版本/证据；解锁下游；返回 `milestone.complete` |
-| `ptask task release <id> --note "..."` | 换人、收工、等外部输入 | 任务回 `open`；进度改写「中断于 …」；note 进交接 |
-| `ptask task block <id> --reason "..."` | 被外部条件卡住 | 任务变 `blocked`；原因进 `openLoops`；`unblock` 恢复 |
-| `ptask task create --title "..."` | 发现新工作 | ID 自动分配；默认负责人=你；可带 `--blocked-by` |
+| `ptask ready [--limit N]` | 回合开始、不知道做什么 | 只列就绪叶子；已指派给你的不在里面 |
+| `ptask start <id>` | 改文件前 | 检查就绪 + 认领 + 返回开工简报；本人任务幂等 |
+| `ptask done <id> --evidence "..."` | 验证通过后 | 仅持有者；自动版本/证据；解锁下游；返回 `milestone.complete` |
+| `ptask release <id> --note "..."` | 换人、收工、等外部输入 | 任务回 `open`；进度改写「中断于 …」；note 进交接 |
+| `ptask block <id> --reason "..."` | 被外部条件卡住 | 任务变 `blocked`；原因进 `openLoops`；`unblock` 恢复 |
+| `ptask create --title "..."` | 发现新工作 | ID 自动分配；默认不占负责人，直接进 ready；可带 `--blocked-by` |
 
 ### 开工简报长什么样
 
@@ -129,12 +141,12 @@ S-0002 实现 / M-0001 Q4 交付 · P1 · 紧急 普通
 下一步：先处理未关闭事项：等客户端确认字段名
 ```
 
-简报已经包含阶段、目标、上游、资料、前置和 `nextStep`；**不要再 `task get` 重复读一遍**。
+简报已经包含阶段、目标、上游、资料、前置和 `nextStep`；**不要再 `ptask show` 重复读一遍**。
 
 ### 完成与归档
 
 ```text
-$ ptask task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
+$ ptask done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
 已完成 T-0007（版本 v0.1.0）；解锁 T-0008
 里程碑 M-0001 已全部完成；归档前先询问用户：ptask admin archive-batch --milestone M-0001
 ```
@@ -143,7 +155,7 @@ $ ptask task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
 
 1. **先问用户**「里程碑 M-0001（名称）已全部完成，是否归档？」；
 2. 用户同意后才执行 `ptask admin archive-batch --milestone M-0001`；
-3. 用户拒绝则写回 `ptask context loop T-0007 "里程碑 M-0001 待归档，用户暂不归档"`。
+3. 用户拒绝则写回 `ptask note loop T-0007 "里程碑 M-0001 待归档，用户暂不归档"`。
 
 **默认里程碑（`code=default`，收件箱）不归档**：它的 `archivable=false`，文本也不出归档提示——`complete=true` 只表示「这个里程碑下的任务都做完了」，直接给结论行即可。
 未确认不得归档；`complete=false`、`archivable=false` 或 `milestone=null` 不要提归档。
@@ -168,11 +180,11 @@ $ ptask task done T-0007 --evidence "接口测试 12/12 通过" --version v0.1.0
 ### 管理
 
 ```bash
-ptask task list|get|update|status|dep add|remove|list|unblock|reopen
+ptask list|show|update|status|dep add|remove|list|unblock|reopen
 ptask milestone create|list|get|update|delete|dep add|remove|list
 ptask stage create|list|get|update|reorder|delete|dep add|remove|list
 ptask tag add|update|deprecate|list|todos
-ptask context get|decision|progress|loop <id>
+ptask note get|decision|progress|loop <id>
 ptask res add|approve|supersede|list <id>
 ptask pre add|remove|list|confirm <id>
 ptask cause add|remove|list|chain <id>
@@ -185,7 +197,7 @@ ptask whoami | doctor | init | migrate | skill install|status|remove
 
 `ptask admin ...`：归档、`archive-batch`、删除、导入导出、批量、清空日志、`people`。不进入技能主流程，Agent 不要主动用。
 
-完整参数、JSON 字段见 [skill/project-task/references/cli.md](skill/project-task/references/cli.md)。
+完整参数、JSON 字段见 [skill/project-task-board/references/cli.md](skill/project-task-board/references/cli.md)。
 
 ### 退出码
 
@@ -201,7 +213,7 @@ ptask whoami | doctor | init | migrate | skill install|status|remove
 
 ## Web 看板
 
-DSH 会话页的「待办」标签页；Host 只监听回环，按会话工作目录解析项目根。
+DSH 会话页的「任务」标签页；Host 只监听回环，按会话工作目录解析项目根。
 
 - Tab：全部 / 就绪 / 进行中 / 被阻塞 / 已完成 / 已归档；计数跟随当前标签、搜索、人员过滤。
 - 视图：自动 / 平铺 / 按里程碑；自动 = 只有默认组织时平铺，否则分组。选择记在浏览器本地。
@@ -230,9 +242,8 @@ DSH 会话页的「待办」标签页；Host 只监听回环，按会话工作�
 | `docs/ptask/archive.json` | v2 | 已归档任务 |
 | `docs/ptask/history.jsonl` | — | 只追加操作日志 |
 | `docs/ptask/config.json` | — | 可选配置 |
-| `.dsh/TODO.md`、`.dsh/ARCHIVE.md` | — | 只写 Markdown 快照（不读） |
 
-- 每次变更：进程内队列 + `tasks.json.lock` → 重读校验 → `revision+1` → 临时文件 + fsync + rename → 追加历史 → 重写快照。
+- 每次变更：进程内队列 + `tasks.json.lock` → 重读校验 → `revision+1` → 临时文件 + fsync + rename → 追加历史。不生成 Markdown 快照。
 - 派生字段（`isReady / effectiveStatus / blocking / progress / usageCount`）每次读取重算，不落库。
 - 读取容忍文件缺失（空看板）；损坏 JSON 拒绝写入并保留原文件。
 
@@ -248,7 +259,7 @@ DSH 会话页的「待办」标签页；Host 只监听回环，按会话工作�
 dsh plugin --profile desktop add github:OptimisticGeek/dsh-project-task
 
 # 或本地源码目录（开发期）
-dsh plugin --profile desktop add E:\path\to\dsh-project-task
+dsh plugin --profile desktop add E:\path\to\dsh-project-todo
 ```
 
 **不要手工编辑 `dsh.profile.bundles`**。`dsh plugin add` 会按真实包名自动登记/移除，
@@ -266,8 +277,8 @@ fetch('/api/dsh-project-task/health').then(r => r.json()).then(console.log)
 ### CLI（任何终端）
 
 ```bash
-git clone https://github.com/OptimisticGeek/dsh-project-task.git
-cd dsh-project-task
+git clone https://github.com/OptimisticGeek/dsh-project-task.git dsh-project-todo
+cd dsh-project-todo
 npm link          # 开发期：全局 ptask 指向本目录
 # 或 npm i -g .   # 复制安装；更新包后要重装
 ptask doctor
@@ -277,8 +288,8 @@ ptask doctor
 
 ### 跨工具技能
 
-**首次使用（Web）**：打开「待办」页时，如果检测到本机装有 Claude Code / Codex / WorkBuddy / ZCode / Trae
-等工具，页面顶部会出现「一键安装到已检测工具」提示；点一下就把 `project-task` 技能以 junction
+**首次使用（Web）**：打开「任务」页时，如果检测到本机装有 Claude Code / Codex / WorkBuddy / ZCode / Trae
+等工具，页面顶部会出现「一键安装到已检测工具」提示；点一下就把 `project-task-board` 技能以 junction
 链接进这些工具的 skills 目录。之后可随时点工具栏「技能」查看每个目标的状态（已链接 / 已复制 /
 未安装 / 内容不一致），也可以在这里补装。
 
@@ -292,12 +303,12 @@ ptask skill status
 ptask skill remove --targets all
 ```
 
-目标：项目 `.agents/skills/project-task`，以及 `~/.agents`、`~/.dsh`、`~/.zcode`、`~/.workbuddy`、
-`~/.claude`、`~/.codex`、`~/.trae` 下的 `skills/project-task`。Windows 优先目录 junction，失败回退复制。
+目标：项目 `.agents/skills/project-task-board`，以及 `~/.agents`、`~/.dsh`、`~/.zcode`、`~/.workbuddy`、
+`~/.claude`、`~/.codex`、`~/.trae` 下的 `skills/project-task-board`。Windows 优先目录 junction，失败回退复制。
 
 ### 配置（`docs/ptask/config.json`，可缺省）
 
-常用项：`archive.afterDays`（默认 3，0 关闭）、`version.require` / `version.gitDir`、`ui.defaultTab`、`tag.strict`、`context.maxDecisions` / `maxOpenLoops`、`skill.targets`、`batch.claimLimit`。缺省值可用，非法值回退默认。
+常用项：`version.require` / `version.gitDir`、`ui.defaultTab`、`tag.strict`、`context.maxDecisions` / `maxOpenLoops`、`skill.targets`、`batch.claimLimit`。缺省值可用，非法值回退默认。归档只由 `ptask admin archive` 显式执行，读取不自动归档。
 
 ### 迁移
 
@@ -315,7 +326,7 @@ ptask migrate             # v2→v3 原地升级；备份到 docs/ptask/.backup/
 | `ptask` 找不到 | 未 link 或 PATH 不含 npm 全局 bin | `npm link` / `npm i -g .` |
 | `[NO_PROJECT]` | 不在项目内且无 `--root` | `cd` 到项目根或传 `--root` |
 | `done` 报 `[INVALID]` | 非 git 且没给版本 | 补 `--version <版本>` |
-| `[NOT_READY]` | 硬依赖/前置未满足，或被他人持有/阶段归档 | `task get <id>` 看 holder 和 blocking，换一条或补前置 |
+| `[NOT_READY]` | 硬依赖/前置未满足，或被他人持有/阶段归档 | `ptask show <id>` 看 holder 和 blocking，换一条或补前置 |
 | `[CONFLICT]` | 被他人持有、锁占用、依赖已存在 | 不要默认 `--force`；稍后重试或换任务 |
 | `ready` 为空 | 没有「未指派 + 就绪」的叶子 | 自己建的直接 `start`；否则查依赖/前置/归档 |
 | 页面 404 且接口响应为空 | Host 半边没注册接口（`ui.enabled=false`、插件行不在该 profile、或页面跑在别的实例） | 重启整个 DSH；在页面控制台 `fetch('/api/dsh-project-task/health').then(r=>r.json())` 看 `services`（命令行 curl 需带登录 cookie） |
@@ -332,10 +343,10 @@ ptask migrate             # v2→v3 原地升级；备份到 docs/ptask/.backup/
 | [docs/INSTALL.md](docs/INSTALL.md) | 安装与环境矩阵：一键安装、自检、升级、卸载、症状排障、依赖的 DSH 契约 |
 | [docs/HELP.md](docs/HELP.md) | 使用帮助：泳道图、时序图、状态机、时机表、FAQ、排障 |
 | [SPEC.md](SPEC.md) | 设计与契约（数据模型、状态机、UI、命令、退出码） |
-| [skill/project-task/SKILL.md](skill/project-task/SKILL.md) | 发给 Agent 的执行协议（G0–G4） |
-| [skill/project-task/references/cli.md](skill/project-task/references/cli.md) | 全量 CLI 参数与 JSON 字段 |
-| [skill/project-task/references/governance.md](skill/project-task/references/governance.md) | 组织/标签/依赖治理 |
-| [skill/project-task/references/requirements.md](skill/project-task/references/requirements.md) | G0.5 需求校验细则 |
+| [skill/project-task-board/SKILL.md](skill/project-task-board/SKILL.md) | 发给 Agent 的执行协议（G0–G4） |
+| [skill/project-task-board/references/cli.md](skill/project-task-board/references/cli.md) | 全量 CLI 参数与 JSON 字段 |
+| [skill/project-task-board/references/governance.md](skill/project-task-board/references/governance.md) | 组织/标签/依赖治理 |
+| [skill/project-task-board/references/requirements.md](skill/project-task-board/references/requirements.md) | G0.5 需求校验细则 |
 
 ## 开发
 
@@ -345,9 +356,9 @@ npm test        # node --test test/*.mjs
 
 ```text
 index.js              Host 入口：项目解析、HTTP、提示注入（不注册 model-facing 工具）
-client.js             Web「待办」视图
+client.js             Web「任务」视图
 lib/                  领域逻辑：model / service / store / org / tags / derive / brief / cli
-skill/project-task/   跨工具技能与参考文档
+skill/project-task-board/   跨工具技能与参考文档
 test/                 node:test 用例（CLI/存储/并发/UI 契约等）
 ```
 

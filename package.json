@@ -1,15 +1,15 @@
 {
   "name": "dsh-project-task",
-  "version": "3.1.2",
+  "version": "4.0.0",
   "type": "module",
-  "description": "DeepSeek Harness 项目待办：里程碑/阶段/任务三层、依赖与就绪、开工简报；数据在 docs/ptask/*.json；Web 看板 + 全局 ptask CLI + 内置纯 JS Excel 导出（总览图表 + 任务明细，无 Python 依赖）",
+  "description": "DeepSeek Harness 任务插件：里程碑/阶段/任务三层、依赖与就绪、任务摘要与渐进式视图；数据在 docs/ptask/*.json；Web 看板 + 全局 ptask CLI + 内置纯 JS Excel 导出",
   "license": "Apache-2.0",
   "author": "OptimisticGeek",
   "keywords": [
     "dsh",
     "deepseek-harness",
     "plugin",
-    "todo",
+    "task",
     "project-management",
     "cli",
     "ptask"

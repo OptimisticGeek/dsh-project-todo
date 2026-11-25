@@ -1,11 +1,11 @@
-# SPEC：项目待办插件（project todo board）
+# SPEC：任务插件（project todo board）
 
 > 状态：**v4.0**（2026-11-04）。本文件取代 v0.4 / v2.x / v3.0 的全部旧描述；实现、UI、CLI 帮助与 README 以本文件为准。
 >
 > v4.0 相对 v3.0 的变化：
 > 1. **三层组织**：里程碑（`M-0001`/`default`）→ 阶段（`S-0001`/`default`）→ 任务（`T-0001`，嵌套 ≤ 5）；新增 `milestones.json`。
-> 2. **任务依赖**：`hard|soft`，带成环检测；新增「就绪」概念与 `task ready/start`。
-> 3. **开工简报**：`task start` 一次返回阶段、目标、上游版本/证据、资料、未关闭事项、前置与下一步。
+> 2. **任务依赖**：`hard|soft`，带成环检测；新增「就绪」概念与 `ptask ready/start`。
+> 3. **开工简报**：`ptask start` 一次返回阶段、目标、上游版本/证据、资料、未关闭事项、前置与下一步。
 > 4. **任务上下文**：`context.goal/decisions/openLoops/progress`，超限自动折叠。
 > 5. **前置条件、资料、因果**：`pre/res/cause` 命令；资料替换会提示复核。
 > 6. **Actor 与 Git**：五级 actor 解析；`git link` / commit 钩子 / 自动完成证据。
@@ -14,16 +14,16 @@
 
 ## 1. 定位与边界
 
-- **项目级**：数据属于项目，不是全局任务池。项目 = 会话工作目录解析出的项目根；同一项目的多个会话共享同一份待办。
-- **agent 的工作目标**：待办是 agent 的默认目标来源；`ptask` 是唯一命令入口，技能与提示词保证读得懂、改得对。
+- **项目级**：数据属于项目，不是全局任务池。项目 = 会话工作目录解析出的项目根；同一项目的多个会话共享同一份任务。
+- **agent 的工作目标**：任务是 agent 的默认目标来源；`ptask` 是唯一命令入口，技能与提示词保证读得懂、改得对。
 - **三层组织**：里程碑管交付节奏，阶段管批次/模块，任务管可执行叶子；任务通过 `stageCode` 归属阶段。
 - **不是**：DSH 内置 `todo_write` 的替代（那是会话内计划清单）；也不是 Jira 式协作系统（无评论/附件/多人指派）。
 
 ## 2. 交付形态
 
 - 包：`dsh-project-task`（目录 `dsh-plugins/dsh-project-task`），bin 为全局命令 `ptask`。
-- Host 半边：项目解析、JSON store、org/tag store、Markdown 快照、CLI、HTTP（供 Web UI）。
-- Client 半边：`conversation.view` 标签页「待办」；**不注册** `sidebar.panellist` / `main`。
+- Host 半边：项目解析、JSON store、org/tag store、CLI、HTTP（供 Web UI）。
+- Client 半边：`conversation.view` 标签页「任务」；**不注册** `sidebar.panellist` / `main`。
 - **不再注册任何 model-facing `ptask_*` 工具**；CLI 与页面共用 `service.act()` 与 `getState/getTask/getTimeline`。
 
 ## 3. 项目解析
@@ -73,7 +73,7 @@ CLI 可用 `--root DIR` 覆盖；`PTASK_ROOT` 次之。UI 侧由 Host 用 `worki
 | `createdAt/updatedAt/statusChangedAt` | ISO string | 状态变化只动 `statusChangedAt` |
 | `claimedAt` | ISO\|null | 认领时间 |
 | `doneAt/doneVersion/doneEvidence` | — | 完成时间 / 版本 / 证据 |
-| `archivedAt/archivedBy/archiveExempt` | — | 归档与自动归档豁免 |
+| `archivedAt/archivedBy/archiveExempt` | — | 归档与解档豁免 |
 | `revision` | int | 单任务修订号（每次写入 ++） |
 
 `context` 结构：
@@ -200,7 +200,7 @@ done | cancelled --reopen--> open
 | `soft` | 仅提示，不影响就绪 |
 
 `isReady = 叶子 && status=open && 无 holder && 阶段/里程碑未 archived && effectiveStatus=open`。
-`task ready` 只返回 `isReady` 的叶子；`task start` 先判 `isReady`，不就绪 → `NOT_READY`（10）。
+`ptask ready` 只返回 `isReady` 的叶子；`ptask start` 先判 `isReady`，不就绪 → `NOT_READY`（10）。
 依赖只能加在叶子任务上；给父任务加依赖 → `INVALID`。加依赖时全图 DFS；成环 → `DEPENDENCY_CYCLE`（8），回滚该边。归档中的 `done` 任务仍可满足依赖。
 
 ### 6.3 前置条件
@@ -221,14 +221,14 @@ done | cancelled --reopen--> open
 
 `decisions` 上限 50、`openLoops` 上限 20（可配）；超限时最旧条目折叠为一条 `system` 摘要，原文仍在历史日志。
 
-## 7. 排序、并发、存储与快照
+## 7. 排序、并发与存储
 
 - Agent 排序：`priority`（P0 先）→ `urgency`（5 先）→ `createdAt`（早先）→ id。
 - 面板排序：已认领按 `claimedAt`，未认领在后按 `createdAt`。
-- 每次变更：进程内队列 + `.lock`（`O_CREAT|O_EXCL`，含 pid/时间）→ 重读 → 校验 → 变更 → `revision+1` → 原子写（temp+fsync+rename）→ 追加日志 → 重写快照。
+- 每次变更：进程内队列 + `.lock`（`O_CREAT|O_EXCL`，含 pid/时间）→ 重读 → 校验 → 变更 → `revision+1` → 原子写（temp+fsync+rename）→ 追加日志。
 - 锁等待 2 秒，超 10 秒视为陈旧；获取失败 → `CONFLICT`。
-- 读取容忍文件缺失（空看板）；自动归档在读取时 sweep：`archive.afterDays`（默认 3，0 关闭）后把完成的**叶子**移入 `archive.json`，写 `auto_archive` 日志并重写快照。
-- Markdown 快照：每次成功变更后写 `.dsh/TODO.md` / `.dsh/ARCHIVE.md`，格式与 v1 相同（单表、父子缩进、完成/归档信息），只写不读；失败仅 warning。
+- 读取容忍文件缺失（空看板）；读取不触发归档，归档由 `admin archive` 显式执行。
+- 不生成任何 Markdown 快照；读模型统一走 `ptask show` 的分级视图。
 
 ## 8. 命令契约
 
@@ -236,21 +236,23 @@ done | cancelled --reopen--> open
 
 | 命令 | 行为 |
 |---|---|
-| `ptask task ready [--limit N] [--stage S] [--milestone M]` | 只列就绪叶子 |
-| `ptask task start <id>` | 认领 + 开工简报；不就绪 `NOT_READY` |
-| `ptask task done <id> [--evidence] [--version] [--force]` | 完成；自动证据/版本；解锁下游 |
-| `ptask task release <id> [--note] [--force]` | 释放 + 交接 |
-| `ptask task block <id> --reason` | 阻塞并把原因写入 openLoops |
-| `ptask task create --title ... [--stage] [--priority P0..P5] [--urgency 1..5] [--tags a,b] [--parent] [--blocked-by] [--notes]` | 新建；编码自动分配 |
+| `ptask ready [--limit N] [--stage S] [--milestone M]` | 只列就绪叶子 |
+| `ptask start <id>` | 认领 + 开工简报；不就绪 `NOT_READY` |
+| `ptask done <id> [--evidence] [--version] [--force]` | 完成；自动证据/版本；解锁下游 |
+| `ptask release <id> [--note] [--force]` | 释放 + 交接 |
+| `ptask block <id> --reason` | 阻塞并把原因写入 openLoops |
+| `ptask create --title ... [--stage] [--priority P0..P5] [--urgency 1..5] [--tags a,b] [--parent] [--blocked-by] [--notes]` | 新建；编码自动分配 |
+| `ptask show <id> [--context|--full]` | 默认摘要；关系/完整按需 |
+| `ptask note decision|progress|loop <id> ...` | 写回决策/进度/未关闭事项 |
 
 ### 8.2 管理命令
 
 ```
-task      list|get|update|status|dep add|remove|list|unblock|reopen
+status  list|show|update|start|done|block|release|create|dep|suggest|sync-parents
+note    get|decision|progress|loop
 milestone create|list|get|update|delete|dep add|remove|list
 stage     create|list|get|update|reorder|delete|dep add|remove|list
 tag       add|update|deprecate|list|todos
-context   get|decision|progress|loop
 res       add|approve|supersede|list
 pre       add|remove|list|confirm
 cause     add|remove|list|chain
@@ -265,16 +267,16 @@ whoami | doctor | init [--template simple|standard] | migrate | skill install|st
 
 **JSON 通道**：`admin export --format json` 输出完整任务记录（`dependsOn` 为 id 数组，`dependsOnDetail` 带 type/note）；`admin import-file <file> [--dry-run] [--create-only]` 按 id 幂等合并——已存在只更新该行给出的字段、`context.decisions` 追加，不存在则新建并把原 id 写进 `legacyId`。导入逐行返回 `created/updated/unchanged/failed` 与原因，依赖找不到单独列出；含失败行时退出码 1。`--create-only` 不做 id 匹配，用于跨项目复制。
 
-**HTML 导出**：`admin export --format html` 由 `lib/html-report.js` 产出数据模型，`templates/report.html` 负责版式（单文件、无 CDN、离线可开）。模板用 `{{PTASK_*}}` 占位符，缺 `{{PTASK_DATA}}` 报 `PARSE_ERROR`；`--template` 支持内置名或本地路径，`admin templates` 列内置模板。CLI 与 HTTP 共用 `exportData(state, scope, format, config, options)`；HTTP 只接受内置模板名以防路径穿越。
+**HTML 导出**：`admin export --format html` 由 `lib/html-report.js` 产出数据模型，`templates/report.html` 负责版式（单文件、无 CDN、离线可开）。模板用 `{{ptask_*}}` 占位符，缺 `{{ptask_DATA}}` 报 `PARSE_ERROR`；`--template` 支持内置名或本地路径，`admin templates` 列内置模板。CLI 与 HTTP 共用 `exportData(state, scope, format, config, options)`；HTTP 只接受内置模板名以防路径穿越。
 
-**五项能力补完**：`role: container` 可显式声明（派生容器在 `decorateTask` 里给出有效 role，JSON 导出携带）；`task sync-parents [--dry-run]` 收口子任务已全完成或已归档的父任务并聚合版本/证据；`task done --backfill --version` 跳过 doing 校验、时间轴记 `backfill`；`task suggest` 只读给一条建议 + 排序理由（顶层 `next` 的 JSON/文本也带 `reason`）；清除 open 任务残留 holder 记 `holder_fix`，`category=admin`，默认时间轴隐藏，`--all` / `--type admin` 可查看。
+**五项能力补完**：`role: container` 可显式声明（派生容器在 `decorateTask` 里给出有效 role，JSON 导出携带）；`task sync-parents [--dry-run]` 收口子任务已全完成或已归档的父任务并聚合版本/证据；`ptask done --backfill --version` 跳过 doing 校验、时间轴记 `backfill`；`task suggest` 只读给一条建议 + 排序理由（顶层 `next` 的 JSON/文本也带 `reason`）；清除 open 任务残留 holder 记 `holder_fix`，`category=admin`，默认时间轴隐藏，`--all` / `--type admin` 可查看。
 
 **显式 root 守卫**：`--root`/`PTASK_ROOT` 指向没有 `docs/ptask/tasks.json` 的目录时，写操作报 `NO_PROJECT`(7) 而非静默新建第二套库；`init/migrate/doctor` 例外。`person` 在目标项目是 git 工作树时取该仓库的 `user.name`。
 
 ### 8.3 兼容别名（隐藏，不教给 agent）
 
 `status/list/get/next/continue/create/claim/release/block/done/update/admin`，以及 `unclaim`（= release）。
-`next`/`continue` 是 v1 的批量认领入口（默认 1/3 条），保留给旧脚本；v2 技能只教 `task ready/start`。
+`next`/`continue` 是 v1 的批量认领入口（默认 1/3 条），保留给旧脚本；v2 技能只教 `ptask ready/start`。
 
 ### 8.4 退出码
 
@@ -311,9 +313,8 @@ whoami | doctor | init [--template simple|standard] | migrate | skill install|st
 store:      { path: docs/ptask/tasks.json }
 milestones: { path: docs/ptask/milestones.json }
 tags:       { path: docs/ptask/tags.json }
-archive:    { afterDays: 3, path: docs/ptask/archive.json }
+archive:    { path: docs/ptask/archive.json }
 history:    { enabled: true, path: docs/ptask/history.jsonl }
-markdown:   { enabled: true, path: .dsh/TODO.md, archivePath: .dsh/ARCHIVE.md, doneLimit: 20 }
 version:    { auto: true, require: true, gitDir: "" }
 ui:         { enabled: true, defaultTab: auto }   # auto|all|ready|doing|blocked|done|archived
 tag:        { strict: false }
@@ -331,12 +332,12 @@ batch:      { claimLimit: 3 }
 - 完成版本：显式 `--version` → `version.gitDir` → 会话 cwd → 项目根；先纯文件读 HEAD（`.git` 目录/文件、`commondir`、loose refs、`packed-refs`），取不到再尝试 `git rev-parse --short HEAD`。
 - `version.require=true` 且取不到 → 拒绝完成；否则版本可空。
 - 自动证据：`git log --grep=<taskId>` 前 3 条摘要；`done --evidence` 优先。
-- `git link` 写 `config.version.gitDir`（`--dir` 默认当前 shell 目录，不是 `--root`）；`git hook install` 安装 `prepare-commit-msg`，在 `PTASK_TASK` 存在时追加 `Refs: T-xxxx`。
+- `git link` 写 `config.version.gitDir`（`--dir` 默认当前 shell 目录，不是 `--root`）；`git hook install` 安装 `prepare-commit-msg`，在 `ptask_TASK` 存在时追加 `Refs: T-xxxx`。
 - 所有 git 调用 best-effort：非仓库/沙箱拒绝子进程时降级为「无数据」，不阻断 ptask。
 
 ## 12. UI 契约
 
-- 注册 `conversation.view`，`id="todo"`，label 走 locale（zh 待办 / en Todo）。
+- 注册 `conversation.view`，`id="todo"`，label 走 locale（zh 任务 / en Todo）。
 - 页面按契约消费 Host API，挂在 DSH 共享 `/api` Fetch 通道（`ctx.connection.fetch`，Web 载体与桌面 `dsh-app://` 壳载体都分发）；旧 `webServer` 前缀路由保留兼容：
   - `GET /api/dsh-project-task/health` → `{ version, services:{ webServer, agents, workingDirectory }, hint }`，用于区分「接口没注册」与「会话服务缺失」；
   - `GET /api/dsh-project-task/state?sessionId=…` → 任务（含派生字段）、里程碑/阶段、标签、counts、actor（含 person）；
@@ -412,16 +413,16 @@ batch:      { claimLimit: 3 }
 - **旧 `.dsh` 布局 → `docs/ptask/`**：`ptask migrate` 保留任务/ID/revision/nextId，旧 history 丢弃，成功后删旧 JSON（`--keep-legacy` 保留）；目标已存在且不同 → `CONFLICT`，`--force` 先备份再覆盖。
 - 不做旧布局回退；`doctor` 提示待迁移。
 
-## 14. 快照与历史
+## 14. 历史
 
-- 快照 `.dsh/TODO.md` / `.dsh/ARCHIVE.md` 只写不读；格式不变（单表、父子缩进、标签列、归档完成/版本/证据）。
 - 历史日志独立、只追加、可清空（`admin timeline-clear --confirm` 只截断日志，不动任务/归档/revision）。
 - 删除任务不回写日志；时间轴可追溯到已删除任务。
+- 不生成任务 Markdown 快照；`admin export` 按需生成报告。
 
 ## 15. 技能与提示
 
-- `skill/project-task/` 是跨工具技能；`ptask skill install` 安装到 7 个目标（project/agents/dsh/zcode/workbuddy/claude/codex）。
-- `index.js` 注入两段提示：常驻 systemPrompt（唯一入口、六个动作、禁止手改）与会话摘要（计数 + 进行中 + 就绪优先，≤400 字）。
+- `skill/project-task-board/` 是跨工具技能；`ptask skill install` 安装到 7 个目标（project/agents/dsh/zcode/workbuddy/claude/codex）。
+- `index.js` 只注入一段动态会话摘要（≤160 字，仅根 agent、仅项目有看板时），不再注入常驻 POLICY。
 - 不做工具调用拦截、不做 audit；强制依赖技能 G0–G4 与 `--evidence` 可见性。
 
 ## 16. 兼容与版本
@@ -443,11 +444,11 @@ batch:      { claimLimit: 3 }
 - `org-tags`：里程碑建阶段、默认 inbox、阶段依赖只标记不阻塞、里程碑成环、标签 draft/deprecate/strict、usageCount；
 - `v3-schema` / `migrate-v3`：v2 读取归一化、initOrg、stage 校验、首次写备份、缺文件合成、未知字段保留；
   `migrate-v3` 另覆盖 dry-run 不写盘、备份目录、revision/nextId 保留与 v3 幂等；
-- `store` / `state`：原子写/日志/快照、自动归档与恢复、并发 claim 唯一赢家、坏 JSON 拒绝；
+- `store` / `state`：原子写/日志、手动归档与恢复、并发 claim 唯一赢家、坏 JSON 拒绝；
   `state` 另覆盖 getState 派生字段、getTask 前置/阶段/提交、Markdown 导出的阶段/里程碑列；
 - `model`：父状态派生、容器限制、环/深度、group→tags、排序、批量、状态时间、编码分配、完成版本/证据；
 - `context-pre-cause`：决策折叠、task_done/manual_confirm 前置、资料替换 stale、因果镜像与链路；
-- `markdown`、`timeline`、`version`、`transfer`、`import`、`skill`、`plugin`。
+- `view`、`timeline`、`version`、`transfer`、`import`、`skill`、`plugin`。
 
 ## 18. 决策记录
 

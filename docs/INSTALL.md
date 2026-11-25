@@ -37,15 +37,15 @@ dsh plugin --profile <profile> add /absolute/path/to/dsh-project-task
 ### 2.2 CLI
 
 ```bash
-git clone https://github.com/OptimisticGeek/dsh-project-task.git
-cd dsh-project-task
+git clone https://github.com/OptimisticGeek/dsh-project-task.git dsh-project-todo
+cd dsh-project-todo
 npm link          # 或 npm i -g .
 ptask doctor
 ```
 
 ### 2.3 跨工具技能（可选）
 
-**Web 一键安装**：首次打开「待办」页时，若检测到本机装有 Claude Code / Codex / WorkBuddy / ZCode / Trae，
+**Web 一键安装**：首次打开「任务」页时，若检测到本机装有 Claude Code / Codex / WorkBuddy / ZCode / Trae，
 顶部出现「一键安装到已检测工具」；点击后以 junction 链接技能目录，点工具栏「技能」可随时查看/补装。
 
 ```bash
@@ -57,14 +57,14 @@ ptask skill remove --targets all
 
 | 目标 | 目录 |
 |---|---|
-| project | `<项目>/.agents/skills/project-task` |
-| claude | `~/.claude/skills/project-task` |
-| codex | `~/.codex/skills/project-task` |
-| workbuddy | `~/.workbuddy/skills/project-task` |
-| zcode | `~/.zcode/skills/project-task` |
-| trae | `~/.trae/skills/project-task`（部分版本需在 Settings → Rule & Skills 手动导入） |
-| dsh | `~/.dsh/skills/project-task` |
-| agents | `~/.agents/skills/project-task` |
+| project | `<项目>/.agents/skills/project-task-board` |
+| claude | `~/.claude/skills/project-task-board` |
+| codex | `~/.codex/skills/project-task-board` |
+| workbuddy | `~/.workbuddy/skills/project-task-board` |
+| zcode | `~/.zcode/skills/project-task-board` |
+| trae | `~/.trae/skills/project-task-board`（部分版本需在 Settings → Rule & Skills 手动导入） |
+| dsh | `~/.dsh/skills/project-task-board` |
+| agents | `~/.agents/skills/project-task-board` |
 
 Windows 优先目录 junction，失败回退复制；「内容不一致（drifted）」表示目标目录里是旧副本，重新安装即可。
 
@@ -114,7 +114,7 @@ dsh plugin --profile <profile> remove dsh-project-task
 | `NO_PROJECT: workingDirectory 服务不可用` | 3.0.0 及以前对 `workingDirectory` 硬依赖 | 升级到 ≥3.0.1（已回退会话头 `cwd`） |
 | 401 | 浏览器 `/api` 通道未带会话 cookie（命令行 curl 的常见情况） | 在页面控制台自检，不要用 curl 判断 |
 | `not found` / `未知接口` | Host 与 Client 版本不一致（旧 Host 新 Client） | 统一升级后完全重启 |
-| 空表格但无报错 | 新项目还没有任务 | 正常；`ptask task create` 或 `task ready` |
+| 空表格但无报错 | 新项目还没有任务 | 正常；`ptask create` 或 `task ready` |
 | 中文乱码 | PowerShell/终端编码 | Windows：`chcp 65001`；macOS/Linux 终端默认 UTF-8 |
 | macOS 上 `env: node\r: No such file or directory` | 检出文件是 CRLF，shebang 带了 `\r` | 仓库已用 `.gitattributes` 统一 LF：重新 clone 或 `git add --renormalize . && git checkout` |
 
