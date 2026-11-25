@@ -70,7 +70,7 @@ function stubReact() {
 
 async function renderClient(state, peoplePayload, options = {}) {
   const hooks = stubReact()
-  const localStorage = { store: {}, getItem(key) { return this.store[key] ?? null }, setItem(key, value) { this.store[key] = String(value) } }
+  const localStorage = { store: options.page ? { 'dsh-project-task-page': options.page } : {}, getItem(key) { return this.store[key] ?? null }, setItem(key, value) { this.store[key] = String(value) } }
   const sandbox = {
     window: {
       __ModuleLoader__: { load(definition) { sandbox.module = definition } },
@@ -121,8 +121,9 @@ async function renderClient(state, peoplePayload, options = {}) {
     }
   }
   await passes(30)
-  if (options.interact) {
-    await options.interact({ getTree: () => tree })
+  const interactions = Array.isArray(options.interact) ? options.interact : options.interact ? [options.interact] : []
+  for (const interaction of interactions) {
+    await interaction({ getTree: () => tree })
     await passes(30)
   }
   return tree
@@ -443,9 +444,210 @@ test('task detail shows history as a status flow instead of a text list', async 
     const count = (name) => classes.filter((value) => value.split(/\s+/).includes(name)).length
     assert.equal(count('dpt-flow'), 1)
     assert.equal(count('dpt-flow-step'), 2)
+    assert.equal(count('dpt-modal--detail'), 1)
+    assert.equal(count('dpt-head-facts'), 1)
+    assert.ok(count('dpt-dt-card') >= 2)
+    assert.equal(count('dpt-dt-sequence'), 1)
+    assert.equal(count('dpt-dt-seq-step'), 2)
     assert.ok(texts.includes('开工'))
     assert.ok(texts.includes('新建'))
     assert.ok(texts.includes('进行中'))
     assert.ok(texts.includes('未开始'))
+  })
+})
+
+test('recent changes are rendered newest first', async () => {
+  await withRoot(async (root) => {
+    const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })
+    const created = await act(root, config, { action: 'create', title: '倒序任务', by: 'tester' }, 'tester')
+    const id = created.task.id
+    const state = await getState(root, config, {})
+    state.actor = { actor: 'tester', person: 'tester', source: 'git', gitName: 'tester', hasPrefix: false }
+    state.config.defaultTab = 'all'
+    const task = state.board.tasks.find((entry) => entry.id === id)
+    const taskPayload = {
+      ok: true,
+      task,
+      children: [],
+      parent: null,
+      archived: false,
+      stage: null,
+      milestone: null,
+      preconditions: [],
+      blocking: [],
+      staleResources: [],
+      relatedCommits: [],
+      history: [
+        { at: '2026-11-04T08:00:00.000Z', action: 'create', by: 'tester', taskIds: [id], transitions: [{ id, from: null, to: 'open' }] },
+        { at: '2026-11-04T09:00:00.000Z', action: 'start', by: 'tester', taskIds: [id], transitions: [{ id, from: 'open', to: 'doing' }] },
+        { at: '2026-11-04T10:00:00.000Z', action: 'edit', by: 'tester', taskIds: [id], transitions: [] },
+        { at: '2026-11-04T11:00:00.000Z', action: 'edit', by: 'tester', taskIds: [id], transitions: [] },
+        { at: '2026-11-04T12:00:00.000Z', action: 'edit', by: 'tester', taskIds: [id], transitions: [] },
+        { at: '2026-11-04T13:00:00.000Z', action: 'done', by: 'tester', taskIds: [id], transitions: [{ id, from: 'doing', to: 'done' }] },
+        { at: '2026-11-04T14:00:00.000Z', action: 'edit', by: 'tester', taskIds: [id], transitions: [] },
+      ],
+    }
+    const tree = await renderClient(state, { ok: true, person: 'tester', people: [{ name: 'tester' }] }, {
+      taskPayload,
+      interact: async ({ getTree }) => {
+        const row = findNode(getTree(), (node) => {
+          const className = node && node.props && node.props.className
+          return typeof className === 'string' && className.split(/\s+/).includes('dpt-task') && typeof node.props.onClick === 'function'
+        })
+        row.props.onClick()
+      },
+    })
+    const times = []
+    const readTimes = (node) => {
+      if (!node || typeof node !== 'object') return
+      if (Array.isArray(node)) { node.forEach(readTimes); return }
+      const className = node.props && node.props.className
+      if (typeof className === 'string' && className.split(/\s+/).includes('dpt-dt-seq-time')) {
+        const text = (node.children || []).filter((child) => typeof child === 'string' || typeof child === 'number').join('')
+        if (text) times.push(text)
+      }
+      ;(node.children || []).forEach(readTimes)
+    }
+    readTimes(tree)
+    assert.equal(times.length, 5, 'only the 5 most recent changes should be rendered')
+    assert.ok(times[0] > times[4], `expected newest first, got ${times.join(' < ')}`)
+    let userClass = 0
+    const readUsers = (node) => {
+      if (!node || typeof node !== 'object') return
+      if (Array.isArray(node)) { node.forEach(readUsers); return }
+      const className = node.props && node.props.className
+      if (typeof className === 'string' && className === 'dpt-dt-seq-user') userClass += 1
+      ;(node.children || []).forEach(readUsers)
+    }
+    readUsers(tree)
+    assert.equal(userClass, 5, 'each visible change should have a compact user label')
+  })
+})
+
+test('global task tree shows milestone, stage, task and subtask levels', async () => {
+  await withRoot(async (root) => {
+    const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })
+    const parent = await act(root, config, { action: 'create', title: '树视图父任务', by: 'tester' }, 'tester')
+    await act(root, config, { action: 'create', title: '树视图子任务', parentId: parent.task.id, by: 'tester' }, 'tester')
+    const state = await getState(root, config, {})
+    state.actor = { actor: 'tester', person: 'tester', source: 'git', gitName: 'tester', hasPrefix: false }
+    const tree = await renderClient(state, { ok: true, person: 'tester', people: [{ name: 'tester' }] }, { page: 'tree' })
+    const classes = []
+    const texts = []
+    walk(tree, { class: (name) => classes.push(name), text: (text) => texts.push(text) })
+    const count = (name) => classes.filter((value) => value.split(/\s+/).includes(name)).length
+    assert.equal(count('dpt-tree'), 1)
+    assert.ok(count('dpt-tree-row') >= 4)
+    assert.ok(count('dpt-tree-task') >= 2)
+    assert.ok(count('dpt-tree-children') >= 2)
+    assert.ok(texts.includes('全局任务树'))
+    assert.ok(texts.some((text) => text.startsWith(state.board.tasks[0].id)))
+  })
+})
+
+test('detail graph shows milestone and group hierarchy lanes', async () => {
+  await withRoot(async (root) => {
+    const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })
+    const created = await act(root, config, { action: 'create', title: '层级图谱任务', by: 'tester' }, 'tester')
+    const state = await getState(root, config, {})
+    state.actor = { actor: 'tester', person: 'tester', source: 'git', gitName: 'tester', hasPrefix: false }
+    state.config.defaultTab = 'all'
+    const task = state.board.tasks.find((entry) => entry.id === created.task.id)
+    const children = Array.from({ length: 6 }, (_, index) => ({
+      id: 'C-' + index, title: '子任务 ' + index, status: 'open', parentId: task.id,
+    }))
+    const taskPayload = {
+      ok: true, task, children, parent: null, archived: false,
+      stage: { code: 'S-0001', name: '分组一', status: 'active' },
+      milestone: { code: 'M-0001', name: '里程碑一', status: 'active' },
+      preconditions: [], blocking: [], staleResources: [], relatedCommits: [], history: [],
+    }
+    const tree = await renderClient(state, { ok: true, person: 'tester', people: [{ name: 'tester' }] }, {
+      taskPayload,
+      interact: async ({ getTree }) => {
+        const row = findNode(getTree(), (node) => {
+          const className = node && node.props && node.props.className
+          return typeof className === 'string' && className.split(/\s+/).includes('dpt-task') && typeof node.props.onClick === 'function'
+        })
+        row.props.onClick()
+      },
+    })
+    const classes = []
+    const texts = []
+    walk(tree, { class: (name) => classes.push(name), text: (text) => texts.push(text) })
+    const count = (name) => classes.filter((value) => value.split(/\s+/).includes(name)).length
+    const roles = classes.filter((value) => value === 'dpt-dt-glane-cap').length
+    assert.ok(roles > 0)
+    assert.ok(count('dpt-dt-gnode--org') >= 2)
+    assert.ok(texts.includes('里程碑一'))
+    assert.ok(texts.includes('分组一'))
+    assert.ok(count('dpt-dt-glane-fold') >= 1, 'expected a fold control on the children lane')
+    assert.ok(count('dpt-dt-gnode--fold') === 0, 'graph should start fully expanded')
+  })
+})
+
+test('detail graph folds and expands crowded lanes', async () => {
+  await withRoot(async (root) => {
+    const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })
+    const created = await act(root, config, { action: 'create', title: '折叠图谱任务', by: 'tester' }, 'tester')
+    const state = await getState(root, config, {})
+    state.actor = { actor: 'tester', person: 'tester', source: 'git', gitName: 'tester', hasPrefix: false }
+    state.config.defaultTab = 'all'
+    const task = state.board.tasks.find((entry) => entry.id === created.task.id)
+    const children = Array.from({ length: 6 }, (_, index) => ({
+      id: 'F-' + index, title: '子任务 ' + index, status: 'open', parentId: task.id,
+    }))
+    const taskPayload = {
+      ok: true, task, children, parent: null, archived: false,
+      stage: { code: 'S-0001', name: '分组一', status: 'active' },
+      milestone: { code: 'M-0001', name: '里程碑一', status: 'active' },
+      preconditions: [], blocking: [], staleResources: [], relatedCommits: [], history: [],
+    }
+    let foldButton = null
+    const tree = await renderClient(state, { ok: true, person: 'tester', people: [{ name: 'tester' }] }, {
+      taskPayload,
+      interact: [
+        async ({ getTree }) => {
+          const row = findNode(getTree(), (node) => {
+            const className = node && node.props && node.props.className
+            return typeof className === 'string' && className.split(/\s+/).includes('dpt-task') && typeof node.props.onClick === 'function'
+          })
+          row.props.onClick()
+        },
+        async ({ getTree }) => {
+          foldButton = findNode(getTree(), (node) => {
+            const className = node && node.props && node.props.className
+            return typeof className === 'string' && className.split(/\s+/).includes('dpt-dt-glane-fold')
+          })
+          foldButton.props.onClick({ stopPropagation() {} })
+        },
+      ],
+    })
+    const classes = []
+    walk(tree, { class: (name) => classes.push(name), text: () => {} })
+    const count = (name) => classes.filter((value) => value.split(/\s+/).includes(name)).length
+    assert.ok(foldButton, 'fold control was not found')
+    assert.ok(count('dpt-dt-gnode--fold') >= 1, 'folded lane should show a summary node')
+  })
+})
+
+test('global task tree labels groups and shows flow states', async () => {
+  await withRoot(async (root) => {
+    const config = normalizeConfig({ markdown: { enabled: false }, archive: { afterDays: 0 }, version: { auto: false, require: false } })
+    const parent = await act(root, config, { action: 'create', title: '流转父任务', by: 'tester' }, 'tester')
+    await act(root, config, { action: 'create', title: '流转子任务', parentId: parent.task.id, by: 'tester' }, 'tester')
+    const state = await getState(root, config, {})
+    state.actor = { actor: 'tester', person: 'tester', source: 'git', gitName: 'tester', hasPrefix: false }
+    const tree = await renderClient(state, { ok: true, person: 'tester', people: [{ name: 'tester' }] }, { page: 'tree' })
+    const classes = []
+    const texts = []
+    walk(tree, { class: (name) => classes.push(name), text: (text) => texts.push(text) })
+    const count = (name) => classes.filter((value) => value.split(/\s+/).includes(name)).length
+    assert.ok(count('dpt-tree-kind') >= 2, 'milestone and group rows should carry kind labels')
+    assert.ok(count('dpt-tree-row--group') >= 1)
+    assert.ok(count('dpt-tree-row--milestone') >= 1)
+    assert.ok(count('dpt-tree-flow') >= 1, 'flow summary should be visible')
+    assert.ok(texts.includes('分组'))
+    assert.ok(texts.some((text) => text && text.indexOf('未开始') >= 0))
   })
 })
